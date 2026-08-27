@@ -76,6 +76,8 @@ class AdaptiveAggregator(FedAvgAggregator):
         weights = self.compute_weights(
             client_sizes, client_distances, client_quality
         )
+        # Kept so the server can record per-round weights for analysis.
+        self.last_weights = [float(w) for w in weights]
         aggregated: dict[str, torch.Tensor] = {}
         for key in client_states[0].keys():
             stacked = torch.stack(

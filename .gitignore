@@ -15,6 +15,7 @@ venv/
 data/raw/
 data/processed/
 data/cache/
+datasets/
 checkpoints/
 models/saved/
 *.pth
@@ -25,7 +26,12 @@ models/saved/
 
 # Experiment results
 results/
-runs/
+# runs/ holds the JSON artifact for every experiment in the paper.
+# paper/verify_claims.py re-checks the paper against these, so they are
+# tracked (~3 MB). Large outputs stay ignored below.
+!runs/
+runs/**/*.png
+runs/**/*.pth
 wandb/
 mlruns/
 outputs/
@@ -44,8 +50,10 @@ thesis/*.fls
 thesis/*.fdb_latexmk
 thesis/*.synctex.gz
 
-# Paper / research writeup (kept out of the public code repo)
-paper/
+# Paper / research writeup (kept out of the public code repo).
+# Anchored so it does not also match runs/paper/, which holds the run
+# artifacts the paper is verified against.
+/paper/
 PROPOSAL.md
 
 # OS

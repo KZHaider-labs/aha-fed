@@ -1,0 +1,184 @@
+{
+  "config": {
+    "aggregator": "adaptive",
+    "proximal_mu": 0.0,
+    "alpha": 1.0,
+    "beta": 4.0,
+    "gamma": 4.0,
+    "num_clients": 4,
+    "num_rounds": 30,
+    "local_epochs": 1,
+    "local_lr": 0.01,
+    "batch_size": 32,
+    "samples_per_client": 200,
+    "num_classes": 4,
+    "image_size": 32,
+    "heterogeneity": 0.7,
+    "noisy_client": 3,
+    "noisy_rate": 0.5,
+    "dp_epsilon": null,
+    "dp_delta": 1e-05,
+    "dp_max_grad_norm": 1.0,
+    "arch": "small_cnn",
+    "seed": 42,
+    "output": "runs/paper/aha_n0.5.json",
+    "device": "cuda"
+  },
+  "dp_config": null,
+  "history": [
+    {
+      "loss": 1.0264071774482728,
+      "accuracy": 0.615,
+      "auroc": 1.0,
+      "auprc": 1.0,
+      "ece": 0.23058658957481382,
+      "round": 3,
+      "client_quality": [
+        0.488,
+        0.502,
+        0.497,
+        0.446
+      ]
+    },
+    {
+      "loss": 0.5524917864799499,
+      "accuracy": 1.0,
+      "auroc": 1.0,
+      "auprc": 1.0,
+      "ece": 0.40445893988013265,
+      "round": 6,
+      "client_quality": [
+        0.63,
+        0.65,
+        0.636,
+        0.471
+      ]
+    },
+    {
+      "loss": 0.23761023044586183,
+      "accuracy": 1.0,
+      "auroc": 1.0,
+      "auprc": 1.0,
+      "ece": 0.20609777316451072,
+      "round": 9,
+      "client_quality": [
+        0.803,
+        0.81,
+        0.806,
+        0.473
+      ]
+    },
+    {
+      "loss": 0.0966535222530365,
+      "accuracy": 1.0,
+      "auroc": 1.0,
+      "auprc": 1.0,
+      "ece": 0.09066021591424941,
+      "round": 12,
+      "client_quality": [
+        0.913,
+        0.918,
+        0.915,
+        0.461
+      ]
+    },
+    {
+      "loss": 0.05069578558206558,
+      "accuracy": 1.0,
+      "auroc": 1.0,
+      "auprc": 1.0,
+      "ece": 0.04895332366228104,
+      "round": 15,
+      "client_quality": [
+        0.954,
+        0.957,
+        0.956,
+        0.448
+      ]
+    },
+    {
+      "loss": 0.03221371002495289,
+      "accuracy": 1.0,
+      "auroc": 1.0,
+      "auprc": 1.0,
+      "ece": 0.03148646280169487,
+      "round": 18,
+      "client_quality": [
+        0.971,
+        0.973,
+        0.973,
+        0.432
+      ]
+    },
+    {
+      "loss": 0.02336947984993458,
+      "accuracy": 1.0,
+      "auroc": 1.0,
+      "auprc": 1.0,
+      "ece": 0.022977471351623535,
+      "round": 21,
+      "client_quality": [
+        0.979,
+        0.981,
+        0.981,
+        0.431
+      ]
+    },
+    {
+      "loss": 0.018170422688126565,
+      "accuracy": 1.0,
+      "auroc": 1.0,
+      "auprc": 1.0,
+      "ece": 0.01792985200881958,
+      "round": 24,
+      "client_quality": [
+        0.983,
+        0.986,
+        0.985,
+        0.425
+      ]
+    },
+    {
+      "loss": 0.014731308817863465,
+      "accuracy": 1.0,
+      "auroc": 1.0,
+      "auprc": 1.0,
+      "ece": 0.014573335647583008,
+      "round": 27,
+      "client_quality": [
+        0.986,
+        0.988,
+        0.988,
+        0.426
+      ]
+    },
+    {
+      "loss": 0.012445720694959164,
+      "accuracy": 1.0,
+      "auroc": 1.0,
+      "auprc": 1.0,
+      "ece": 0.012331724166870117,
+      "round": 30,
+      "client_quality": [
+        0.988,
+        0.99,
+        0.99,
+        0.423
+      ]
+    }
+  ],
+  "final": {
+    "loss": 0.012445720694959164,
+    "accuracy": 1.0,
+    "auroc": 1.0,
+    "auprc": 1.0,
+    "ece": 0.012331724166870117,
+    "round": 30,
+    "client_quality": [
+      0.988,
+      0.99,
+      0.99,
+      0.423
+    ]
+  }
+}

@@ -1,0 +1,102 @@
+{
+  "config": {
+    "aggregator": "fedavg",
+    "proximal_mu": 0.0,
+    "alpha": 1.0,
+    "beta": 2.0,
+    "gamma": 2.0,
+    "num_clients": 3,
+    "num_rounds": 8,
+    "local_epochs": 1,
+    "local_lr": 0.01,
+    "batch_size": 32,
+    "samples_per_client": 100,
+    "num_classes": 4,
+    "image_size": 32,
+    "heterogeneity": 0.7,
+    "noisy_client": -1,
+    "noisy_rate": 0.0,
+    "dp_epsilon": null,
+    "dp_delta": 1e-05,
+    "dp_max_grad_norm": 1.0,
+    "arch": "small_cnn",
+    "seed": 42,
+    "output": "e:\\New folder (2)\\fl-medical-imaging-phd\\runs\\smoke_fedavg.json",
+    "device": "cuda"
+  },
+  "dp_config": null,
+  "history": [
+    {
+      "loss": 1.356049771308899,
+      "accuracy": 0.2925,
+      "auroc": 0.7705843469063988,
+      "auprc": 0.6252590776574143,
+      "ece": 0.4177441953867674,
+      "round": 1
+    },
+    {
+      "loss": 1.3058096313476562,
+      "accuracy": 0.2925,
+      "auroc": 1.0,
+      "auprc": 1.0,
+      "ece": 0.2482821770012379,
+      "round": 2
+    },
+    {
+      "loss": 1.2539663076400758,
+      "accuracy": 0.2925,
+      "auroc": 1.0,
+      "auprc": 1.0,
+      "ece": 0.23416531085968018,
+      "round": 3
+    },
+    {
+      "loss": 1.202064914703369,
+      "accuracy": 0.2925,
+      "auroc": 1.0,
+      "auprc": 1.0,
+      "ece": 0.3952022374421358,
+      "round": 4
+    },
+    {
+      "loss": 1.1464376640319824,
+      "accuracy": 0.53,
+      "auroc": 1.0,
+      "auprc": 1.0,
+      "ece": 0.34874665640294555,
+      "round": 5
+    },
+    {
+      "loss": 1.0860170936584472,
+      "accuracy": 0.53,
+      "auroc": 1.0,
+      "auprc": 1.0,
+      "ece": 0.33800480261445043,
+      "round": 6
+    },
+    {
+      "loss": 1.0239396452903748,
+      "accuracy": 0.53,
+      "auroc": 1.0,
+      "auprc": 1.0,
+      "ece": 0.43628306560218333,
+      "round": 7
+    },
+    {
+      "loss": 0.958109803199768,
+      "accuracy": 0.755,
+      "auroc": 1.0,
+      "auprc": 1.0,
+      "ece": 0.5332771593332291,
+      "round": 8
+    }
+  ],
+  "final": {
+    "loss": 0.958109803199768,
+    "accuracy": 0.755,
+    "auroc": 1.0,
+    "auprc": 1.0,
+    "ece": 0.5332771593332291,
+    "round": 8
+  }
+}

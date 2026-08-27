@@ -56,22 +56,32 @@ def _default_transform(image_size: int = 224) -> Callable:
 class NIHChestXrayDataset(Dataset):
     def __init__(
         self,
-        csv_path: str | Path,
-        image_dir: str | Path,
+        csv_path: str | Path | None = None,
+        image_dir: str | Path = ".",
         split_list: str | Path | None = None,
         transform: Callable | None = None,
         diseases: Sequence[str] = NIH_DISEASES,
         image_size: int = 224,
+        dataframe: "pd.DataFrame | None" = None,
+        label_noise: float = 0.0,
+        noise_seed: int = 0,
     ):
-        csv_path = Path(csv_path)
         image_dir = Path(image_dir)
-        if not csv_path.exists():
-            raise FileNotFoundError(
-                f"NIH metadata CSV not found: {csv_path}. "
-                f"Expected: {image_dir.parent}/Data_Entry_2017.csv"
-            )
-
-        df = pd.read_csv(csv_path)
+        if dataframe is not None:
+            # Pre-filtered rows (e.g. one federation shard). Avoids writing
+            # temporary CSVs, which fails on read-only mounts such as
+            # /kaggle/input.
+            df = dataframe.reset_index(drop=True)
+        else:
+            if csv_path is None:
+                raise ValueError("pass either csv_path or dataframe")
+            csv_path = Path(csv_path)
+            if not csv_path.exists():
+                raise FileNotFoundError(
+                    f"NIH metadata CSV not found: {csv_path}. "
+                    f"Expected: {image_dir.parent}/Data_Entry_2017.csv"
+                )
+            df = pd.read_csv(csv_path)
         if split_list is not None:
             wanted = set(Path(split_list).read_text().splitlines())
             df = df[df["Image Index"].isin(wanted)].reset_index(drop=True)
@@ -86,6 +96,23 @@ class NIHChestXrayDataset(Dataset):
         self.image_dir = image_dir
         self.diseases = list(diseases)
         self.transform = transform or _default_transform(image_size)
+
+        if label_noise > 0:
+            # Multi-label corruption flips individual findings rather than
+            # reassigning a class: for each selected image every finding bit is
+            # resampled from that finding's overall prevalence, which models a
+            # site whose annotations are unreliable without changing how many
+            # positives it reports overall.
+            import numpy as np
+
+            rng = np.random.default_rng(noise_seed)
+            n = len(labels)
+            hit = rng.random(n) < label_noise
+            prevalence = labels.mean(dim=0).numpy()
+            resampled = (rng.random((int(hit.sum()), labels.shape[1]))
+                         < prevalence).astype("float32")
+            labels[torch.from_numpy(hit)] = torch.from_numpy(resampled)
+
         self.labels = labels
 
     def __len__(self) -> int:
@@ -108,6 +135,7 @@ def federate_nih_by_patient(
     num_centers: int = 4,
     transform: Callable | None = None,
     seed: int = 42,
+    label_noise: Sequence[float] | None = None,
     **kwargs,
 ) -> list[NIHChestXrayDataset]:
     """Partition NIH by Patient ID into ``num_centers`` non-overlapping shards.
@@ -126,17 +154,21 @@ def federate_nih_by_patient(
     rng.shuffle(patients)
     shards = np.array_split(patients, num_centers)
 
+    rates = list(label_noise) if label_noise is not None else [0.0] * num_centers
+    if len(rates) != num_centers:
+        raise ValueError(
+            f"label_noise has {len(rates)} entries for {num_centers} centers")
+
     centers: list[NIHChestXrayDataset] = []
     for i, shard in enumerate(shards):
-        shard_set = set(shard.tolist())
-        shard_df = df[df["Patient ID"].isin(shard_set)]
-        tmp_csv = csv_path.with_name(f"{csv_path.stem}_center{i}.csv")
-        shard_df.to_csv(tmp_csv, index=False)
+        shard_df = df[df["Patient ID"].isin(set(shard.tolist()))]
         centers.append(
             NIHChestXrayDataset(
-                csv_path=tmp_csv,
+                dataframe=shard_df,
                 image_dir=image_dir,
                 transform=transform,
+                label_noise=rates[i],
+                noise_seed=seed + i,
                 **kwargs,
             )
         )

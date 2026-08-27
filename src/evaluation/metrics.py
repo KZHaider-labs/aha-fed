@@ -44,6 +44,10 @@ def multiclass_auroc(probs: np.ndarray, labels: np.ndarray) -> float | None:
             return None
         if len(np.unique(labels)) < 2:
             return None
+        if probs.shape[1] == 2:
+            # sklearn rejects multi_class="ovr" for two columns; the binary
+            # case wants the positive-class score on its own.
+            return float(roc_auc_score(labels, probs[:, 1]))
         return float(
             roc_auc_score(labels, probs, multi_class="ovr", average="macro")
         )

@@ -26,11 +26,19 @@ class FederatedClient:
         dataset: Dataset,
         batch_size: int = 32,
         device: str = "cpu",
+        multilabel: bool = False,
     ):
         self.client_id = client_id
         self.dataset = dataset
         self.loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
         self.device = device
+        # NIH ChestX-ray14 and CheXpert are multi-label: one image can carry
+        # several findings, so the per-class sigmoid loss replaces softmax.
+        self.multilabel = multilabel
+
+    def _criterion(self, reduction: str = "mean") -> nn.Module:
+        return (nn.BCEWithLogitsLoss(reduction=reduction) if self.multilabel
+                else nn.CrossEntropyLoss(reduction=reduction))
 
     def __len__(self) -> int:
         return len(self.dataset)
@@ -66,13 +74,13 @@ class FederatedClient:
             else None
         )
         optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=0.9)
-        criterion = nn.CrossEntropyLoss()
+        criterion = self._criterion()
 
         for _ in range(epochs):
             for x, y in self.loader:
                 x, y = x.to(self.device), y.to(self.device)
                 optimizer.zero_grad()
-                loss = criterion(model(x), y)
+                loss = criterion(model(x), y.float() if self.multilabel else y)
                 if proximal_mu > 0 and global_params is not None:
                     loss = loss + fedprox_proximal_term(
                         list(model.parameters()), global_params, proximal_mu
@@ -111,13 +119,14 @@ class FederatedClient:
             epochs=epochs,
             max_grad_norm=float(dp_config.get("max_grad_norm", 1.0)),
         )
-        criterion = nn.CrossEntropyLoss()
+        criterion = self._criterion()
         private_model.train()
         for _ in range(epochs):
             for x, y in private_loader:
                 x, y = x.to(self.device), y.to(self.device)
                 private_opt.zero_grad()
-                loss = criterion(private_model(x), y)
+                loss = criterion(private_model(x),
+                                 y.float() if self.multilabel else y)
                 loss.backward()
                 private_opt.step()
 
@@ -146,7 +155,8 @@ class FederatedClient:
         total = 0
         for x, y in self.loader:
             x, y = x.to(self.device), y.to(self.device)
-            total_loss += criterion(model(x), y).item() * y.shape[0]
+            target = y.float() if self.multilabel else y
+            total_loss += criterion(model(x), target).item() * y.shape[0]
             total += y.shape[0]
         if was_training:
             model.train()

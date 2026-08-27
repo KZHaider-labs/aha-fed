@@ -56,6 +56,7 @@ class FederatedServer:
         eval_loader: DataLoader,
         num_classes: int,
         device: str = "cpu",
+        multilabel: bool = False,
     ):
         self.global_model = global_model.to(device)
         self.clients = clients
@@ -63,6 +64,9 @@ class FederatedServer:
         self.eval_loader = eval_loader
         self.num_classes = num_classes
         self.device = device
+        # Multi-label corpora (NIH ChestX-ray14, CheXpert) score per finding
+        # rather than per image; see evaluate().
+        self.multilabel = multilabel
 
         self.client_priors = self._empirical_priors()
         self.mean_prior = torch.stack(self.client_priors).mean(dim=0)
@@ -72,6 +76,12 @@ class FederatedServer:
         for c in self.clients:
             counts = torch.zeros(self.num_classes)
             for _, y in c.loader:
+                if self.multilabel:
+                    # y is a (batch, num_classes) indicator matrix, so the
+                    # prevalence of each finding is a column sum, not a count
+                    # of label values.
+                    counts += y.float().reshape(-1, self.num_classes).sum(0)
+                    continue
                 for v in y.view(-1):
                     counts[int(v.item())] += 1.0
             total = counts.sum()
@@ -152,6 +162,11 @@ class FederatedServer:
                     metrics["client_quality"] = [
                         round(q, 3) for q in client_quality
                     ]
+                    weights = getattr(self.aggregator, "last_weights", None)
+                    if weights is not None:
+                        metrics["client_weights"] = [
+                            round(w, 5) for w in weights
+                        ]
                 history.append(metrics)
                 self._print_round(metrics)
                 if round_callback is not None:
@@ -195,6 +210,8 @@ class FederatedServer:
     @torch.no_grad()
     def evaluate(self) -> dict:
         self.global_model.eval()
+        if self.multilabel:
+            return self._evaluate_multilabel()
         criterion = nn.CrossEntropyLoss(reduction="sum")
         total = 0
         correct = 0
@@ -224,4 +241,57 @@ class FederatedServer:
             "auroc": multiclass_auroc(probs_np, labels_np),
             "auprc": multiclass_auprc(probs_np, labels_np),
             "ece": expected_calibration_error(top_conf, correct_mask),
+        }
+
+    @torch.no_grad()
+    def _evaluate_multilabel(self) -> dict:
+        """Per-finding scoring for multi-label corpora.
+
+        Accuracy is exact-match over the whole label vector, which is a harsh
+        but unambiguous measure; AUROC/AUPRC are macro-averaged over findings,
+        and ECE pools every (image, finding) sigmoid output.
+        """
+        criterion = nn.BCEWithLogitsLoss(reduction="sum")
+        loss_sum = 0.0
+        total = 0
+        exact = 0
+        all_probs: list[torch.Tensor] = []
+        all_labels: list[torch.Tensor] = []
+        for x, y in self.eval_loader:
+            x, y = x.to(self.device), y.to(self.device).float()
+            out = self.global_model(x)
+            loss_sum += criterion(out, y).item()
+            probs = torch.sigmoid(out)
+            exact += ((probs > 0.5).float() == y).all(dim=1).sum().item()
+            total += y.shape[0]
+            all_probs.append(probs.cpu())
+            all_labels.append(y.cpu())
+        self.global_model.train()
+
+        probs_np = torch.cat(all_probs).numpy()
+        labels_np = torch.cat(all_labels).numpy()
+
+        aurocs, auprcs = [], []
+        try:
+            from sklearn.metrics import average_precision_score, roc_auc_score
+            for c in range(labels_np.shape[1]):
+                col = labels_np[:, c]
+                if 0 < col.sum() < len(col):  # skip findings absent here
+                    aurocs.append(roc_auc_score(col, probs_np[:, c]))
+                    auprcs.append(average_precision_score(col, probs_np[:, c]))
+        except ImportError:
+            pass
+
+        conf = probs_np.reshape(-1)
+        hit = ((probs_np > 0.5) == (labels_np > 0.5)).reshape(-1).astype(np.float32)
+        # ECE wants confidence in the predicted class, not in "positive".
+        conf = np.where(conf >= 0.5, conf, 1.0 - conf)
+
+        return {
+            "loss": loss_sum / max(1, total),
+            "accuracy": exact / max(1, total),
+            "auroc": float(np.mean(aurocs)) if aurocs else None,
+            "auprc": float(np.mean(auprcs)) if auprcs else None,
+            "ece": expected_calibration_error(conf, hit),
+            "findings_scored": len(aurocs),
         }

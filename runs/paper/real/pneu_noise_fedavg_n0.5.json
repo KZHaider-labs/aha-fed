@@ -1,0 +1,113 @@
+{
+  "config": {
+    "aggregator": "fedavg",
+    "seed": 42,
+    "num_clients": 4,
+    "samples_per_client": 300,
+    "num_classes": 2,
+    "heterogeneity": 0.5,
+    "noisy_client": 3,
+    "noisy_rate": 0.5,
+    "num_rounds": 20,
+    "local_epochs": 2,
+    "local_lr": 0.01,
+    "batch_size": 64,
+    "proximal_mu": 0.0,
+    "alpha": 1.0,
+    "beta": 4.0,
+    "gamma": 4.0,
+    "feddisco_a": 4.0,
+    "dataset": "pneumoniamnist"
+  },
+  "dp_config": null,
+  "history": [
+    {
+      "loss": 0.7462048041514862,
+      "accuracy": 0.625,
+      "auroc": 0.8363905325443786,
+      "auprc": null,
+      "ece": 0.18047324185952163,
+      "round": 2
+    },
+    {
+      "loss": 0.7754932794815454,
+      "accuracy": 0.625,
+      "auroc": 0.8210168748630287,
+      "auprc": null,
+      "ece": 0.20359760522842407,
+      "round": 4
+    },
+    {
+      "loss": 0.724983594356439,
+      "accuracy": 0.625,
+      "auroc": 0.8340236686390532,
+      "auprc": null,
+      "ece": 0.16208189725875854,
+      "round": 6
+    },
+    {
+      "loss": 0.7149634483533028,
+      "accuracy": 0.625,
+      "auroc": 0.84660859083936,
+      "auprc": null,
+      "ece": 0.15361171960830688,
+      "round": 8
+    },
+    {
+      "loss": 0.7037668839479104,
+      "accuracy": 0.625,
+      "auroc": 0.8532544378698225,
+      "auprc": null,
+      "ece": 0.14637935161590576,
+      "round": 10
+    },
+    {
+      "loss": 0.6927138964335123,
+      "accuracy": 0.625,
+      "auroc": 0.8580429541968004,
+      "auprc": null,
+      "ece": 0.14335596847992677,
+      "round": 12
+    },
+    {
+      "loss": 0.7398694845346304,
+      "accuracy": 0.625,
+      "auroc": 0.8541310541310541,
+      "auprc": null,
+      "ece": 0.19433134087385273,
+      "round": 14
+    },
+    {
+      "loss": 0.7120474057319837,
+      "accuracy": 0.625,
+      "auroc": 0.8677186061801447,
+      "auprc": null,
+      "ece": 0.2495807971900854,
+      "round": 16
+    },
+    {
+      "loss": 0.6558051476111779,
+      "accuracy": 0.625,
+      "auroc": 0.8748849441157134,
+      "auprc": null,
+      "ece": 0.1598255735559341,
+      "round": 18
+    },
+    {
+      "loss": 0.6401164837372608,
+      "accuracy": 0.625,
+      "auroc": 0.8680254218715757,
+      "auprc": null,
+      "ece": 0.24509812518954274,
+      "round": 20
+    }
+  ],
+  "final": {
+    "loss": 0.6401164837372608,
+    "accuracy": 0.625,
+    "auroc": 0.8680254218715757,
+    "auprc": null,
+    "ece": 0.24509812518954274,
+    "round": 20
+  }
+}

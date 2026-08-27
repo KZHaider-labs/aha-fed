@@ -1,0 +1,51 @@
+{
+  "args": {
+    "aggregator": "adaptive",
+    "alpha": 1.0,
+    "beta": 2.0,
+    "gamma": 4.0,
+    "proximal_mu": 0.0,
+    "num_clients": 4,
+    "num_rounds": 8,
+    "samples_per_client": 200,
+    "num_classes": 4,
+    "image_size": 32,
+    "heterogeneity": 0.7,
+    "noisy_client": 3,
+    "noisy_rate": 0.6,
+    "seeds": 3,
+    "tag": "aha_noisy"
+  },
+  "runs": [
+    {
+      "seed": 42,
+      "accuracy": 1.0,
+      "loss": 0.3415344965457916
+    },
+    {
+      "seed": 43,
+      "accuracy": 1.0,
+      "loss": 0.3668303143978119
+    },
+    {
+      "seed": 44,
+      "accuracy": 1.0,
+      "loss": 0.5448957824707031
+    }
+  ],
+  "summary": {
+    "accuracy": {
+      "mean": 1.0,
+      "std": 0.0,
+      "min": 1.0,
+      "max": 1.0
+    },
+    "loss": {
+      "mean": 0.4177535311381022,
+      "std": 0.09049432267880067,
+      "min": 0.3415344965457916,
+      "max": 0.5448957824707031
+    },
+    "n_seeds": 3
+  }
+}
