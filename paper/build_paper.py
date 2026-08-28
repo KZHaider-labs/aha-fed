@@ -1257,26 +1257,29 @@ def build() -> None:
         "the method helps most.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_paragraph(doc,
-        "Panel (b) varies the federation size K with the total sample budget "
-        "held roughly constant, again over ten seeds, and here the "
-        "result constrains the method rather than supporting it. At "
-        "K = 4 the reduction is 1.46× and significant (p = 0.004); at "
-        "K = 8 it falls to 1.17% and is not (p = 0.13); at K = 12 the two "
-        "methods are indistinguishable (1.01×, p = 1.00). The pooled "
-        "effect remains significant (1.19×, p = 0.005) but is carried "
-        "almost entirely by K = 4. The reading is straightforward: a "
-        "single corrupted client holding 1/K of the weight is diluted as "
-        "K grows, so there is progressively less for a quality-aware rule "
-        "to correct. AHA-Fed's value is therefore specific to small-K "
-        "cross-silo federations — which is the regime most multi-hospital "
-        "collaborations occupy, but we state the boundary rather than "
-        "implying the gain extends past it. We have not tested K beyond "
-        "12 and make no claim about cross-device scale.",
+        "Panel (b) varies the federation size K from 4 to 32 with the total "
+        "sample budget held roughly constant, ten seeds each, and here the "
+        "result constrains the method rather than supporting it. At K = 4 "
+        "the reduction is 1.46× and significant (p = 0.004). Beyond that it "
+        "decays: 1.17× at K = 8 (p = 0.13), 1.01× at K = 12 (p = 1.00), "
+        "1.24× at K = 20 (p = 0.049) and 1.01× at K = 32 (p = 0.85). The "
+        "K = 20 point invites over-reading: alone it clears the conventional "
+        "threshold, but it is one of five comparisons, and under "
+        "Holm–Bonferroni correction across the sweep only K = 4 survives. We "
+        "therefore treat it as noise rather than a return of the effect.",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
+    add_paragraph(doc,
+        "The reading is straightforward: a single corrupted client holding "
+        "1/K of the weight is diluted as K grows, so there is progressively "
+        "less for a quality-aware rule to correct. AHA-Fed's value is "
+        "specific to small cross-silo federations — the regime most "
+        "multi-hospital collaborations occupy — and we state that boundary "
+        "rather than implying the gain extends past it.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_figure(doc, FIGS / "fig_het_scale.png",
                "Figure 9: PathMNIST — Dirichlet heterogeneity sweep "
                "(0.0–0.9, 10 seeds per level) and federation-size scaling "
-               "(K = 4, 8, 12, 10 seeds each).")
+               "(K = 4 to 32, 10 seeds each).")
 
     add_heading(doc, "5.5 Per-client aggregation weights", level=2)
     add_paragraph(doc,
@@ -1499,14 +1502,22 @@ def build() -> None:
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     add_paragraph(doc,
-        "We report this as a promising refinement rather than a settled "
-        "result. The ECE improvement, which is the metric this paper treats "
-        "as primary, does not clear the conventional threshold at ten seeds; "
-        "the accuracy and AUROC gains do. A larger seed budget would settle "
-        "whether the calibration gain is real. We also note that an earlier "
-        "three-seed reading of this same comparison suggested the opposite "
-        "conclusion — that the variant hurt calibration by 25% — which is a "
-        "further instance of the seed-budget caution in Section 5.3.",
+        "Selection was made on validation, so we evaluate the chosen variant "
+        "once on the held-out test split. It replicates: accuracy rises from "
+        "0.628 to 0.704 (p = 0.012) and AUROC from 0.888 to 0.906 "
+        "(p = 0.037), with ECE improving from 0.219 to 0.192 but not reaching "
+        "significance (p = 0.28). We therefore report the variant as "
+        "improving discrimination on this task, and as promising but "
+        "unconfirmed for calibration — the metric this paper otherwise "
+        "treats as primary.",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
+    add_paragraph(doc,
+        "One methodological note. An earlier three-seed reading of this same "
+        "comparison pointed the other way, suggesting the variant hurt "
+        "calibration by 25%. Nothing changed but the seed budget. This is the "
+        "second time in this paper that a three-seed result reversed at ten "
+        "(Section 5.3 is the first), and we mention it because small-seed "
+        "comparisons remain common in the federated learning literature.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     add_heading(doc, "5.8 Scaling to full-resolution chest radiography",

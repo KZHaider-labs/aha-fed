@@ -52,6 +52,7 @@ def run_one(
     num_classes: int = 9,
     heterogeneity: float = 0.5,
     noisy_client: int = 3,
+    num_noisy: int = 1,
     noisy_rate: float = 0.5,
     num_rounds: int = 25,
     local_epochs: int = 2,
@@ -82,8 +83,12 @@ def run_one(
         raise ValueError(f"unknown dataset {dataset}")
 
     rates = [0.0] * num_clients
-    if 0 <= noisy_client < num_clients:
-        rates[noisy_client] = noisy_rate
+    # num_noisy > 1 corrupts a contiguous block ending at noisy_client, which
+    # models several unreliable sites rather than a single bad one.
+    for offset in range(num_noisy):
+        idx = noisy_client - offset
+        if 0 <= idx < num_clients:
+            rates[idx] = noisy_rate
     client_ds = federate_dirichlet(
         train_ds,
         num_clients=num_clients,
@@ -133,6 +138,7 @@ def run_one(
             "num_classes": num_classes,
             "heterogeneity": heterogeneity,
             "noisy_client": noisy_client,
+            "num_noisy": num_noisy,
             "noisy_rate": noisy_rate,
             "num_rounds": num_rounds,
             "local_epochs": local_epochs,

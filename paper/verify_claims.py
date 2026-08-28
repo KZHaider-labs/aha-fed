@@ -141,7 +141,7 @@ if het_a and het_v:
 print("\n=== Client-count scaling on PathMNIST ===")
 scale_a, scale_v = [], []
 k4_sig = False
-for k in ["4", "8", "12"]:
+for k in ["4", "8", "12", "20", "32"]:
     a = by_seed(f"real_scale_aha_k{k}_s*.json", "ece")
     a.update(by_seed(f"real_scale_aha_k{k}.json", "ece"))
     v = by_seed(f"real_scale_fedavg_k{k}_s*.json", "ece")
