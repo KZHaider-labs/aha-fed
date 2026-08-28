@@ -1357,14 +1357,15 @@ def build() -> None:
         "and AUROC indistinguishable from the strongest baselines — the "
         "AUROC spread across all five methods is 0.011. AHA-Fed also has "
         "the smallest seed-to-seed standard deviation (0.018 against "
-        "0.009–0.037 for the baselines), which matters for clinical "
+        "0.019–0.030 for the baselines), which matters for clinical "
         "reliability: a method whose calibration varies widely with the "
         "random seed is hard to qualify for deployment. FedDisco, which "
-        "carries the distance term without the quality term, lands on "
-        "FedAvg's mean ECE (0.123) with the widest spread of any method "
-        "(± 0.030); this is consistent with our design choice, and the "
-        "margin against it is the largest and most significant of the four "
-        "(30.6%, p = 0.004) — the ablation in Section 6 "
+        "carries the distance term without the quality term, is the "
+        "weakest of the four baselines (0.139) and has the widest spread of "
+        "any method (± 0.030); the margin against it is correspondingly the "
+        "largest and most significant of the four (30.6%, p = 0.004). That "
+        "ordering is consistent with the quality term rather than the "
+        "distance term carrying the gain, and the ablation in Section 6 "
         "tests the attribution directly.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
