@@ -52,8 +52,11 @@ thesis/*.synctex.gz
 
 # Paper / research writeup (kept out of the public code repo).
 # Anchored so it does not also match runs/paper/, which holds the run
-# artifacts the paper is verified against.
-/paper/
+# artifacts the paper is verified against. The scripts under paper/ are
+# tooling, not manuscript, and are tracked: without them nobody can rebuild
+# the document or re-check its numbers.
+/paper/*
+!/paper/*.py
 PROPOSAL.md
 
 # OS

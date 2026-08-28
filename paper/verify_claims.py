@@ -1,0 +1,367 @@
+"""Cross-check every numeric claim in the paper against runs/paper/real/*.json.
+
+All claims are checked against real MedMNIST v2 runs; the synthetic benchmark
+is no longer cited by the paper and is not read here.
+
+Run:  python paper/verify_claims.py
+Exits non-zero if a positive claim is unsupported, or if a documented
+limitation silently stops being true.
+"""
+from __future__ import annotations
+
+import glob
+import json
+import re
+import statistics as st
+import sys
+from pathlib import Path
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
+ROOT = Path(__file__).resolve().parent.parent
+REAL = ROOT / "runs" / "paper" / "real"
+
+FAILED: list[str] = []
+
+# Facts the paper states openly as limitations rather than claiming the reverse.
+# They are expected to be False; a flip to True means the text needs updating.
+KNOWN_LIMITATIONS = {
+    "DP eps=0.5 AHA above chance",
+    "DP eps=0.5 FedAvg above chance",
+    "DP eps=1.0 AHA above chance",
+    "DP eps=1.0 FedAvg above chance",
+    "DP eps=5.0 FedAvg above chance",
+    "DP eps=5.0 AHA calibration better",
+    "AHA-Fed leads on PneumoniaMNIST",
+    "AHA-Fed leads FedAvg on the clean NIH federation",
+    "corrupted NIH advantage is significant",
+}
+
+METHODS = ["aha_fed", "fedavg", "fedprox", "fedbn", "feddisco"]
+LABEL = {"aha_fed": "AHA-Fed", "fedavg": "FedAvg", "fedprox": "FedProx",
+         "fedbn": "FedBN", "feddisco": "FedDisco"}
+
+
+def final(path: str) -> dict:
+    d = json.loads(Path(path).read_text())
+    return d.get("final") or (d.get("history") or [{}])[-1]
+
+
+def vals(patterns: list[str], key: str) -> list[float]:
+    files = sorted({f for p in patterns for f in glob.glob(str(REAL / p))})
+    out = [final(f).get(key) for f in files]
+    return [v for v in out if v is not None]
+
+
+def by_seed(pattern: str, key: str) -> dict[str, float]:
+    """Map seed -> value, so comparisons pair like with like.
+
+    A trailing _s<digits> names the seed; filenames without one are seed 42.
+    Matching only a digit suffix matters because "real_scale_..." itself
+    contains "_s".
+    """
+    out = {}
+    for f in sorted(glob.glob(str(REAL / pattern))):
+        v = final(f).get(key)
+        if v is None:
+            continue
+        m = re.search(r"_s(\d+)$", Path(f).stem)
+        out[m.group(1) if m else "42"] = v
+    return out
+
+
+def paired(a: dict[str, float], b: dict[str, float]) -> tuple[float, float | None, int]:
+    """Mean reduction of a vs b and a Wilcoxon p over their shared seeds."""
+    common = sorted(set(a) & set(b))
+    if not common:
+        return float("nan"), None, 0
+    x = [a[k] for k in common]
+    y = [b[k] for k in common]
+    red = (st.mean(y) - st.mean(x)) / st.mean(y) * 100
+    return red, wilcoxon_p(x, y), len(common)
+
+
+def check(label: str, ok: bool, detail: str) -> None:
+    if label in KNOWN_LIMITATIONS:
+        print(f"[{'NEW  ' if ok else 'LIMIT'}] {label}: {detail}")
+        if ok:
+            FAILED.append(f"{label} (now TRUE — paper still calls it a limitation)")
+        return
+    print(f"[{'OK ' if ok else 'FAIL'}] {label}: {detail}")
+    if not ok:
+        FAILED.append(label)
+
+
+def wilcoxon_p(a: list[float], b: list[float]) -> float | None:
+    if len(a) != len(b) or len(a) < 2:
+        return None
+    try:
+        from scipy.stats import wilcoxon
+        return float(wilcoxon(a, b).pvalue)
+    except Exception:
+        return None
+
+
+# ------------------------------------------------- headline: heterogeneity
+print("=== Heterogeneity sweep on PathMNIST (the paper's headline claim) ===")
+LEVELS = ["0.0", "0.3", "0.5", "0.7", "0.9"]
+het_a, het_v, wins = [], [], 0
+for h in LEVELS:
+    # Pair by seed so the signed-rank test compares matched runs.
+    a_by = by_seed(f"real_het_aha_h{h}.json", "ece")
+    a_by.update(by_seed(f"real_het_aha_h{h}_s*.json", "ece"))
+    v_by = by_seed(f"real_het_fedavg_h{h}.json", "ece")
+    v_by.update(by_seed(f"real_het_fedavg_h{h}_s*.json", "ece"))
+    common = sorted(set(a_by) & set(v_by))
+    if not common:
+        continue
+    a = [a_by[c] for c in common]
+    v = [v_by[c] for c in common]
+    het_a += a
+    het_v += v
+    wins += st.mean(a) < st.mean(v)
+    pv = wilcoxon_p(a, v)
+    ps = f"p={pv:.4f}" if pv is not None else ""
+    print(f"  h={h}  AHA {st.mean(a):.4f}±{st.pstdev(a):.4f}   "
+          f"FedAvg {st.mean(v):.4f}±{st.pstdev(v):.4f}   "
+          f"{st.mean(v) / st.mean(a):.2f}x   {ps} (n={len(common)})")
+
+check("AHA-Fed wins at every heterogeneity level", wins == len(LEVELS),
+      f"{wins}/{len(LEVELS)} levels")
+if het_a and het_v:
+    p = wilcoxon_p(het_a, het_v)
+    ratio = st.mean(het_v) / st.mean(het_a)
+    check("heterogeneity separation is significant", p is not None and p < 0.05,
+          f"pooled {ratio:.2f}x, Wilcoxon p={p:.4f} (n={len(het_a)})"
+          if p is not None else "scipy unavailable")
+
+# ---------------------------------------------------------- client scaling
+print("\n=== Client-count scaling on PathMNIST ===")
+scale_a, scale_v = [], []
+k4_sig = False
+for k in ["4", "8", "12"]:
+    a = by_seed(f"real_scale_aha_k{k}_s*.json", "ece")
+    a.update(by_seed(f"real_scale_aha_k{k}.json", "ece"))
+    v = by_seed(f"real_scale_fedavg_k{k}_s*.json", "ece")
+    v.update(by_seed(f"real_scale_fedavg_k{k}.json", "ece"))
+    common = sorted(set(a) & set(v))
+    if not common:
+        continue
+    x = [a[c] for c in common]
+    y = [v[c] for c in common]
+    scale_a += x
+    scale_v += y
+    pv = wilcoxon_p(x, y)
+    ps = f"p={pv:.4f}" if pv is not None else ""
+    print(f"  K={k:<3} AHA {st.mean(x):.4f}   FedAvg {st.mean(v_ := y):.4f}   "
+          f"{st.mean(y) / st.mean(x):.2f}x   {ps} (n={len(common)})")
+    if k == "4":
+        k4_sig = pv is not None and pv < 0.05
+
+# The advantage is real at K=4 and washes out as K grows; the paper says so,
+# so that is what we check rather than a blanket "wins everywhere".
+check("AHA-Fed advantage is significant at K=4", k4_sig, "see per-K rows above")
+if scale_a:
+    pv = wilcoxon_p(scale_a, scale_v)
+    check("pooled scaling advantage is significant",
+          pv is not None and pv < 0.05,
+          f"pooled {st.mean(scale_v) / st.mean(scale_a):.2f}x, p={pv:.4f} "
+          f"(n={len(scale_a)})" if pv is not None else "scipy unavailable")
+
+# ------------------------------------------------------ PathMNIST baselines
+print("\n=== PathMNIST baselines ===")
+ece = {m: vals([f"path_{m}_s*.json"], "ece") for m in METHODS}
+auroc = {m: vals([f"path_{m}_s*.json"], "auroc") for m in METHODS}
+for m in METHODS:
+    if ece[m]:
+        print(f"  {LABEL[m]:<9} ECE {st.mean(ece[m]):.4f}±{st.pstdev(ece[m]):.4f} "
+              f"(n={len(ece[m])})  AUROC {st.mean(auroc[m]):.4f}")
+
+if ece["aha_fed"]:
+    check("AHA-Fed has the lowest mean ECE on PathMNIST",
+          min(METHODS, key=lambda m: st.mean(ece[m])) == "aha_fed",
+          f"lowest is {min(METHODS, key=lambda m: st.mean(ece[m]))}")
+    spread = max(st.mean(auroc[m]) for m in METHODS) - min(st.mean(auroc[m]) for m in METHODS)
+    check("AUROC parity across aggregators", spread < 0.02, f"spread {spread:.4f}")
+    aha_seeds = by_seed("path_aha_fed_s*.json", "ece")
+    for m in METHODS[1:]:
+        red, pv, n = paired(aha_seeds, by_seed(f"path_{m}_s*.json", "ece"))
+        detail = (f"{red:.1f}% lower, p={pv:.4f} (n={n})" if pv is not None
+                  else f"{red:.1f}% lower (n={n})")
+        check(f"AHA-Fed beats {LABEL[m]} on PathMNIST ECE", red > 0, detail)
+        check(f"PathMNIST ECE gain vs {LABEL[m]} is significant",
+              pv is not None and pv < 0.05, detail)
+
+    acc = {m: vals([f"path_{m}_s*.json"], "accuracy") for m in METHODS}
+    if all(acc[m] for m in METHODS):
+        best = max(METHODS, key=lambda m: st.mean(acc[m]))
+        check("AHA-Fed does not trade accuracy for calibration",
+              best == "aha_fed",
+              f"highest mean accuracy is {LABEL[best]} "
+              f"({st.mean(acc[best]):.4f})")
+
+# ------------------------------------------------------------- noise sweep
+print("\n=== Label-noise sweep on PathMNIST ===")
+na, nv = [], []
+for rate in ["0.0", "0.3", "0.5", "0.7"]:
+    a = vals([f"real_noise_aha_n{rate}_s*.json"], "ece")
+    v = vals([f"real_noise_fedavg_n{rate}_s*.json"], "ece")
+    if a and v:
+        na += a
+        nv += v
+        print(f"  noise={rate}  AHA {st.mean(a):.4f}   FedAvg {st.mean(v):.4f}   "
+              f"{st.mean(v) / st.mean(a):.2f}x")
+if na:
+    p = wilcoxon_p(na, nv)
+    check("noise sweep separation is significant", p is not None and p < 0.05,
+          f"pooled {st.mean(nv) / st.mean(na):.2f}x, p={p:.4f} (n={len(na)})"
+          if p is not None else "scipy unavailable")
+
+# ------------------------------------------ PneumoniaMNIST (chest radiography)
+print("\n=== PneumoniaMNIST (chest radiography) ===")
+pneu = {m: vals([f"pneu_{m}_s*.json"], "ece") for m in METHODS}
+for m in METHODS:
+    if pneu[m]:
+        print(f"  {LABEL[m]:<9} ECE {st.mean(pneu[m]):.4f}±{st.pstdev(pneu[m]):.4f} "
+              f"(n={len(pneu[m])})")
+sel = vals(["pneu_ahatuned_b0_g2_s*.json"], "ece")
+if sel:
+    print(f"  AHA-Fed (β=0, γ=2, selected on val) ECE {st.mean(sel):.4f}"
+          f"±{st.pstdev(sel):.4f} (n={len(sel)})")
+    rivals = [st.mean(pneu[m]) for m in METHODS[1:] if pneu[m]]
+    check("AHA-Fed leads on PneumoniaMNIST",
+          bool(rivals) and st.mean(sel) < min(rivals),
+          f"val-selected config {st.mean(sel):.4f} vs best baseline {min(rivals):.4f}")
+
+# ------------------------------------------------------------------- DP-SGD
+print("\n=== DP-SGD on PathMNIST (chance = 1/9 = 0.111) ===")
+CHANCE = 1 / 9
+for eps in ["0.5", "1.0", "5.0"]:
+    a = vals([f"path_aha_dp_eps{eps}.json"], "accuracy")
+    v = vals([f"path_fedavg_dp_eps{eps}.json"], "accuracy")
+    ae = vals([f"path_aha_dp_eps{eps}.json"], "ece")
+    ve = vals([f"path_fedavg_dp_eps{eps}.json"], "ece")
+    if not (a and v):
+        continue
+    print(f"  eps={eps:<4} AHA acc {a[0]:.4f} ece {ae[0]:.4f} | "
+          f"FedAvg acc {v[0]:.4f} ece {ve[0]:.4f}")
+    check(f"DP eps={eps} AHA above chance", a[0] > CHANCE, f"acc {a[0]:.4f}")
+    check(f"DP eps={eps} FedAvg above chance", v[0] > CHANCE, f"acc {v[0]:.4f}")
+    check(f"DP eps={eps} AHA calibration better", ae[0] < ve[0],
+          f"{ae[0]:.4f} vs {ve[0]:.4f}")
+
+# --------------------------------------------------- hyperparameter grid
+print("\n=== (beta, gamma) grid on PathMNIST ===")
+GRID = [0, 1, 2, 4, 8]
+grid = {}
+for b in GRID:
+    for g in GRID:
+        v = vals([f"hp_b{b}_g{g}.json"], "ece")
+        if v:
+            grid[(b, g)] = v[0]
+
+if grid:
+    interior = [v for (b, g), v in grid.items() if b >= 1 and g >= 1]
+    g0 = [v for (b, g), v in grid.items() if g == 0]
+    b0 = [v for (b, g), v in grid.items() if b == 0 and g >= 1]
+    print(f"  interior (b>=1, g>=1): max {max(interior):.4f} "
+          f"over {len(interior)} points")
+    print(f"  gamma=0 column:        {min(g0):.4f}-{max(g0):.4f}")
+    print(f"  beta=0, gamma>=1:      {min(b0):.4f}-{max(b0):.4f}")
+    check("interior grid ECE stays at or below 0.114",
+          max(interior) <= 0.114, f"max {max(interior):.4f}")
+    if ece.get("fedprox"):
+        fedprox = st.mean(ece["fedprox"])
+        check("every interior grid point beats FedProx",
+              max(interior) < fedprox,
+              f"worst interior {max(interior):.4f} vs FedProx {fedprox:.4f}")
+
+# ------------------------------------------------------- NIH ChestX-ray14
+NIH = ROOT / "runs" / "paper" / "nih"
+nih_files = sorted(glob.glob(str(NIH / "*.json")))
+if nih_files:
+    print("\n=== NIH ChestX-ray14 (224x224, 14 findings) ===")
+    nih = {}
+    for f in nih_files:
+        d = json.loads(Path(f).read_text())
+        cfg, fin = d.get("config", {}), d.get("final") or {}
+        agg = cfg.get("aggregator")
+        key = (cfg.get("images_per_center"), cfg.get("noisy_rate") or 0.0)
+        nih.setdefault(key, {})[agg] = fin
+        print(f"  {Path(f).stem}: AUROC {fin.get('auroc', 0):.4f}  "
+              f"ECE {fin.get('ece', 0):.4f}  acc {fin.get('accuracy', 0):.4f}")
+
+    deep = nih.get((8000, 0.0), {}).get("fedavg")
+    if deep:
+        check("NIH FedAvg macro AUROC is at least 0.95",
+              (deep.get("auroc") or 0) >= 0.95, f"{deep.get('auroc', 0):.4f}")
+        check("NIH scores all 14 findings",
+              deep.get("findings_scored") == 14,
+              f"{deep.get('findings_scored')} findings")
+
+    clean = nih.get((2000, 0.0), {})
+    if "aha_fed" in clean and "fedavg" in clean:
+        a, v = clean["aha_fed"], clean["fedavg"]
+        # The paper reports this as a null result, so a reversal is news.
+        check("AHA-Fed leads FedAvg on the clean NIH federation",
+              (a.get("ece") or 1) < (v.get("ece") or 1),
+              f"ECE {a.get('ece', 0):.4f} vs {v.get('ece', 0):.4f}")
+    if "fedbn" in clean and "aha_fed" in clean:
+        check("AHA-Fed beats FedBN on the clean NIH federation",
+              (clean["aha_fed"].get("ece") or 1) < (clean["fedbn"].get("ece") or 1),
+              f"ECE {clean['aha_fed'].get('ece', 0):.4f} vs "
+              f"{clean['fedbn'].get('ece', 0):.4f}")
+
+    # Corrupted federation: several seeds, so pair them rather than
+    # overwriting one with the next.
+    noisy_by_seed = {}
+    for f in nih_files:
+        d = json.loads(Path(f).read_text())
+        cfg, fin = d.get("config", {}), d.get("final") or {}
+        if (cfg.get("noisy_rate") or 0.0) == 0.0:
+            continue
+        noisy_by_seed.setdefault(cfg.get("aggregator"), {})[
+            str(cfg.get("seed"))] = fin
+
+    a_by = noisy_by_seed.get("aha_fed", {})
+    v_by = noisy_by_seed.get("fedavg", {})
+    common = sorted(set(a_by) & set(v_by))
+    if common:
+        a_ece = [a_by[c]["ece"] for c in common]
+        v_ece = [v_by[c]["ece"] for c in common]
+        red = (st.mean(v_ece) - st.mean(a_ece)) / st.mean(v_ece) * 100
+        pv = wilcoxon_p(a_ece, v_ece)
+        detail = (f"ECE {st.mean(a_ece):.4f} vs {st.mean(v_ece):.4f} "
+                  f"({red:+.1f}%, p={pv:.3f}, n={len(common)})"
+                  if pv is not None else
+                  f"ECE {st.mean(a_ece):.4f} vs {st.mean(v_ece):.4f} "
+                  f"({red:+.1f}%, n={len(common)})")
+        check("AHA-Fed beats FedAvg on the corrupted NIH federation",
+              red > 0, detail)
+        # The paper says this is the right direction but not established.
+        check("corrupted NIH advantage is significant",
+              pv is not None and pv < 0.05, detail)
+
+# ----------------------------------------------------------------- weights
+print("\n=== AHA-Fed down-weights the corrupted client ===")
+w = vals(["real_noise_aha_n0.5_s42.json"], "client_weights")
+if w:
+    weights = w[0]
+    cfg = json.loads((REAL / "real_noise_aha_n0.5_s42.json").read_text())["config"]
+    noisy = cfg.get("noisy_client")
+    uniform = 1 / len(weights)
+    print(f"  final weights {weights}, noisy client index {noisy}, "
+          f"uniform {uniform:.3f}")
+    check("noisy client is down-weighted below uniform",
+          weights[noisy] < uniform,
+          f"{weights[noisy]:.4f} < {uniform:.4f}")
+
+print("\n" + "=" * 60)
+if FAILED:
+    print(f"{len(FAILED)} CLAIM(S) OUT OF SYNC WITH THE PAPER:")
+    for f in FAILED:
+        print(f"  - {f}")
+    sys.exit(1)
+print(f"All positive claims verified against real-data run artifacts; "
+      f"{len(KNOWN_LIMITATIONS)} documented limitations still hold.")
