@@ -19,6 +19,8 @@ import re
 import sys
 from pathlib import Path
 
+import copy
+
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.shared import Inches, Pt
@@ -73,13 +75,46 @@ CORRESPONDING = "Corresponding author: First A. Author (e-mail: author@example.e
 FUNDING = None
 
 
-def strip_body(doc: Document) -> None:
-    """Remove the template's instructional content, keeping styles and setup."""
+W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
+
+
+def strip_body(doc: Document):
+    """Clear the template's text but keep its column structure.
+
+    IEEE Access is one column for the title block, abstract and index terms,
+    then two columns for the body. That split lives in a section break, which
+    a naive strip removes along with the paragraphs — leaving the title and
+    abstract laid out in two columns. Here the first section's properties are
+    captured before clearing so the break can be reinstated.
+
+    Returns the one-column sectPr to place after the front matter.
+    """
     body = doc.element.body
+
+    # The first paragraph carrying a sectPr defines the one-column region.
+    front_sectpr = None
+    for para in body.findall(W + "p"):
+        pPr = para.find(W + "pPr")
+        if pPr is not None:
+            found = pPr.find(W + "sectPr")
+            if found is not None:
+                front_sectpr = copy.deepcopy(found)
+                break
+
     for child in list(body):
         if child.tag.endswith("sectPr"):
             continue
         body.remove(child)
+    return front_sectpr
+
+
+def start_two_column_body(doc: Document, front_sectpr) -> None:
+    """Close the one-column front matter so the body runs in two columns."""
+    if front_sectpr is None:
+        return
+    para = doc.add_paragraph()
+    pPr = para._p.get_or_add_pPr()
+    pPr.append(front_sectpr)
 
 
 def style_or_none(doc: Document, name: str):
@@ -105,13 +140,35 @@ def para(doc: Document, text: str, style: str | None = None,
     return p
 
 
+# The template's own heading styles, in preference order. It does not use
+# Word's generic "Heading 1"/"Heading 2".
+H1_STYLES = ["H1_List (Space)", "H1_List (No Space)", "H1", "Heading 1"]
+H2_STYLES = ["H2_Cont", "H2_First", "H2_After H1", "H2", "Heading 2"]
+
+
+def first_style(doc: Document, candidates: list[str]) -> str | None:
+    for name in candidates:
+        if style_or_none(doc, name) is not None:
+            return name
+    return None
+
+
+def strip_number(text: str) -> str:
+    """Drop a leading '3.' or '5.7' — Access numbers sections itself."""
+    return re.sub(r"^\d+(\.\d+)*\.?\s+", "", text).strip()
+
+
 def heading(doc: Document, text: str, level: int = 1):
-    style = f"Heading {level}"
-    if style_or_none(doc, style) is not None:
-        p = doc.add_paragraph(text)
+    """Access sets headings in uppercase and numbers them via the style."""
+    names = H1_STYLES if level == 1 else H2_STYLES
+    style = first_style(doc, names)
+    body = strip_number(text)
+    body = body.upper() if level == 1 else body.upper()
+    if style:
+        p = doc.add_paragraph(body)
         p.style = doc.styles[style]
         return p
-    return para(doc, text, bold=True, size=11 if level == 1 else 10)
+    return para(doc, body, bold=True, size=11 if level == 1 else 10)
 
 
 def figure(doc: Document, name: str, caption: str, width_in: float = 3.4):
@@ -124,12 +181,30 @@ def figure(doc: Document, name: str, caption: str, width_in: float = 3.4):
     p.add_run().add_picture(str(path), width=Inches(width_in))
     cap_style = ("Figure Caption" if style_or_none(doc, "Figure Caption")
                  else "Fig Caption" if style_or_none(doc, "Fig Caption") else None)
-    para(doc, caption, style=cap_style, align=WD_ALIGN_PARAGRAPH.LEFT, size=8)
+    # IEEE sets captions as "FIGURE 1. Text", not "Figure 1: Text".
+    body = re.sub(r"^Figure\s+(\d+)\s*[:.]\s*",
+                  lambda m: f"FIGURE {m.group(1)}. ", caption)
+    para(doc, body, style=cap_style, align=WD_ALIGN_PARAGRAPH.LEFT, size=8)
+
+
+ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X",
+         "XI", "XII"]
+_table_no = [0]
 
 
 def table(doc: Document, rows: list[list[str]], caption: str):
+    """Access precedes each table with a 'TABLE N' title line."""
+    _table_no[0] += 1
+    numeral = ROMAN[_table_no[0] - 1] if _table_no[0] <= len(ROMAN) else str(_table_no[0])
+    title_style = "Table Title" if style_or_none(doc, "Table Title") else None
+    para(doc, f"TABLE {numeral}", style=title_style, size=8,
+         align=WD_ALIGN_PARAGRAPH.CENTER)
+
+    # The extracted caption already reads "Table 3: ..."; keep only the text.
+    body = re.sub(r"^Table\s+\d+[:.]?\s*", "", caption).strip()
     cap_style = "Table Caption" if style_or_none(doc, "Table Caption") else None
-    para(doc, caption, style=cap_style, size=8)
+    para(doc, body.upper() if len(body) < 60 else body,
+         style=cap_style, size=8, align=WD_ALIGN_PARAGRAPH.CENTER)
     t = doc.add_table(rows=len(rows), cols=len(rows[0]))
     if style_or_none(doc, "Normal Table") is not None:
         t.style = doc.styles["Normal Table"]
@@ -150,7 +225,7 @@ def build(template: Path, out: Path) -> None:
                  f"(Transactions/Journals -> IEEE Access -> Word).")
 
     doc = Document(str(template))
-    strip_body(doc)
+    front_sectpr = strip_body(doc)
 
     # ---- front matter -------------------------------------------------
     para(doc, "Date of publication xxxx 00, 0000, date of current version "
@@ -181,6 +256,9 @@ def build(template: Path, out: Path) -> None:
     r = p.add_run("INDEX TERMS ")
     r.bold = True
     p.add_run(INDEX_TERMS)
+
+    # Everything above is one column; the body below is two.
+    start_two_column_body(doc, front_sectpr)
 
     # ---- body ---------------------------------------------------------
     from paper.extract_sections import extract  # noqa: E402
