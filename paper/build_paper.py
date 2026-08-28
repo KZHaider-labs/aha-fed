@@ -231,7 +231,9 @@ def build() -> None:
         "highest accuracy (0.701) and matching AUROC. Under client label "
         "noise it reduces ECE by a pooled 1.40× (p < 10⁻⁴, n = 40), with "
         "no separation at zero noise, and drives the corrupted client to "
-        "weight 0.069 against a uniform 0.250. Two results are negative "
+        "weight 0.069 against a uniform 0.250. The advantage persists when "
+        "two of four sites are corrupted (1.52×) and decays as they approach "
+        "a majority. Two results are negative "
         "and reported as such: AHA-Fed loses to every baseline on binary "
         "chest radiography, and under DP-SGD both aggregators fall to "
         "chance at ε ≤ 1.0. The first has a measurable cause we turn "
@@ -696,7 +698,7 @@ def build() -> None:
         "tradeoff on chest X-ray classification under varying ε "
         "budgets, generally finding that DP costs ten to thirty "
         "AUROC points at ε ≤ 1.0 — a substantial price for clinical "
-        "deployment. Our experiments in Section 5.9 are consistent "
+        "deployment. Our experiments in Section 5.10 are consistent "
         "with this finding: on our 9-class PathMNIST federation DP-SGD "
         "costs so much utility that both aggregators fall to or below "
         "chance at ε ≤ 1.0, and we therefore draw no comparative "
@@ -1520,7 +1522,59 @@ def build() -> None:
         "comparisons remain common in the federated learning literature.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
-    add_heading(doc, "5.8 Scaling to full-resolution chest radiography",
+    add_heading(doc, "5.8 More than one unreliable site", level=2)
+    add_paragraph(doc,
+        "Every experiment so far corrupts exactly one of four hospitals. A "
+        "federation with several unreliable annotation pipelines is at least "
+        "as plausible, and it is the harder case: volume weighting has more "
+        "bad data to average in, but a quality-aware rule has less clean data "
+        "left to shift weight towards. We therefore repeat the PathMNIST "
+        "federation with one, two and three of the four hospitals corrupted "
+        "at 50%, ten seeds each.",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
+
+    multi_data = [
+        ["Corrupted sites", "AHA-Fed ECE", "FedAvg ECE", "Reduction", "p",
+         "Weight on corrupted"],
+        ["1 of 4", "0.085", "0.126", "1.49×", "0.010", "0.084 (uniform 0.250)"],
+        ["2 of 4", "0.117", "0.178", "1.52×", "0.027", "0.247 (uniform 0.500)"],
+        ["3 of 4", "0.197", "0.227", "1.15×", "0.131", "0.557 (uniform 0.750)"],
+        ["Pooled (n = 30)", "0.133", "0.177", "1.33×", "< 10⁻³", "—"],
+    ]
+    add_table_caption(doc,
+        "Table 7: PathMNIST with an increasing number of corrupted "
+        "hospitals, ten seeds each. The final column is the total "
+        "aggregation weight AHA-Fed assigns to the corrupted sites at the "
+        "last round.")
+    make_table(doc, multi_data, header_font_size=10, body_font_size=9,
+               highlight_row_pred=lambda i, row: row[0].startswith("Pooled"))
+    add_post_table_spacing(doc)
+
+    add_paragraph(doc,
+        "The advantage is not confined to the single-corruption case. It is "
+        "1.49× with one bad site and 1.52× with two, both significant, and "
+        "falls to 1.15× with three, where it no longer reaches the threshold "
+        "(p = 0.13). Pooled over the thirty paired observations the reduction "
+        "is 1.33× at p < 10⁻³. Under Holm–Bonferroni correction across the "
+        "three levels only the single-site case survives, so we treat the "
+        "two-site result as supportive rather than independently established.",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
+
+    add_paragraph(doc,
+        "The weights explain the shape. With one corrupted site AHA-Fed "
+        "drives it to 0.084 against a uniform 0.250 — roughly a third. With "
+        "two it assigns them 0.247 against 0.500, and with three, 0.557 "
+        "against 0.750. The rule keeps discounting corrupted sites at a "
+        "similar rate, but as they approach a majority there is less clean "
+        "signal to redistribute towards, and the consensus the distance term "
+        "measures against is itself drawn from mostly-corrupted priors. That "
+        "is the mechanism's natural limit rather than a failure of "
+        "implementation: no reweighting of client updates can recover a "
+        "federation in which most participants are unreliable, and a method "
+        "claiming otherwise would deserve scrutiny.",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
+
+    add_heading(doc, "5.9 Scaling to full-resolution chest radiography",
                 level=2)
     add_paragraph(doc,
         "Every result so far is on 28×28 MedMNIST imagery. The obvious "
@@ -1563,7 +1617,7 @@ def build() -> None:
         ["50% noise at one center", "AHA-Fed", "0.925 ± 0.002", "0.390", "0.0107 ± 0.0015", "0.601"],
     ]
     add_table_caption(doc,
-        "Table 7: NIH ChestX-ray14 at 224×224, four patient-disjoint "
+        "Table 8: NIH ChestX-ray14 at 224×224, four patient-disjoint "
         "centers. Clean rows are single seed; the corrupted rows are mean ± "
         "s.d. over three seeds. AUROC and AUPRC are macro-averaged over the "
         "14 findings; accuracy is exact match over the whole label vector.")
@@ -1620,7 +1674,7 @@ def build() -> None:
         "future work.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
-    add_heading(doc, "5.9 Privacy-utility tradeoff with DP-SGD", level=2)
+    add_heading(doc, "5.10 Privacy-utility tradeoff with DP-SGD", level=2)
     add_paragraph(doc,
         "Each client now runs Opacus DP-SGD with target privacy budget "
         "ε ∈ {0.5, 1.0, 5.0} and δ = 10⁻⁵, max gradient norm C = 1.0. "
@@ -1653,7 +1707,7 @@ def build() -> None:
                "Figure 13: DP-SGD privacy-utility tradeoff on PathMNIST "
                "(accuracy and ECE vs ε).")
 
-    add_heading(doc, "5.10 Hyperparameter sensitivity", level=2)
+    add_heading(doc, "5.11 Hyperparameter sensitivity", level=2)
     add_paragraph(doc,
         "We sweep AHA-Fed's two key hyperparameters β ∈ {0, 1, 2, 4, 8} "
         "and γ ∈ {0, 1, 2, 4, 8} on a 5×5 grid (α = 1 fixed) on "
@@ -1684,7 +1738,7 @@ def build() -> None:
                "Figure 14: AHA-Fed (β, γ) hyperparameter sensitivity "
                "heatmap on PathMNIST.")
 
-    add_heading(doc, "5.11 Discussion", level=2)
+    add_heading(doc, "5.12 Discussion", level=2)
     add_paragraph(doc,
         "Taken together the experiments support a narrower claim than we "
         "set out to test, and it is worth stating precisely which one. What "

@@ -278,6 +278,51 @@ if grid:
               max(interior) < fedprox,
               f"worst interior {max(interior):.4f} vs FedProx {fedprox:.4f}")
 
+# ------------------------------------------------- multiple corrupted sites
+print("\n=== Multiple corrupted sites (Section 5.8) ===")
+multi_a, multi_v = [], []
+n1_sig = False
+for nn in (1, 2, 3):
+    a = by_seed(f"multi_aha_n{nn}_s*.json", "ece")
+    v = by_seed(f"multi_fedavg_n{nn}_s*.json", "ece")
+    shared = sorted(set(a) & set(v))
+    if not shared:
+        continue
+    x = [a[k] for k in shared]
+    y = [v[k] for k in shared]
+    multi_a += x
+    multi_v += y
+    pv = wilcoxon_p(x, y)
+    print(f"  {nn} of 4  AHA {st.mean(x):.4f}  FedAvg {st.mean(y):.4f}  "
+          f"{st.mean(y) / st.mean(x):.2f}x  "
+          + (f"p={pv:.4f}" if pv is not None else "") + f"  (n={len(shared)})")
+    if nn == 1:
+        n1_sig = pv is not None and pv < 0.05
+
+check("AHA-Fed advantage holds with a single corrupted site",
+      n1_sig, "see per-level rows above")
+if multi_a:
+    pv = wilcoxon_p(multi_a, multi_v)
+    check("pooled multi-site advantage is significant",
+          pv is not None and pv < 0.05,
+          f"pooled {st.mean(multi_v) / st.mean(multi_a):.2f}x, p={pv:.5f} "
+          f"(n={len(multi_a)})" if pv is not None else "scipy unavailable")
+
+# The paper reports the rule keeps discounting corrupted sites at every level.
+for nn in (1, 2, 3):
+    weights = []
+    for f in sorted(glob.glob(str(REAL / f"multi_aha_n{nn}_s*.json"))):
+        d = json.loads(Path(f).read_text())
+        w = [r.get("client_weights") for r in d.get("history", [])
+             if r.get("client_weights")]
+        if w:
+            weights.append(sum(w[-1][-nn:]))
+    if weights:
+        uniform = nn * 0.25
+        check(f"corrupted sites down-weighted below uniform at n={nn}",
+              st.mean(weights) < uniform,
+              f"{st.mean(weights):.3f} vs uniform {uniform:.3f}")
+
 # ------------------------------------------ relative vs absolute quality
 print("\n=== Relative vs absolute quality (Section 5.7, validation split) ===")
 for corpus, label in (("pneuval", "PneumoniaMNIST"), ("pathval", "PathMNIST")):
