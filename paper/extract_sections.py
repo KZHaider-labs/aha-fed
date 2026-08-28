@@ -6,7 +6,7 @@ second file — which would drift the moment either is edited — this runs the
 builder against a recording stub and captures the calls in sequence.
 
 Produces:
-    SECTIONS : [("h1"|"h2"|"p"|"fig"|"table", payload), ...] in document order
+    SECTIONS : [("h1"|"h2"|"p"|"fig"|"table"|"ref", payload), ...] in order
     FIGURES  : {index: (filename, caption)}
     TABLES   : {index: (rows, caption)}
 
@@ -21,6 +21,24 @@ from pathlib import Path
 from unittest import mock
 
 ROOT = Path(__file__).resolve().parent.parent
+
+
+def references_from_source() -> list[tuple[str, str]]:
+    """Read the reference list straight out of build_paper's source.
+
+    build_paper emits references with doc.add_paragraph() rather than its own
+    helper, so the recording stubs never see them. Rather than duplicate the
+    list here, evaluate the literal from the source file.
+    """
+    import ast
+
+    src = (ROOT / "paper" / "build_paper.py").read_text(encoding="utf8")
+    for node in ast.walk(ast.parse(src)):
+        if (isinstance(node, ast.Assign)
+                and any(getattr(t, "id", None) == "references" for t in node.targets)
+                and isinstance(node.value, ast.List)):
+            return [tuple(ast.literal_eval(e)) for e in node.value.elts]
+    return []
 
 
 def extract() -> tuple[list, dict, dict]:
@@ -72,6 +90,14 @@ def extract() -> tuple[list, dict, dict]:
         doc = mock.MagicMock()
         with mock.patch.object(bp, "Document", return_value=doc):
             bp.build()
+
+    # References live outside the recorded helpers; append them so renderers
+    # do not silently drop a bibliography that 34 in-text citations rely on.
+    refs = references_from_source()
+    if refs:
+        sections.append(("h1", "References"))
+        for tag, body in refs:
+            sections.append(("ref", f"{tag} {body}"))
 
     return sections, figures, tables
 

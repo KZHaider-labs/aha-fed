@@ -98,6 +98,23 @@ def main(template: Path, paper: Path) -> int:
           bool(caps) and all(figpat.match(c) for c in caps),
           f"{len(caps)} captions")
 
+    # Figures must fit a single column or Word reflows the page.
+    gutter = 0.28
+    body_sec = doc.sections[1] if len(doc.sections) > 1 else ds
+    col_w = (body_sec.page_width.inches - body_sec.left_margin.inches
+             - body_sec.right_margin.inches - gutter) / 2
+    wide = [sh.width.inches for sh in doc.inline_shapes
+            if sh.width.inches > col_w + 0.02]
+    check("every figure fits one column", not wide,
+          f"column {col_w:.2f} in; {len(wide)} figure(s) wider")
+
+    # A bibliography the in-text citations point at cannot be missing.
+    refs = [par for par in doc.paragraphs
+            if par.style.name in ("References", "REF_Txt", "Ref")]
+    cited = set(re.findall(r"\[(\d+)\]", chr(10).join(texts)))
+    check("reference list is present", len(refs) >= len(cited),
+          f"{len(refs)} entries for {len(cited)} distinct citations")
+
     body = "\n".join(texts)
     check("no template boilerplate left behind",
           "First A. Author" not in body or "AUTHOR" in body.upper(),

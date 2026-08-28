@@ -171,7 +171,13 @@ def heading(doc: Document, text: str, level: int = 1):
     return para(doc, body, bold=True, size=11 if level == 1 else 10)
 
 
-def figure(doc: Document, name: str, caption: str, width_in: float = 3.4):
+# One Access column: (8.00 - 0.51 - 0.51 - 0.28 gutter) / 2 = 3.35 in.
+# Figures are set slightly narrower so they never force a column to reflow.
+COLUMN_WIDTH_IN = 3.30
+
+
+def figure(doc: Document, name: str, caption: str,
+           width_in: float = COLUMN_WIDTH_IN):
     path = FIGS / name
     if not path.exists():
         print(f"  [warn] missing figure {name}")
@@ -208,12 +214,18 @@ def table(doc: Document, rows: list[list[str]], caption: str):
     t = doc.add_table(rows=len(rows), cols=len(rows[0]))
     if style_or_none(doc, "Normal Table") is not None:
         t.style = doc.styles["Normal Table"]
+    # Let Word size columns to their content and cap the table at the text
+    # width. Without this a 6- or 7-column table keeps its default widths and
+    # runs off the edge of a 3.35 in column.
+    t.autofit = True
+    t.allow_autofit = True
     for i, row in enumerate(rows):
         for j, cell in enumerate(row):
             c = t.cell(i, j)
             c.text = ""
             run = c.paragraphs[0].add_run(str(cell))
-            run.font.size = Pt(7.5)
+            # Wide tables need a smaller face to stay inside the column.
+            run.font.size = Pt(6.5 if len(rows[0]) >= 6 else 7.5)
             run.bold = (i == 0)
     doc.add_paragraph()
 
@@ -287,6 +299,9 @@ def build(template: Path, out: Path) -> None:
         elif kind == "table":
             rows, cap = TABLES[item[1]]
             table(doc, rows, cap)
+        elif kind == "ref":
+            ref_style = first_style(doc, ["References", "REF_Txt", "Ref"])
+            para(doc, item[1], style=ref_style, size=8)
 
     doc.save(str(out))
     words = sum(len(p.text.split()) for p in doc.paragraphs)
