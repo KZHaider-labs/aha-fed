@@ -198,6 +198,20 @@ ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X",
 _table_no = [0]
 
 
+def equation(doc: Document, name: str, label: str,
+             width_in: float = 2.9):
+    """Centred equation image with a right-aligned number, IEEE style."""
+    path = FIGS / "equations" / name
+    if not path.exists():
+        print(f"  [warn] missing equation {name}")
+        return
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.add_run().add_picture(str(path), width=Inches(width_in))
+    if label:
+        p.add_run(f"\t{label}")
+
+
 def table(doc: Document, rows: list[list[str]], caption: str):
     """Access precedes each table with a 'TABLE N' title line."""
     _table_no[0] += 1
@@ -299,6 +313,8 @@ def build(template: Path, out: Path) -> None:
         elif kind == "table":
             rows, cap = TABLES[item[1]]
             table(doc, rows, cap)
+        elif kind == "eq":
+            equation(doc, *item[1])
         elif kind == "ref":
             ref_style = first_style(doc, ["References", "REF_Txt", "Ref"])
             para(doc, item[1], style=ref_style, size=8)

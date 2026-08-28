@@ -54,6 +54,11 @@ def extract() -> tuple[list, dict, dict]:
         if text and text.strip():
             sections.append(("p", text))
 
+    def rec_equation(doc, name, label, **kw):
+        # Equations are images in build_paper; without them the Access
+        # build reads as prose with gaps where the formulas belong.
+        sections.append(("eq", (name, label)))
+
     def rec_figure(doc, path, caption, **kw):
         idx = len(figures)
         figures[idx] = (Path(str(path)).name, caption)
@@ -80,7 +85,7 @@ def extract() -> tuple[list, dict, dict]:
          mock.patch.object(bp, "add_figure", rec_figure), \
          mock.patch.object(bp, "add_table_caption", rec_table_caption), \
          mock.patch.object(bp, "make_table", rec_table), \
-         mock.patch.object(bp, "add_equation_image", noop), \
+         mock.patch.object(bp, "add_equation_image", rec_equation), \
          mock.patch.object(bp, "add_post_table_spacing", noop), \
          mock.patch.object(bp, "add_bullet_run", noop):
         # build() saves a docx as a side effect. build_paper does

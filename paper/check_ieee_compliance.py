@@ -98,6 +98,15 @@ def main(template: Path, paper: Path) -> int:
           bool(caps) and all(figpat.match(c) for c in caps),
           f"{len(caps)} captions")
 
+    # Equations are images in this pipeline; a silent drop leaves the
+    # methodology reading as prose with gaps where the formulas belong.
+    original = ROOT / "paper" / "AHA_Fed_Paper.docx"
+    if original.exists():
+        want = len(Document(str(original)).inline_shapes)
+        got = len(doc.inline_shapes)
+        check("no figures or equations lost against the source document",
+              got >= want, f"{got} images here vs {want} in the source")
+
     # Figures must fit a single column or Word reflows the page.
     gutter = 0.28
     body_sec = doc.sections[1] if len(doc.sections) > 1 else ds
