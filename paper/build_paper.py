@@ -484,106 +484,47 @@ def build() -> None:
                       first_line_indent=0.5, space_after=6)
 
     add_heading(doc, "1.6 Empirical highlights and paper organisation", level=2)
-    closing_paras = [
-        "Empirically, AHA-Fed's clearest effect is under institutional "
-        "heterogeneity. Sweeping the Dirichlet concentration across five "
-        "levels on PathMNIST, with ten seeds at each level, AHA-Fed "
-        "attains lower ECE than FedAvg at every level — 1.50×, 1.32×, "
-        "1.50×, 1.69×, and 1.38× — for a pooled 1.47× reduction "
-        "significant under a paired Wilcoxon signed-rank test "
-        "(p < 10⁻⁵, n = 50). The advantage does not survive a growing "
-        "federation: 1.46× at K = 4 (p = 0.004), falling to 1.17× at "
-        "K = 8 and 1.01× at K = 12, neither significant, so the method "
-        "is specific to small cross-silo settings. On the standard "
-        "four-hospital PathMNIST "
-        "federation, over ten seeds, AHA-Fed reduces ECE by 19.1% versus "
-        "FedAvg, 19.9% versus FedProx, 28.3% versus FedBN and 30.6% "
-        "versus FedDisco, every margin significant under a paired "
-        "Wilcoxon test (p = 0.004–0.037), while attaining the highest "
-        "mean accuracy of the five and the lowest seed-to-seed "
-        "variance. Under client label noise it lowers ECE by a pooled "
-        "1.40× (p < 10⁻⁴, n = 40), with no separation at zero noise and "
-        "1.44–1.56× once corruption is present. Inspecting the learned "
-        "weights shows the mechanism doing what it was designed to do: "
-        "the client carrying 50% label noise is driven to weight 0.069 "
-        "against a uniform 0.250. Under DP-SGD, utility "
-        "collapses for both methods on this 9-class task: at ε = 5.0 "
-        "AHA-Fed reaches 0.241 accuracy and FedAvg 0.111, but the "
-        "latter is exactly chance level (1/9 = 0.111), so neither "
-        "result is clinically usable and we treat the gap as "
-        "indicative only. A 5×5 (β, γ) hyperparameter heatmap "
-        "shows ECE at or below 0.114 across the sixteen-point interior — "
-        "every point of which beats FedProx — so the method is not "
-        "hyperparameter-fragile within a task, though Section 5.7 shows "
-        "the values do not transfer to a different one. The recently "
-        "proposed FedDisco [32], which shares AHA-Fed's distance "
-        "term but lacks the loss-derived quality term, matches "
-        "FedAvg's mean ECE on real data (0.123 vs 0.123) with the "
-        "highest seed-to-seed variance of any method tested "
-        "(± 0.037, its best seed at 0.078 beating AHA-Fed's worst) "
-        "— consistent with, though not by itself conclusive evidence "
-        "for, our design choice that the quality signal rather than "
-        "the heterogeneity penalty alone drives noise robustness. "
-        "One result runs against the method and is reported in full: on "
-        "PneumoniaMNIST chest radiography a (β, γ) configuration chosen "
-        "on a held-out validation split fails to beat any baseline on "
-        "test, showing that the hyperparameters do not transfer across "
-        "tasks. The privacy experiments are likewise negative — both "
-        "aggregators collapse to chance under DP-SGD. Section 7.1 states "
-        "what these bound.",
+    add_paragraph(doc,
+        "Across ten seeds on real medical imaging, AHA-Fed lowers ECE "
+        "significantly against all four baselines on PathMNIST "
+        "(19.1–30.6%, p = 0.004–0.037) while attaining the highest mean "
+        "accuracy of the five; the advantage holds at every level of a "
+        "five-point heterogeneity sweep (pooled 1.47×, p < 10⁻⁵) and under "
+        "label noise (pooled 1.40×, p < 10⁻⁴), and vanishes when no client "
+        "is corrupted — which is what the design predicts. Three results "
+        "bound the method rather than support it: the advantage disappears "
+        "as the federation grows past four clients, AHA-Fed loses to every "
+        "baseline on binary chest radiography, and DP-SGD costs both "
+        "aggregators all their utility. Section 5.7 shows the second of "
+        "these has a measurable cause that a practitioner can test before "
+        "deploying.",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
-        "The remainder of the paper is organised as follows. "
-        "Section 2 reviews the federated-learning literature in "
-        "depth, organised by sub-area: aggregation fundamentals, "
-        "heterogeneity-aware aggregation, noise-robust FL, "
-        "personalised FL, privacy-preserving FL, FL deployments in "
-        "medical imaging, and calibration in clinical AI. We "
-        "contrast AHA-Fed with seventeen recent methods (Table 1) "
-        "spanning 2022 to 2026 across six dimensions. Section 3 "
-        "derives AHA-Fed in detail, presents nine equations, "
-        "analyses its FedAvg-reducibility, gives the full training "
-        "algorithm, and proves in Section 3.8 that the softmax "
-        "weights are bounded away from zero — the property that "
-        "places the method inside the standard FedAvg convergence "
-        "rate. Section 4 specifies the experimental "
-        "protocol and Table 2 summarises the datasets. "
-        "Section 5 presents eleven sub-experiments: "
-        "convergence and calibration, final performance with error "
-        "bars, label-noise robustness, heterogeneity and "
-        "client-scaling, per-client weights, the aggregator "
-        "comparison on PathMNIST, the diagnostic that predicts when "
-        "the quality signal works, full-resolution NIH "
-        "ChestX-ray14, the DP-SGD privacy-utility tradeoff, "
-        "hyperparameter sensitivity, and discussion. Section 6 "
-        "ablates each AHA-Fed term. Section 7 concludes and "
-        "outlines future directions.",
-    ]
-    for para in closing_paras:
-        add_paragraph(doc, para, align=WD_ALIGN_PARAGRAPH.JUSTIFY,
-                      first_line_indent=0.5, space_after=6)
+    add_paragraph(doc,
+        "The remainder of the paper is organised as follows. Section 2 "
+        "reviews the literature and contrasts AHA-Fed with seventeen recent "
+        "methods (Table 1). Section 3 derives the rule, gives the training "
+        "algorithm, and proves in Section 3.8 that the softmax weights are "
+        "bounded away from zero — the property that places the method inside "
+        "the standard FedAvg convergence rate. Section 4 specifies the "
+        "protocol. Section 5 reports eleven experiments, Section 6 ablates "
+        "each term, and Section 7 concludes.",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
-    # ==================== 2. RELATED WORK ====================
     add_heading(doc, "2. Related Work", level=1)
     add_paragraph(doc,
-        "We organise the related-work landscape into eight sub-areas, "
-        "mirroring the structure of the AHA-Fed contribution: federated-"
-        "learning fundamentals (§2.1), characterisation and measurement "
-        "of statistical heterogeneity (§2.2), heterogeneity-aware "
-        "aggregation rules (§2.3), noise-robust federated learning "
-        "(§2.4), personalised FL (§2.5), privacy-preserving FL with "
-        "differential privacy and secure aggregation (§2.6), federated "
-        "learning deployments in medical imaging specifically (§2.7), "
-        "and calibration in clinical and federated AI (§2.8). We then "
-        "synthesise the comparison in Table 1 across seventeen recent "
-        "methods and six dimensions (§2.9). Each sub-area below is a "
-        "few paragraphs long; the central thesis we develop across all "
-        "of them is that no existing method jointly addresses the "
+        "We group the related work into four areas: aggregation rules and "
+        "how they handle statistical heterogeneity (§2.1), robustness to "
+        "client-side label noise (§2.2), privacy, personalisation and "
+        "clinical deployment (§2.3), and a comparison against seventeen "
+        "recent methods along six dimensions (§2.4). The thesis developed "
+        "across them is that no existing method jointly addresses the "
         "heterogeneity, noise, calibration, and privacy challenges that "
         "co-occur in real federated medical imaging — which is the gap "
         "AHA-Fed fills.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
-    add_heading(doc, "2.1 Federated learning fundamentals", level=2)
+    add_heading(doc, "2.1 Aggregation rules and statistical heterogeneity", level=2)
     add_paragraph(doc,
         "McMahan et al. [22] introduced Federated Averaging (FedAvg), "
         "the canonical aggregation rule that weights each client's "
@@ -646,7 +587,6 @@ def build() -> None:
         "behaviour in Section 6.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
-    add_heading(doc, "2.3 Heterogeneity-aware aggregation", level=2)
     add_paragraph(doc,
         "FedProx [11] adds an L2 proximal regulariser between the "
         "local and global weights to limit client drift during local "
@@ -678,7 +618,7 @@ def build() -> None:
         "this failure empirically (Section 5.6).",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
-    add_heading(doc, "2.4 Noise-robust federated learning", level=2)
+    add_heading(doc, "2.2 Robustness to client-side label noise", level=2)
     add_paragraph(doc,
         "Robust FL has historically focused on Byzantine attackers — "
         "adversarial clients that submit arbitrarily corrupted updates "
@@ -710,7 +650,6 @@ def build() -> None:
         "agreements.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
-    add_heading(doc, "2.5 Personalised federated learning", level=2)
     add_paragraph(doc,
         "When per-site distributions are too heterogeneous for a "
         "single global model to serve all clients well, personalised "
@@ -730,7 +669,7 @@ def build() -> None:
         "FedRep / pFedMe / PerFedMask as future work in Section 7.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
-    add_heading(doc, "2.6 Privacy-preserving FL", level=2)
+    add_heading(doc, "2.3 Privacy, personalisation, and clinical deployment", level=2)
     add_paragraph(doc,
         "Plain FL provides only an informal privacy guarantee: "
         "gradient inversion attacks [28] have demonstrated that "
@@ -769,7 +708,6 @@ def build() -> None:
         "the global model unchanged.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
-    add_heading(doc, "2.7 FL deployments in medical imaging", level=2)
     add_paragraph(doc,
         "Federated learning has moved from method papers to clinical "
         "deployments over the past five years. Sheller et al. [27] "
@@ -802,7 +740,6 @@ def build() -> None:
         "signal — which is the gap AHA-Fed fills.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
-    add_heading(doc, "2.8 Calibration in federated and clinical AI", level=2)
     add_paragraph(doc,
         "The Expected Calibration Error (ECE) of a classifier "
         "measures the gap between its predicted confidences and its "
@@ -829,10 +766,10 @@ def build() -> None:
         "composed.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
-    add_heading(doc, "2.9 Synthesis: comparison with seventeen recent methods",
+    add_heading(doc, "2.4 Positioning: comparison with seventeen recent methods",
                 level=2)
     add_paragraph(doc,
-        "We synthesise the discussion of §§2.1–2.8 in Table 1, which "
+        "We synthesise the discussion of §§2.1–2.3 in Table 1, which "
         "contrasts AHA-Fed with seventeen federated-learning methods "
         "spanning 2022–2026 along six dimensions that matter for "
         "clinical deployment: year of publication, whether the method "
