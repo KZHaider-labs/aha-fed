@@ -36,6 +36,7 @@ KNOWN_LIMITATIONS = {
     "AHA-Fed leads on PneumoniaMNIST",
     "AHA-Fed leads FedAvg on the clean NIH federation",
     "corrupted NIH advantage is significant",
+    "relative-quality ECE gain is significant",
 }
 
 METHODS = ["aha_fed", "fedavg", "fedprox", "fedbn", "feddisco"]
@@ -276,6 +277,49 @@ if grid:
         check("every interior grid point beats FedProx",
               max(interior) < fedprox,
               f"worst interior {max(interior):.4f} vs FedProx {fedprox:.4f}")
+
+# ------------------------------------------ relative vs absolute quality
+print("\n=== Relative vs absolute quality (Section 5.7, validation split) ===")
+for corpus, label in (("pneuval", "PneumoniaMNIST"), ("pathval", "PathMNIST")):
+    rel = {k: v for k, v in by_seed(f"{corpus}_relq_s*.json", "ece").items()}
+    ab = {k: v for k, v in by_seed(f"{corpus}_absq_s*.json", "ece").items()}
+    shared = sorted(set(rel) & set(ab))
+    if not shared:
+        continue
+    x = [rel[k] for k in shared]
+    y = [ab[k] for k in shared]
+    pv = wilcoxon_p(x, y)
+    print(f"  {label:<15} ECE relative {st.mean(x):.4f}  absolute {st.mean(y):.4f}"
+          f"  p={pv:.4f} (n={len(shared)})" if pv is not None else
+          f"  {label:<15} ECE relative {st.mean(x):.4f}  absolute {st.mean(y):.4f}")
+
+    if corpus == "pneuval":
+        # The paper claims the variant helps on the binary task.
+        check("relative quality lowers ECE on PneumoniaMNIST",
+              st.mean(x) < st.mean(y),
+              f"{st.mean(x):.4f} vs {st.mean(y):.4f}")
+        # ...and says the ECE gain is not yet significant.
+        check("relative-quality ECE gain is significant",
+              pv is not None and pv < 0.05,
+              f"p={pv:.4f}" if pv is not None else "scipy unavailable")
+        for metric in ("accuracy", "auroc"):
+            rm = by_seed(f"{corpus}_relq_s*.json", metric)
+            am = by_seed(f"{corpus}_absq_s*.json", metric)
+            sh = sorted(set(rm) & set(am))
+            if not sh:
+                continue
+            xv = [rm[k] for k in sh]
+            yv = [am[k] for k in sh]
+            pm = wilcoxon_p(xv, yv)
+            check(f"relative quality improves {metric} on PneumoniaMNIST",
+                  st.mean(xv) > st.mean(yv) and pm is not None and pm < 0.05,
+                  f"{st.mean(xv):.4f} vs {st.mean(yv):.4f}, p={pm:.4f}"
+                  if pm is not None else "scipy unavailable")
+    else:
+        # And that it is neutral where the absolute rule already worked.
+        check("relative quality is neutral on PathMNIST",
+              pv is None or pv > 0.05,
+              f"p={pv:.4f}" if pv is not None else "scipy unavailable")
 
 # ------------------------------------------- quality-signal diagnostic
 def quality_ratio(pattern: str) -> tuple[float, float, int, int] | None:

@@ -34,11 +34,16 @@ class AdaptiveAggregator(FedAvgAggregator):
         beta: float = 1.0,
         gamma: float = 1.0,
         log_eps: float = 1e-6,
+        relative_quality: bool = False,
     ):
         self.alpha = alpha
         self.beta = beta
         self.gamma = gamma
         self.log_eps = log_eps
+        # Score each client against its own first-round quality rather than
+        # against the other clients. See compute_weights.
+        self.relative_quality = relative_quality
+        self._quality_baseline: list[float] | None = None
 
     def compute_weights(
         self,
@@ -52,10 +57,25 @@ class AdaptiveAggregator(FedAvgAggregator):
                 "client_sizes, client_distances, client_quality must align"
             )
 
+        quality = list(client_quality)
+        if self.relative_quality:
+            # A client's absolute loss reflects both how hard its data is and
+            # how corrupted its labels are; only the second should move the
+            # weights. Dividing by the client's own first-round quality
+            # cancels the difficulty term, so a site that starts and stays
+            # hard is not penalised, while one whose loss fails to fall as
+            # training proceeds is.
+            if self._quality_baseline is None:
+                self._quality_baseline = [max(q, self.log_eps) for q in quality]
+            quality = [
+                max(q, self.log_eps) / self._quality_baseline[i]
+                for i, q in enumerate(quality)
+            ]
+
         log_scores = [
             self.alpha * math.log(max(client_sizes[i], 1))
             - self.beta * client_distances[i]
-            + self.gamma * math.log(max(client_quality[i], self.log_eps))
+            + self.gamma * math.log(max(quality[i], self.log_eps))
             for i in range(n)
         ]
         max_score = max(log_scores)

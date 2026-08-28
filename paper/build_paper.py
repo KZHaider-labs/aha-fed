@@ -504,7 +504,7 @@ def build() -> None:
         "The remainder of the paper is organised as follows. Section 2 "
         "reviews the literature and contrasts AHA-Fed with seventeen recent "
         "methods (Table 1). Section 3 derives the rule, gives the training "
-        "algorithm, and proves in Section 3.8 that the softmax weights are "
+        "algorithm, and proves in Section 3.9 that the softmax weights are "
         "bounded away from zero — the property that places the method inside "
         "the standard FedAvg convergence rate. Section 4 specifies the "
         "protocol. Section 5 reports eleven experiments, Section 6 ablates "
@@ -903,7 +903,41 @@ def build() -> None:
                "Figure 2: AHA-Fed weighting scheme — three signals combined "
                "in log-space and softmax-normalised.")
 
-    add_heading(doc, "3.4 System architecture", level=2)
+    add_heading(doc, "3.4 Relative quality: removing the difficulty term",
+                level=2)
+    add_paragraph(doc,
+        "The quality signal as defined above conflates two things. A client's "
+        "local loss is high both when its labels disagree with its inputs — "
+        "the corruption we want to detect — and when its slice of the data is "
+        "simply harder, which a Dirichlet partition guarantees will differ "
+        "across sites. Only the first should move the weights. Section 5.7 "
+        "shows this conflation is not hypothetical: on a binary task one "
+        "uncorrupted client reaches quality 0.81 while the rest sit near 0.59, "
+        "a spread twice the size of the corruption signal, and the rule spends "
+        "its budget rewarding an easy partition instead of penalising a bad "
+        "one.",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
+    add_paragraph(doc,
+        "We therefore define a relative variant that references each client "
+        "against its own first-round quality, q̃_k = q_k / q_k^(1), and "
+        "substitutes q̃_k for q_k in the score. Writing the local loss as a "
+        "sum of a client-specific difficulty term and a corruption term, the "
+        "difficulty term is present in both numerator and denominator and "
+        "largely cancels, leaving the component that changes as training "
+        "proceeds. A site that starts hard and stays hard is no longer "
+        "penalised; a site whose loss fails to fall because its labels are "
+        "wrong still is. The change costs nothing at runtime — one stored "
+        "scalar per client — and reduces to the absolute rule when every "
+        "client begins at the same quality.",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
+    add_paragraph(doc,
+        "Proposition 1 is unaffected: q̃_k is bounded whenever q_k is, so the "
+        "weights remain non-degenerate and the convergence statement of "
+        "Section 3.9 carries over with q_min replaced by the smallest "
+        "attainable ratio.",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
+
+    add_heading(doc, "3.5 System architecture", level=2)
     add_paragraph(doc,
         "Figure 3 shows the full deployment architecture organised as "
         "three horizontal layers: a server layer (top) with broadcast, "
@@ -932,7 +966,7 @@ def build() -> None:
                "breakdown and numbered round flow (1–6).",
                width_in=6.6)
 
-    add_heading(doc, "3.5 Differential privacy", level=2)
+    add_heading(doc, "3.6 Differential privacy", level=2)
     add_paragraph(doc,
         "Each client runs DP-SGD [1] with per-sample gradient clipping at "
         "norm C and Gaussian noise scale σ chosen by the Opacus [33] privacy "
@@ -947,7 +981,7 @@ def build() -> None:
         "are tracked per client and summed for the federation.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
-    add_heading(doc, "3.6 Calibration metric", level=2)
+    add_heading(doc, "3.7 Calibration metric", level=2)
     add_paragraph(doc,
         "We report Expected Calibration Error (ECE), defined over M "
         "confidence bins:",
@@ -961,12 +995,12 @@ def build() -> None:
         "dangerous than a less-accurate but well-calibrated model.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
-    add_heading(doc, "3.7 Algorithm", level=2)
+    add_heading(doc, "3.8 Algorithm", level=2)
     add_figure(doc, FIGS / "fig_algorithm.png",
                "Figure 4: AHA-Fed federated training loop (Algorithm 1).")
 
     # ==================== 4. EXPERIMENTAL SETUP ====================
-    add_heading(doc, "3.8 Convergence analysis", level=2)
+    add_heading(doc, "3.9 Convergence analysis", level=2)
     add_paragraph(doc,
         "AHA-Fed changes only how client updates are combined, not how they "
         "are produced, so its convergence behaviour follows from the "
@@ -1423,6 +1457,58 @@ def build() -> None:
                header_font_size=10, body_font_size=9.5)
     add_post_table_spacing(doc)
 
+    add_paragraph(doc,
+        "The diagnostic points at a fix. If the failure is that q_k confounds "
+        "task difficulty with corruption, then referencing each client "
+        "against its own starting quality should recover the signal — this is "
+        "the relative variant of Section 3.4. We evaluate it against the "
+        "absolute rule on both corpora at ten seeds, with everything else "
+        "held fixed. Because this is a design choice rather than a reported "
+        "result, the comparison is made on the validation split.",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
+
+    relq_data = [
+        ["Corpus", "Metric", "Relative q̃", "Absolute q", "p"],
+        ["PneumoniaMNIST", "ECE", "0.119", "0.148", "0.065"],
+        ["(binary)", "Accuracy", "0.802", "0.761", "0.027"],
+        ["", "AUROC", "0.921", "0.896", "0.006"],
+        ["PathMNIST", "ECE", "0.060", "0.062", "1.000"],
+        ["(9-class)", "Accuracy", "0.611", "0.627", "0.375"],
+        ["", "AUROC", "0.928", "0.930", "0.492"],
+    ]
+    add_table_caption(doc,
+        "Table 6: Relative versus absolute quality signal, ten seeds, "
+        "validation split. Paired Wilcoxon signed-rank tests over matched "
+        "seeds.")
+    make_table(doc, relq_data, header_font_size=10, body_font_size=9.5,
+               highlight_row_pred=lambda i, row: False)
+    add_post_table_spacing(doc)
+
+    add_paragraph(doc,
+        "The variant helps exactly where the diagnostic says it should. On "
+        "PneumoniaMNIST — the task with the unfavourable ratio — it improves "
+        "all three metrics, significantly for accuracy (p = 0.027) and AUROC "
+        "(p = 0.006), with ECE at the boundary (0.119 against 0.148, "
+        "p = 0.065). On PathMNIST, where the ratio was already favourable and "
+        "the absolute rule worked, it changes nothing measurable "
+        "(p = 1.00, 0.375, 0.492). That selectivity is the point: a "
+        "modification that improved both corpora would be difficult to "
+        "attribute to the mechanism we claim, whereas one that acts only "
+        "where the diagnostic predicts a problem is evidence the diagnosis "
+        "was right.",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
+
+    add_paragraph(doc,
+        "We report this as a promising refinement rather than a settled "
+        "result. The ECE improvement, which is the metric this paper treats "
+        "as primary, does not clear the conventional threshold at ten seeds; "
+        "the accuracy and AUROC gains do. A larger seed budget would settle "
+        "whether the calibration gain is real. We also note that an earlier "
+        "three-seed reading of this same comparison suggested the opposite "
+        "conclusion — that the variant hurt calibration by 25% — which is a "
+        "further instance of the seed-budget caution in Section 5.3.",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
+
     add_heading(doc, "5.8 Scaling to full-resolution chest radiography",
                 level=2)
     add_paragraph(doc,
@@ -1466,7 +1552,7 @@ def build() -> None:
         ["50% noise at one center", "AHA-Fed", "0.925 ± 0.002", "0.390", "0.0107 ± 0.0015", "0.601"],
     ]
     add_table_caption(doc,
-        "Table 6: NIH ChestX-ray14 at 224×224, four patient-disjoint "
+        "Table 7: NIH ChestX-ray14 at 224×224, four patient-disjoint "
         "centers. Clean rows are single seed; the corrupted rows are mean ± "
         "s.d. over three seeds. AUROC and AUPRC are macro-averaged over the "
         "14 findings; accuracy is exact match over the whole label vector.")
@@ -1544,7 +1630,7 @@ def build() -> None:
         "(0.039 vs 0.062) and ε = 1.0 (0.066 vs 0.072) but higher at "
         "ε = 5.0 (0.091 vs 0.041), and ECE computed over near-chance "
         "predictions is not a meaningful calibration signal in any case. "
-        "We therefore claim only what Section 3.5 establishes "
+        "We therefore claim only what Section 3.6 establishes "
         "analytically — that AHA-Fed is architecturally compatible with "
         "per-client DP-SGD by post-processing immunity — and make no "
         "empirical claim that it improves the privacy-utility tradeoff. "
@@ -1707,7 +1793,7 @@ def build() -> None:
     add_heading(doc, "7.1 Limitations", level=2)
     add_paragraph(doc,
         "Six limitations bound the scope of these claims. First, the "
-        "convergence result of Section 3.8 guarantees non-degenerate "
+        "convergence result of Section 3.9 guarantees non-degenerate "
         "weights and hence the standard rate, but for a round-averaged "
         "reweighted objective; it does not establish that the reweighted "
         "objective is the better one, which remains an empirical claim. "

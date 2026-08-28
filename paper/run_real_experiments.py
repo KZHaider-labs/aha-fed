@@ -64,6 +64,7 @@ def run_one(
     feddisco_a: float = 4.0,
     dataset: str = "pathmnist",
     eval_split: str = "test",
+    relative_quality: bool = False,
     dp_config: dict | None = None,
 ) -> dict:
     if out_path.exists():
@@ -100,7 +101,8 @@ def run_one(
     model = build_model(arch, num_classes=num_classes, pretrained=False)
 
     if aggregator == "adaptive":
-        agg = build_aggregator(aggregator, alpha=alpha, beta=beta, gamma=gamma)
+        agg = build_aggregator(aggregator, alpha=alpha, beta=beta, gamma=gamma,
+                               relative_quality=relative_quality)
     elif aggregator == "feddisco":
         agg = build_aggregator(aggregator, a=feddisco_a)
     else:
@@ -143,6 +145,7 @@ def run_one(
             "feddisco_a": feddisco_a,
             "dataset": dataset,
             "eval_split": eval_split,
+            "relative_quality": relative_quality,
         },
         "dp_config": dp_config,
         "history": history,
