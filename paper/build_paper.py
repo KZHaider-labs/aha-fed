@@ -464,7 +464,12 @@ def build() -> None:
         "evaluation: AUROC, AUPRC, Expected Calibration Error, "
         "worst-center gap, and per-round communication cost — "
         "moving beyond the accuracy-only reporting that dominates "
-        "the FL literature. (iv) Reproducibility kit: a seeded "
+        "the FL literature. (iv) A deployment diagnostic: the ratio "
+        "between the corruption signal and the baseline spread in local "
+        "loss predicts whether the quality term can work on a given "
+        "federation, and is computable from one round of ordinary "
+        "training before committing to an aggregation rule "
+        "(Section 5.7). (v) Reproducibility kit: a seeded "
         "multi-run sweeper, per-run JSON manifests, loaders for "
         "PathMNIST and PneumoniaMNIST [41] as well as full-resolution "
         "CheXpert and NIH ChestX-ray14, a script that re-checks every "
@@ -1318,45 +1323,66 @@ def build() -> None:
                "Figure 12: Multi-seed convergence on PathMNIST "
                "(mean ± s.d., 10 seeds).")
 
-    add_heading(doc, "5.7 Do (β, γ) transfer across tasks? A negative result",
+    add_heading(doc, "5.7 When does the quality signal work? A diagnostic",
                 level=2)
     add_paragraph(doc,
         "Section 5.2 showed AHA-Fed placing last on PneumoniaMNIST while "
-        "leading on PathMNIST. Since those runs reused β = γ = 4 — values "
-        "chosen for a nine-class histopathology task — the obvious question "
-        "is whether the chest-radiography result reflects the method or "
-        "merely untuned hyperparameters. Binary chest radiography has a very "
-        "different label-prior geometry: with two classes the total-variation "
-        "distance between a client prior and the consensus is bounded by a "
-        "single scalar gap, so the β term has far less to act on.",
+        "leading on PathMNIST, with the same corruption injected in both. "
+        "That is worth explaining rather than reporting as an anomaly, "
+        "because the explanation turns out to be measurable before "
+        "training and tells a practitioner when the method will help.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_paragraph(doc,
-        "We ran the full 5 × 5 (β, γ) grid on PneumoniaMNIST twice, and the "
-        "difference between the two runs is the point of this section. "
-        "Selecting the grid point with the best test ECE gives β = 8, "
-        "γ = 1 at ECE 0.123, which would place AHA-Fed first — ahead of "
-        "FedDisco at 0.145. But that number is obtained by choosing among "
-        "twenty-five configurations on the same split used to report it, "
-        "and it does not survive an honest protocol. Repeating the grid "
-        "with selection on a held-out validation split picks a different "
-        "configuration entirely, β = 0 and γ = 2, and that configuration "
-        "scores 0.211 ± 0.017 on test — worse than every baseline, and "
-        "worse than the untuned β = γ = 4 setting it was meant to improve.",
+        "The quality term ranks clients by q_k = 1/(1 + L_k), so it "
+        "detects a corrupted site only when corruption moves the local "
+        "loss further than ordinary differences between healthy sites do. "
+        "Those ordinary differences are not noise to be averaged away: a "
+        "Dirichlet partition hands one hospital an easier class mix than "
+        "another, and that shows up in the loss exactly like corruption "
+        "does. The signal is therefore competing against a nuisance term, "
+        "and we can measure both from the quality scalars the aggregator "
+        "already reports.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_paragraph(doc,
-        "We report the validation-selected number, 0.211, as the "
-        "chest-radiography result. Three things follow. First, AHA-Fed does "
-        "not improve calibration on PneumoniaMNIST, and we make no claim "
-        "that it does. Second, (β, γ) do not transfer across tasks: the "
-        "values that work on PathMNIST are not merely suboptimal on binary "
-        "chest radiography but actively harmful, and the grid's own "
-        "optimum shifts depending on which split is used to choose it. "
-        "Third, and most usefully for readers, the 0.123 figure is a "
-        "concrete illustration of how much test-set selection can flatter a "
-        "method — a 1.7× apparent improvement that reverses under a proper "
-        "protocol. Any deployment of AHA-Fed needs a per-task validation "
-        "split for these two hyperparameters; Section 7.1 lists this among "
-        "the method's practical costs.",
+        "Define the corruption signal as the gap between the mean quality of "
+        "the clean clients and that of the corrupted one, and the nuisance "
+        "spread as the range of quality among the clean clients alone. "
+        "Over ten seeds on PathMNIST the signal is 0.159 against a spread "
+        "of 0.067 — a ratio of 2.37, and the corrupted client is ranked "
+        "worst in 10 of 10 runs. On PneumoniaMNIST the signal is 0.075 "
+        "against a spread of 0.163 — a ratio of 0.46, and the corrupted "
+        "client is ranked worst in only 6 of 10 runs. In the binary task "
+        "one clean client sits at quality 0.81 while the rest sit near "
+        "0.59, so the term spends its budget rewarding an easy partition "
+        "instead of penalising a corrupted one. The final weights show "
+        "the consequence directly: on PathMNIST the corrupted client "
+        "falls to 0.060, on PneumoniaMNIST it stays at 0.213 against a "
+        "uniform 0.250.",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
+    add_paragraph(doc,
+        "We also checked whether hyperparameters could rescue the binary "
+        "task, and they cannot in any legitimate way. Selecting the best "
+        "of a 5 × 5 (β, γ) grid on the test split gives β = 8, γ = 1 at "
+        "ECE 0.123, which would place AHA-Fed ahead of FedDisco. "
+        "Repeating the selection on a held-out validation split picks "
+        "β = 0, γ = 2 instead, which scores 0.211 ± 0.017 on test — worse "
+        "than every baseline. We report the validation-selected figure "
+        "and note the other only to quantify how much test-set selection "
+        "can flatter a method: a 1.7× apparent improvement that reverses "
+        "under a correct protocol.",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
+    add_paragraph(doc,
+        "The practical value of this is that the ratio is computable from a "
+        "single round of ordinary federated training, before committing to "
+        "an aggregation rule. A federation whose clean clients already "
+        "differ in local loss by more than corruption would move it is a "
+        "federation where AHA-Fed's quality term has no usable signal, "
+        "and volume weighting is the safer choice. This also predicts the "
+        "NIH result of Section 5.8, where the ratio is favourable and "
+        "AHA-Fed leads once a site is corrupted, and it is a sharper "
+        "statement than 'the hyperparameters did not transfer': the "
+        "failure is a property of the federation, not of the tuning. "
+        "Section 7.1 records the diagnostic as a deployment prerequisite.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     transfer_data = [

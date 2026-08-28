@@ -277,6 +277,51 @@ if grid:
               max(interior) < fedprox,
               f"worst interior {max(interior):.4f} vs FedProx {fedprox:.4f}")
 
+# ------------------------------------------- quality-signal diagnostic
+def quality_ratio(pattern: str) -> tuple[float, float, int, int] | None:
+    """Corruption signal vs spread among clean clients, from stored quality.
+
+    Returns (signal, spread, times the corrupted client ranked worst, runs).
+    """
+    signals, spreads, correct, n = [], [], 0, 0
+    for f in sorted(glob.glob(str(REAL / pattern))):
+        d = json.loads(Path(f).read_text())
+        qs = [r.get("client_quality") for r in d.get("history", [])
+              if r.get("client_quality")]
+        if not qs:
+            continue
+        q = qs[-1]
+        noisy_idx = (d.get("config") or {}).get("noisy_client")
+        if noisy_idx is None or noisy_idx >= len(q):
+            continue
+        clean = [x for i, x in enumerate(q) if i != noisy_idx]
+        signals.append(st.mean(clean) - q[noisy_idx])
+        spreads.append(max(clean) - min(clean))
+        correct += q[noisy_idx] == min(q)
+        n += 1
+    if not n:
+        return None
+    return st.mean(signals), st.mean(spreads), correct, n
+
+
+print("\n=== Quality-signal diagnostic (Section 5.7) ===")
+diag = {}
+for name, pat in (("PathMNIST", "path_aha_fed_s*.json"),
+                  ("PneumoniaMNIST", "pneu_aha_fed_s*.json")):
+    r = quality_ratio(pat)
+    if not r:
+        continue
+    sig, spr, correct, n = r
+    diag[name] = sig / spr if spr else float("inf")
+    print(f"  {name:<15} signal {sig:.4f}  spread {spr:.4f}  "
+          f"ratio {diag[name]:.2f}  corrupted ranked worst {correct}/{n}")
+
+if "PathMNIST" in diag and "PneumoniaMNIST" in diag:
+    check("diagnostic ratio separates the two tasks",
+          diag["PathMNIST"] > 1 > diag["PneumoniaMNIST"],
+          f"PathMNIST {diag['PathMNIST']:.2f}, "
+          f"PneumoniaMNIST {diag['PneumoniaMNIST']:.2f}")
+
 # ------------------------------------------------------- NIH ChestX-ray14
 NIH = ROOT / "runs" / "paper" / "nih"
 nih_files = sorted(glob.glob(str(NIH / "*.json")))
