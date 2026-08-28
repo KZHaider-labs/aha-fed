@@ -68,8 +68,9 @@ AFFILIATIONS = [
     "3Department, University, City, Country",
 ]
 CORRESPONDING = "Corresponding author: First A. Author (e-mail: author@example.edu)."
-FUNDING = ("This work was supported in part by [funder] under Grant [number]. "
-           "Replace or delete this paragraph as appropriate.")
+# No external funding to declare; the template's support-acknowledgement
+# paragraph is therefore omitted rather than left as a placeholder.
+FUNDING = None
 
 
 def strip_body(doc: Document) -> None:
@@ -163,7 +164,8 @@ def build(template: Path, out: Path) -> None:
     for aff in AFFILIATIONS:
         para(doc, aff, size=8)
     para(doc, CORRESPONDING, size=8)
-    para(doc, FUNDING, size=8)
+    if FUNDING:
+        para(doc, FUNDING, size=8)
 
     abs_style = "Abstract" if style_or_none(doc, "Abstract") else None
     p = doc.add_paragraph()
