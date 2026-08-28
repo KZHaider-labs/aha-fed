@@ -541,18 +541,22 @@ def build() -> None:
         "contrast AHA-Fed with seventeen recent methods (Table 1) "
         "spanning 2022 to 2026 across six dimensions. Section 3 "
         "derives AHA-Fed in detail, presents nine equations, "
-        "analyses its FedAvg-reducibility, and gives the full "
-        "training algorithm. Section 4 specifies the experimental "
+        "analyses its FedAvg-reducibility, gives the full training "
+        "algorithm, and proves in Section 3.8 that the softmax "
+        "weights are bounded away from zero — the property that "
+        "places the method inside the standard FedAvg convergence "
+        "rate. Section 4 specifies the experimental "
         "protocol and Table 2 summarises the datasets. "
-        "Section 5 presents ten sub-experiments: "
+        "Section 5 presents eleven sub-experiments: "
         "convergence and calibration, final performance with error "
         "bars, label-noise robustness, heterogeneity and "
         "client-scaling, per-client weights, the aggregator "
-        "comparison on PathMNIST, hyperparameter transfer across "
-        "tasks, the DP-SGD privacy-utility tradeoff, "
+        "comparison on PathMNIST, the diagnostic that predicts when "
+        "the quality signal works, full-resolution NIH "
+        "ChestX-ray14, the DP-SGD privacy-utility tradeoff, "
         "hyperparameter sensitivity, and discussion. Section 6 "
         "ablates each AHA-Fed term. Section 7 concludes and "
-        "outlines future real-data and theoretical directions.",
+        "outlines future directions.",
     ]
     for para in closing_paras:
         add_paragraph(doc, para, align=WD_ALIGN_PARAGRAPH.JUSTIFY,
@@ -875,7 +879,7 @@ def build() -> None:
         ["FedDyn++ [25]",       "2024", "Yes (dynamic reg.)", "No",  "Yes", "No", "No"],
         ["Zhao et al. [36]",    "2025", "No",  "No",  "Yes (ε sweep)", "Partial", "Yes"],
         ["Calib-FL [35]",       "2026", "Partial",  "No",  "Indirect",  "Yes (CDS)", "Yes"],
-        ["AHA-Fed (ours)",      "2026", "Yes (volume + distance)", "Yes (loss-quality)", "Yes (DP-SGD/Opacus)", "Yes (ECE)", "Yes (planned + synth.)"],
+        ["AHA-Fed (ours)",      "2026", "Yes (volume + distance)", "Yes (loss-quality)", "Yes (DP-SGD/Opacus)", "Yes (ECE)", "Yes (3 real corpora)"],
     ]
     add_table_caption(doc,
         "Table 1: Comparison of 17 recent federated-learning methods (2022–2026)."
