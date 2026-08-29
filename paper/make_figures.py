@@ -181,78 +181,152 @@ def fig_motivation():
 #                         FIGURE 1 — ARCHITECTURE
 # =====================================================================
 def fig_architecture():
-    fig, ax = plt.subplots(figsize=(11, 6.5))
-    ax.set_xlim(0, 12)
-    ax.set_ylim(0, 7.0)
+    from matplotlib.patches import FancyBboxPatch as _FBP, Circle
+    import matplotlib.patheffects as pe
+
+    fig, ax = plt.subplots(figsize=(12, 5.9))
+    ax.set_xlim(0, 12.4)
+    ax.set_ylim(-0.3, 7.4)
     ax.axis("off")
+    fig.patch.set_facecolor("white")
 
-    # Server box
-    sb = FancyBboxPatch((3.5, 5.0), 5.0, 1.6,
-                        boxstyle="round,pad=0.1", linewidth=2,
-                        edgecolor="#1f3a5f", facecolor="#cfe2f3")
-    ax.add_patch(sb)
-    ax.text(6.0, 6.25, "Federated Server",
-            ha="center", va="center", fontsize=13, fontweight="bold",
-            color="#1f3a5f")
-    ax.text(6.0, 5.75, "AHA-Fed Aggregator",
-            ha="center", va="center", fontsize=11, color="#1f3a5f")
-    ax.text(6.0, 5.30,
-            r"$w_k=\mathrm{softmax}(\alpha\log n_k-\beta D_k+\gamma\log q_k)$",
-            ha="center", va="center", fontsize=10.5, color="#3a3a3a")
+    NAVY = "#0f2d52"
+    NAVY_MID = "#1f4e8c"
+    GOLD = "#8a5a00"
+    RED = "#9a2020"
+    INK = "#22262b"
 
-    # Hospital boxes
+    # ---- soft drop-shadow helper -----------------------------------
+    def shadow_box(x, y, w, h, fc, ec, lw=1.8, r="round,pad=0.045,rounding_size=0.14"):
+        ax.add_patch(_FBP((x + 0.06, y - 0.07), w, h, boxstyle=r,
+                          linewidth=0, facecolor="#000000", alpha=0.10, zorder=1))
+        box = _FBP((x, y), w, h, boxstyle=r, linewidth=lw,
+                   edgecolor=ec, facecolor=fc, zorder=2)
+        ax.add_patch(box)
+        return box
+
+    # ---- title band ---------------------------------------------------
+    ax.text(6.2, 7.15, "AHA-Fed: Adaptive Heterogeneity-Aware Federated Aggregation",
+            ha="center", va="center", fontsize=14.5, fontweight="bold", color=NAVY)
+
+    # ---- server card (gradient-look via stacked panels) ---------------
+    sx, sy, sw, sh = 3.35, 5.05, 5.7, 1.85
+    shadow_box(sx, sy, sw, sh, fc="#eaf2fb", ec=NAVY, lw=2.2)
+    ax.add_patch(_FBP((sx, sy + sh - 0.5), sw, 0.5,
+                      boxstyle="round,pad=0.045,rounding_size=0.14",
+                      linewidth=0, facecolor=NAVY, zorder=3))
+    ax.add_patch(Rectangle((sx + 0.02, sy + sh - 0.5), sw - 0.04, 0.25,
+                           facecolor=NAVY, edgecolor="none", zorder=3))
+    ax.text(sx + sw / 2, sy + sh - 0.25, "FEDERATED SERVER",
+            ha="center", va="center", fontsize=12.5, fontweight="bold",
+            color="white", zorder=4)
+    ax.text(sx + sw / 2, sy + sh - 0.86, "AHA-Fed Adaptive Aggregator",
+            ha="center", va="center", fontsize=11, fontweight="bold",
+            color=NAVY_MID, zorder=4)
+    ax.text(sx + sw / 2, sy + 0.32,
+            r"$w_k=\mathrm{softmax}\left(\alpha\log n_k-\beta D_k+\gamma\log q_k\right)$",
+            ha="center", va="center", fontsize=11.5, color=INK, zorder=4)
+
+    # small legend chips inside server card
+    chip_y = sy + sh - 1.28
+    for i, (sym, desc) in enumerate([
+        (r"$n_k$", "sample count"), (r"$D_k$", "distribution shift"),
+        (r"$q_k$", "local quality")]):
+        cx0 = sx + 0.55 + i * 1.85
+        ax.add_patch(Circle((cx0, chip_y), 0.16, facecolor=NAVY_MID,
+                            edgecolor="none", zorder=4))
+        ax.text(cx0, chip_y, sym, ha="center", va="center", fontsize=8,
+                color="white", zorder=5)
+        ax.text(cx0 + 0.28, chip_y, desc, ha="left", va="center",
+                fontsize=8.3, color="#3a3a3a", zorder=4)
+
+    # ---- hospital cards -------------------------------------------------
+    hosp_w, hosp_h = 2.62, 2.55
+    gap = 0.28
+    total_w = 4 * hosp_w + 3 * gap
+    x0 = (12.4 - total_w) / 2
+    hy = 1.05
+
     centers = [
-        (0.3, 1.5, "#fff2cc", "#7a4f00",
-         "Hospital A", "Frontal CXR\nn ≈ 200, IID prior"),
-        (3.3, 1.5, "#fff2cc", "#7a4f00",
-         "Hospital B", "Lateral CXR\nn ≈ 200, mild shift"),
-        (6.3, 1.5, "#fff2cc", "#7a4f00",
-         "Hospital C", "High prevalence\nn ≈ 200, strong shift"),
-        (9.3, 1.5, "#fadbd8", "#7a1f1f",
-         "Hospital D", "Noisy labels\nn ≈ 200, 50% noise"),
+        (x0 + 0 * (hosp_w + gap), "#eef6ec", "#2f6b2f", "A",
+         "Hospital A", "Frontal CXR", "n ≈ 200 · IID prior", False),
+        (x0 + 1 * (hosp_w + gap), "#eef6ec", "#2f6b2f", "B",
+         "Hospital B", "Lateral CXR", "n ≈ 200 · mild shift", False),
+        (x0 + 2 * (hosp_w + gap), "#fdf1de", GOLD, "C",
+         "Hospital C", "High prevalence", "n ≈ 200 · strong shift", False),
+        (x0 + 3 * (hosp_w + gap), "#fbe6e6", RED, "D",
+         "Hospital D", "Noisy labels", "n ≈ 200 · 50% noise", True),
     ]
-    for x, y, fc, ec, head, body in centers:
-        ax.add_patch(FancyBboxPatch((x, y), 2.4, 1.5,
-                                    boxstyle="round,pad=0.06",
-                                    linewidth=1.4,
-                                    edgecolor=ec, facecolor=fc))
-        ax.text(x + 1.2, y + 1.2, head,
-                ha="center", va="center", fontsize=11.5,
-                fontweight="bold", color=ec)
-        ax.text(x + 1.2, y + 0.6, body,
-                ha="center", va="center", fontsize=9.5, color="#1f1f1f")
-        ax.text(x + 1.2, y - 0.18,
-                "Local SmallCNN / DenseNet-121\n+ DP-SGD (Opacus)",
-                ha="center", va="top", fontsize=8.5,
-                style="italic", color="#444")
 
-    # Arrows: client -> server (uplinks) and server -> client (downlinks)
-    for x, y, *_ in centers:
-        cx, cy = x + 1.2, y + 1.5
-        ax.add_patch(FancyArrowPatch((cx, cy + 0.55), (cx, 5.0),
-                                     arrowstyle="->", mutation_scale=14,
-                                     linewidth=1.2, color="#444"))
-        ax.add_patch(FancyArrowPatch((cx + 0.18, 5.0), (cx + 0.18, cy + 0.55),
-                                     arrowstyle="->", mutation_scale=14,
-                                     linewidth=1.2, color="#aa3333",
-                                     linestyle="--"))
+    for x, fc, ec, icon, head, line1, line2, flagged in centers:
+        shadow_box(x, hy, hosp_w, hosp_h, fc=fc, ec=ec, lw=1.6,
+                   r="round,pad=0.04,rounding_size=0.12")
+        # header strip
+        ax.add_patch(Rectangle((x + 0.03, hy + hosp_h - 0.56), hosp_w - 0.06, 0.5,
+                               facecolor=ec, edgecolor="none", alpha=0.92, zorder=3))
+        ax.add_patch(Circle((x + 0.32, hy + hosp_h - 0.31), 0.15,
+                            facecolor="white", edgecolor="none", zorder=4))
+        ax.text(x + 0.32, hy + hosp_h - 0.31, icon, ha="center", va="center",
+                fontsize=9, fontweight="bold", color=ec, zorder=5)
+        ax.text(x + hosp_w / 2 + 0.16, hy + hosp_h - 0.31, head,
+                ha="center", va="center", fontsize=11.3, fontweight="bold",
+                color="white", zorder=4)
+        ax.text(x + hosp_w / 2, hy + hosp_h - 1.02, line1,
+                ha="center", va="center", fontsize=10, fontweight="bold",
+                color=ec, zorder=4)
+        ax.text(x + hosp_w / 2, hy + hosp_h - 1.38, line2,
+                ha="center", va="center", fontsize=9, color="#333", zorder=4)
+        ax.plot([x + 0.28, x + hosp_w - 0.28],
+                [hy + hosp_h - 1.62, hy + hosp_h - 1.62],
+                color=ec, linewidth=0.7, alpha=0.5, zorder=4)
+        ax.text(x + hosp_w / 2, hy + 0.62,
+                "SmallCNN / DenseNet-121",
+                ha="center", va="center", fontsize=8.4, style="italic",
+                color="#444", zorder=4)
+        ax.text(x + hosp_w / 2, hy + 0.30,
+                "+ DP-SGD (Opacus, $\\varepsilon$-priv.)",
+                ha="center", va="center", fontsize=8.4, style="italic",
+                color="#444", zorder=4)
+        if flagged:
+            ax.text(x + hosp_w - 0.22, hy + hosp_h - 0.31, "!", ha="center",
+                    va="center", fontsize=11, fontweight="bold", color="white",
+                    zorder=5,
+                    bbox=dict(boxstyle="circle,pad=0.18", fc="#c0392b",
+                              ec="white", linewidth=1.0))
 
-    ax.text(0.5, 4.55, r"Uplink: $\Delta\theta_k,\,q_k$",
-            ha="left", va="center", fontsize=10, color="#444",
-            bbox=dict(boxstyle="round,pad=0.3", fc="white",
-                      ec="#444", linewidth=0.8))
-    ax.text(11.5, 4.55, r"Downlink: $\theta^{\,t}$",
-            ha="right", va="center", fontsize=10, color="#7a1f1f",
-            bbox=dict(boxstyle="round,pad=0.3", fc="white",
-                      ec="#aa3333", linewidth=0.8))
+    # ---- uplink / downlink arrows --------------------------------------
+    for x, *_ in centers:
+        cx = x + hosp_w / 2
+        top = hy + hosp_h
+        bot = sy
+        ax.add_patch(FancyArrowPatch((cx - 0.14, top + 0.08), (cx - 0.14, bot - 0.06),
+                                     arrowstyle="-|>", mutation_scale=16,
+                                     linewidth=1.6, color=NAVY_MID,
+                                     connectionstyle="arc3,rad=0.0", zorder=2))
+        ax.add_patch(FancyArrowPatch((cx + 0.14, bot - 0.06), (cx + 0.14, top + 0.08),
+                                     arrowstyle="-|>", mutation_scale=16,
+                                     linewidth=1.6, color=RED, linestyle=(0, (4, 2)),
+                                     connectionstyle="arc3,rad=0.0", zorder=2))
 
-    # Bottom data layer
-    ax.add_patch(Rectangle((0, 0), 12, 1.0, facecolor="#f4f8fb",
-                           edgecolor="#cccccc"))
-    ax.text(6.0, 0.5,
-            "Raw DICOM, PHI, and patient records remain on-premise — only model state and quality scalars are exchanged.",
-            ha="center", va="center", fontsize=10, style="italic",
-            color="#1f3a5f")
+    mid_y = (hy + hosp_h + sy) / 2
+    ax.text(x0 - 0.55, mid_y + 0.22, r"Uplink: $\Delta\theta_k,\,q_k$",
+            ha="left", va="center", fontsize=9.5, color=NAVY_MID, rotation=0,
+            bbox=dict(boxstyle="round,pad=0.32", fc="white",
+                      ec=NAVY_MID, linewidth=1.0))
+    ax.text(x0 - 0.55, mid_y - 0.32, r"Downlink: $\theta^{\,t}$",
+            ha="left", va="center", fontsize=9.5, color=RED,
+            bbox=dict(boxstyle="round,pad=0.32", fc="white",
+                      ec=RED, linewidth=1.0))
+
+    # ---- privacy floor band ---------------------------------------------
+    band_y0, band_h = -0.28, 0.95
+    ax.add_patch(Rectangle((0, band_y0), 12.4, band_h, facecolor="#f2f6fa",
+                           edgecolor="#c9d6e3", linewidth=1.0, zorder=1))
+    ax.text(6.2, band_y0 + band_h / 2,
+            "Raw DICOM, PHI, and patient records remain strictly on-premise — "
+            "only model updates and scalar quality signals cross the wire.",
+            ha="center", va="center", fontsize=9.8, style="italic",
+            color=NAVY, zorder=2)
 
     plt.savefig(FIGS / "fig1_architecture.png")
     plt.close()

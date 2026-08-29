@@ -1613,13 +1613,13 @@ def build() -> None:
         ["Clean, 2,000 img/ctr", "FedAvg", "0.927", "0.414", "0.0100", "0.604"],
         ["Clean, 2,000 img/ctr", "AHA-Fed", "0.923", "0.385", "0.0114", "0.592"],
         ["Clean, 2,000 img/ctr", "FedBN", "0.909", "0.379", "0.0135", "0.586"],
-        ["50% noise at one center", "FedAvg", "0.931 ± 0.004", "0.416", "0.0120 ± 0.0003", "0.603"],
-        ["50% noise at one center", "AHA-Fed", "0.925 ± 0.002", "0.390", "0.0107 ± 0.0015", "0.601"],
+        ["50% noise, 6 seeds", "FedAvg", "0.930 ± 0.006", "0.411", "0.0117 ± 0.0011", "0.602"],
+        ["50% noise, 6 seeds", "AHA-Fed", "0.921 ± 0.009", "0.388", "0.0101 ± 0.0018", "0.599"],
     ]
     add_table_caption(doc,
         "Table 8: NIH ChestX-ray14 at 224×224, four patient-disjoint "
         "centers. Clean rows are single seed; the corrupted rows are mean ± "
-        "s.d. over three seeds. AUROC and AUPRC are macro-averaged over the "
+        "s.d. over six seeds. AUROC and AUPRC are macro-averaged over the "
         "14 findings; accuracy is exact match over the whole label vector.")
     make_table(doc, nih_data, header_font_size=10, body_font_size=9.5,
                highlight_row_pred=lambda i, row: False)
@@ -1649,15 +1649,24 @@ def build() -> None:
     add_paragraph(doc,
         "The ordering reverses. On the clean federation FedAvg is 13.6% "
         "better than AHA-Fed on ECE; with a corrupted center AHA-Fed is "
-        "10.6% better (0.0107 ± 0.0015 against 0.0120 ± 0.0003). That is "
-        "the direction the design predicts, and it is the same reversal "
-        "the MedMNIST experiments show at 28×28. We stop short of "
-        "calling it established: at three seeds a paired Wilcoxon test "
-        "cannot return p below 0.25, and this one returns 0.50 — "
-        "AHA-Fed wins on two seeds of the three. Resolving a difference "
-        "this size needs the ten-seed budget we used on MedMNIST, which "
-        "at roughly two hours per run on full-resolution radiographs was "
-        "beyond the compute available to us.",
+        "12.9% better over six seeds (0.0101 ± 0.0018 against "
+        "0.0117 ± 0.0011), winning on four of the six. That is the "
+        "direction the design predicts and the same reversal the MedMNIST "
+        "experiments show at 28×28.",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
+    add_paragraph(doc,
+        "We stop short of calling it established, and doubling the seed "
+        "budget from three to six did not change that. The ECE gap "
+        "returns p = 0.22; AUROC slightly favours FedAvg "
+        "(0.930 against 0.921, p = 0.16) as does accuracy "
+        "(0.602 against 0.599, p = 0.31). The honest reading is that at "
+        "clinical resolution the effect is smaller than at 28×28 — 12.9% "
+        "here against 19.1% on PathMNIST — and six seeds cannot resolve "
+        "a difference of that size. Each run costs roughly 1.7 hours on "
+        "the hardware available to us, so the ten-seed budget used "
+        "throughout the MedMNIST experiments would take about seventeen "
+        "GPU-hours for this comparison alone; we report six and say so "
+        "rather than presenting a three-seed result as settled.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_paragraph(doc,
         "Two things follow for a reader deciding whether to deploy "

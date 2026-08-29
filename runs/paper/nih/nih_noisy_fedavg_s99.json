@@ -1,0 +1,90 @@
+{
+  "config": {
+    "aggregator": "fedavg",
+    "seed": 99,
+    "dataset": "nih_chestxray14",
+    "num_centers": 4,
+    "images_per_center": 2000,
+    "num_rounds": 15,
+    "noisy_client": 3,
+    "noisy_rate": 0.5,
+    "resolution": 224,
+    "backbone": "densenet121",
+    "relative_quality": false,
+    "rounds_completed": 7
+  },
+  "history": [
+    {
+      "loss": 2.344524293899536,
+      "accuracy": 0.5765,
+      "auroc": 0.6472466893576562,
+      "auprc": 0.07880943690213349,
+      "ece": 0.006947752673711095,
+      "findings_scored": 14,
+      "round": 1
+    },
+    {
+      "loss": 2.2697243080139162,
+      "accuracy": 0.5765,
+      "auroc": 0.699952521599145,
+      "auprc": 0.10246656269743208,
+      "ece": 0.00555595230630466,
+      "findings_scored": 14,
+      "round": 2
+    },
+    {
+      "loss": 2.212890699386597,
+      "accuracy": 0.5765,
+      "auroc": 0.7436371519942472,
+      "auprc": 0.12735637906804928,
+      "ece": 0.0046017639466694425,
+      "findings_scored": 14,
+      "round": 3
+    },
+    {
+      "loss": 2.1598073654174805,
+      "accuracy": 0.5765,
+      "auroc": 0.7702327470230202,
+      "auprc": 0.1494074704929973,
+      "ece": 0.008386190983865942,
+      "findings_scored": 14,
+      "round": 4
+    },
+    {
+      "loss": 2.1162074871063234,
+      "accuracy": 0.5765,
+      "auroc": 0.7945936937703547,
+      "auprc": 0.17099236966505602,
+      "ece": 0.00863362603528159,
+      "findings_scored": 14,
+      "round": 5
+    },
+    {
+      "loss": 2.0666375217437745,
+      "accuracy": 0.5765,
+      "auroc": 0.816484263471849,
+      "auprc": 0.1901598046982016,
+      "ece": 0.00908916739480836,
+      "findings_scored": 14,
+      "round": 6
+    },
+    {
+      "loss": 2.016492567062378,
+      "accuracy": 0.578,
+      "auroc": 0.8416874381695206,
+      "auprc": 0.2181362351673519,
+      "ece": 0.009838645832879203,
+      "findings_scored": 14,
+      "round": 7
+    }
+  ],
+  "final": {
+    "loss": 2.016492567062378,
+    "accuracy": 0.578,
+    "auroc": 0.8416874381695206,
+    "auprc": 0.2181362351673519,
+    "ece": 0.009838645832879203,
+    "findings_scored": 14,
+    "round": 7
+  }
+}
