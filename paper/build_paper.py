@@ -233,7 +233,11 @@ def build() -> None:
         "no separation at zero noise, and drives the corrupted client to "
         "weight 0.069 against a uniform 0.250. The advantage persists when "
         "two of four sites are corrupted (1.52×) and decays as they approach "
-        "a majority. Two results are negative "
+        "a majority. The method transfers to clinical resolution: on NIH "
+        "ChestX-ray14 at 224×224, fourteen findings across four "
+        "patient-disjoint centers, it attains the lowest ECE of four "
+        "aggregators, though the margin is smaller there and not significant "
+        "at six seeds. Two results are negative "
         "and reported as such: AHA-Fed loses to every baseline on binary "
         "chest radiography, and under DP-SGD both aggregators fall to "
         "chance at ε ≤ 1.0. The first has a measurable cause we turn "
@@ -1875,9 +1879,12 @@ def build() -> None:
         "Section 5.7 quantifies that gap deliberately. And under DP-SGD "
         "both aggregators fall to chance at ε ≤ 1.0, so our privacy claim "
         "is architectural compatibility, not preserved utility. What the "
-        "evidence supports is a heterogeneity-aware aggregation rule with "
-        "a calibration benefit; what it does not yet support is the "
-        "broader noise-robustness and privacy story.",
+        "evidence supports is a heterogeneity- and noise-aware aggregation "
+        "rule with a calibration benefit in small federations containing "
+        "unreliable sites, together with a diagnostic that says in advance "
+        "whether a given federation is one of those. What it does not "
+        "support is a general-purpose replacement for volume weighting, or "
+        "any claim about utility under differential privacy.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_heading(doc, "7.1 Limitations", level=2)
     add_paragraph(doc,
