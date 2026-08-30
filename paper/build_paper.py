@@ -1853,25 +1853,40 @@ def build() -> None:
         "The third comparison runs against us and we report it plainly: the "
         "quality term alone reaches ECE 0.083, which is 16.0% better than "
         "the full rule (p = 0.004). On this federation the distance term "
-        "costs calibration rather than adding to it. The reason is visible "
-        "in Section 5.4: the advantage of the distance term appears when "
-        "client label priors differ sharply, and the Section 5.6 federation "
-        "is drawn at a moderate heterogeneity of 0.5, where there is little "
-        "for it to act on while it still perturbs the weights. Across the "
-        "heterogeneity sweep the full rule does win at every level, so the "
-        "term is not useless — but a practitioner running a federation with "
-        "mild prior shift and a corrupted site would be better served by "
-        "setting β = 0.",
+        "costs calibration rather than adding to it.",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
+    add_paragraph(doc,
+        "That result has an obvious implication — drop the distance term "
+        "— so we tested it rather than reasoning about it. Repeating both "
+        "sweeps of Section 5 with β = 0 at ten seeds, ninety runs in "
+        "total, shows the advantage does not generalise. Across the "
+        "heterogeneity sweep the two are indistinguishable when pooled "
+        "(0.087 against 0.089, p = 0.24), and the per-level pattern is "
+        "informative: the distance term helps at both ends of the range, "
+        "at 0.0 (0.090 against 0.096) and at 0.9 (0.092 against 0.105), "
+        "and costs a little in the middle. Across the label-noise sweep "
+        "the full rule is ahead at all four corruption rates "
+        "(pooled 0.078 against 0.083, p = 0.12).",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
+    add_paragraph(doc,
+        "So the 16% figure is a property of one federation — moderate "
+        "prior shift with a corrupted site — and not a general result. "
+        "The reading is that the distance term earns its place where "
+        "priors are either close enough that small differences matter or "
+        "far enough apart to be informative, and contributes little "
+        "between those regimes. We report the single-federation finding "
+        "because it is real, and the sweep because it bounds what can be "
+        "concluded from it.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     add_paragraph(doc,
-        "We leave the default at β = γ = 4 rather than dropping the distance "
-        "term, because the heterogeneity sweep is the experiment this paper "
-        "leads with and the term is needed there. But the honest summary is "
-        "that AHA-Fed's calibration gain is driven by the quality signal, "
-        "with the distance term contributing only under pronounced prior "
-        "shift, and readers deploying under mild shift should treat β as a "
-        "parameter to tune rather than a default to accept.",
+        "The default therefore stays at β = γ = 4. The honest summary is that "
+        "AHA-Fed's calibration gain is driven mainly by the quality "
+        "signal — removing it is worse than plain volume weighting — "
+        "while the distance term contributes at the extremes of prior "
+        "shift and costs a little in between. A practitioner who knows "
+        "their federation sits in that middle regime can set β = 0, but "
+        "the evidence does not support doing so by default.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     add_heading(doc, "7. Conclusion and Future Work", level=1)

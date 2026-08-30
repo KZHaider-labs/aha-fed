@@ -434,6 +434,40 @@ if all(abl.values()):
           st.mean(full) < st.mean(qual),
           f"full {st.mean(full):.4f} vs quality only {st.mean(qual):.4f}")
 
+# The 16% quality-only advantage is claimed to be federation-specific;
+# these sweeps are what bounds it.
+qonly_h, full_h = [], []
+for h in ("0.0", "0.3", "0.5", "0.7", "0.9"):
+    q = by_seed(f"qonly_het_h{h}_s*.json", "ece")
+    fl = by_seed(f"real_het_aha_h{h}_s*.json", "ece")
+    fl.update(by_seed(f"real_het_aha_h{h}.json", "ece"))
+    sh = sorted(set(q) & set(fl))
+    qonly_h += [q[k] for k in sh]
+    full_h += [fl[k] for k in sh]
+
+qonly_n, full_n = [], []
+for r in ("0.0", "0.3", "0.5", "0.7"):
+    q = by_seed(f"qonly_noise_n{r}_s*.json", "ece")
+    fl = by_seed(f"real_noise_aha_n{r}_s*.json", "ece")
+    sh = sorted(set(q) & set(fl))
+    qonly_n += [q[k] for k in sh]
+    full_n += [fl[k] for k in sh]
+
+if qonly_h and qonly_n:
+    ph = wilcoxon_p(qonly_h, full_h)
+    pn = wilcoxon_p(qonly_n, full_n)
+    print(f"  heterogeneity sweep: q-only {st.mean(qonly_h):.4f} vs full "
+          f"{st.mean(full_h):.4f}, p={ph:.4f} (n={len(qonly_h)})")
+    print(f"  noise sweep        : q-only {st.mean(qonly_n):.4f} vs full "
+          f"{st.mean(full_n):.4f}, p={pn:.4f} (n={len(qonly_n)})")
+    check("dropping the distance term does not help across the sweeps",
+          not (ph < 0.05 and st.mean(qonly_h) < st.mean(full_h)),
+          f"heterogeneity p={ph:.4f}")
+    check("the full rule leads on the noise sweep",
+          st.mean(full_n) < st.mean(qonly_n),
+          f"{st.mean(full_n):.4f} vs {st.mean(qonly_n):.4f}")
+
+
 # ------------------------------------------- quality-signal diagnostic
 def quality_ratio(pattern: str) -> tuple[float, float, int, int] | None:
     """Corruption signal vs spread among clean clients, from stored quality.
