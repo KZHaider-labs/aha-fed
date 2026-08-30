@@ -1615,6 +1615,8 @@ def build() -> None:
         ["Clean, 2,000 img/ctr", "FedBN", "0.909", "0.379", "0.0135", "0.586"],
         ["50% noise, 6 seeds", "FedAvg", "0.930 ± 0.006", "0.411", "0.0117 ± 0.0011", "0.602"],
         ["50% noise, 6 seeds", "AHA-Fed", "0.921 ± 0.009", "0.388", "0.0101 ± 0.0018", "0.599"],
+        ["50% noise, 3 seeds", "FedBN", "0.876 ± 0.018", "0.298", "0.0133 ± 0.0013", "0.583"],
+        ["50% noise, 3 seeds", "FedDisco", "0.919 ± 0.006", "0.378", "0.0113 ± 0.0010", "0.599"],
     ]
     add_table_caption(doc,
         "Table 8: NIH ChestX-ray14 at 224×224, four patient-disjoint "
@@ -1655,8 +1657,21 @@ def build() -> None:
         "experiments show at 28×28.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_paragraph(doc,
-        "We stop short of calling it established, and doubling the seed "
-        "budget from three to six did not change that. The ECE gap "
+        "Adding two further baselines at three seeds sharpens the picture "
+        "without settling it. AHA-Fed has the lowest ECE of the four "
+        "(0.0107, against 0.0113 for FedDisco, 0.0120 for FedAvg and 0.0133 "
+        "for FedBN), and FedBN is clearly the weakest at this resolution — "
+        "its AUROC of 0.876 sits well below the 0.92–0.93 the others reach, "
+        "which is consistent with per-client batch-norm statistics being a "
+        "poor fit when the corruption is in the labels rather than the "
+        "features. None of the three pairwise comparisons is significant at "
+        "three seeds (p = 0.25 to 1.00), so we report the ordering and not "
+        "the margins.",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
+    add_paragraph(doc,
+        "We stop short of calling any of it established, and doubling the "
+        "seed budget from three to six on the FedAvg comparison did not "
+        "change that. The ECE gap "
         "returns p = 0.22; AUROC slightly favours FedAvg "
         "(0.930 against 0.921, p = 0.16) as does accuracy "
         "(0.602 against 0.599, p = 0.31). The honest reading is that at "

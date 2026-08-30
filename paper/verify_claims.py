@@ -278,6 +278,40 @@ if grid:
               max(interior) < fedprox,
               f"worst interior {max(interior):.4f} vs FedProx {fedprox:.4f}")
 
+# ---------------------------------------- NIH four-way aggregator ordering
+NIH_DIR = ROOT / "runs" / "paper" / "nih"
+
+
+def nih_final(tag: str, seed: str) -> dict | None:
+    f = NIH_DIR / f"nih_noisy_{tag}_s{seed}.json"
+    if not f.exists():
+        return None
+    return json.loads(f.read_text()).get("final")
+
+
+NIH_SEEDS = ["42", "123", "456"]
+nih_ece = {}
+for tag in ("aha_fed", "fedavg", "fedbn", "feddisco"):
+    finals = [nih_final(tag, sd) for sd in NIH_SEEDS]
+    if all(v is not None for v in finals):
+        nih_ece[tag] = [v["ece"] for v in finals]
+
+if len(nih_ece) == 4:
+    print("\n=== NIH four-way comparison (3 shared seeds) ===")
+    for tag in ("aha_fed", "fedavg", "fedbn", "feddisco"):
+        au = [nih_final(tag, sd)["auroc"] for sd in NIH_SEEDS]
+        print(f"  {tag:<9} ECE {st.mean(nih_ece[tag]):.4f}  "
+              f"AUROC {st.mean(au):.4f}")
+    best = min(nih_ece, key=lambda t: st.mean(nih_ece[t]))
+    check("AHA-Fed has the lowest ECE of the four at full resolution",
+          best == "aha_fed", f"lowest is {best}")
+    fedbn_au = st.mean([nih_final("fedbn", sd)["auroc"] for sd in NIH_SEEDS])
+    others = [st.mean([nih_final(t, sd)["auroc"] for sd in NIH_SEEDS])
+              for t in ("aha_fed", "fedavg", "feddisco")]
+    check("FedBN is the weakest on AUROC at full resolution",
+          fedbn_au < min(others),
+          f"{fedbn_au:.4f} vs {min(others):.4f}")
+
 # ------------------------------------------------- multiple corrupted sites
 print("\n=== Multiple corrupted sites (Section 5.8) ===")
 multi_a, multi_v = [], []
