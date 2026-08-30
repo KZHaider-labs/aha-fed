@@ -235,9 +235,10 @@ def build() -> None:
         "two of four sites are corrupted (1.52×) and decays as they approach "
         "a majority. The method transfers to clinical resolution: on NIH "
         "ChestX-ray14 at 224×224, fourteen findings across four "
-        "patient-disjoint centers, it attains the lowest ECE of four "
-        "aggregators, though the margin is smaller there and not significant "
-        "at six seeds. Two results are negative "
+        "patient-disjoint centers, the pipeline operates correctly and "
+        "AHA-Fed is not worse than the alternatives, but the calibration "
+        "advantage seen at 28×28 does not reproduce: over nine seeds the "
+        "gap is 7.0% at p = 0.50. Two results are negative "
         "and reported as such: AHA-Fed loses to every baseline on binary "
         "chest radiography, and under DP-SGD both aggregators fall to "
         "chance at ε ≤ 1.0. The first has a measurable cause we turn "
@@ -1615,15 +1616,15 @@ def build() -> None:
         ["Clean, 2,000 img/ctr", "FedAvg", "0.927", "0.414", "0.0100", "0.604"],
         ["Clean, 2,000 img/ctr", "AHA-Fed", "0.923", "0.385", "0.0114", "0.592"],
         ["Clean, 2,000 img/ctr", "FedBN", "0.909", "0.379", "0.0135", "0.586"],
-        ["50% noise, 6 seeds", "FedAvg", "0.930 ± 0.006", "0.411", "0.0117 ± 0.0011", "0.602"],
-        ["50% noise, 6 seeds", "AHA-Fed", "0.921 ± 0.009", "0.388", "0.0101 ± 0.0018", "0.599"],
+        ["50% noise, 9 seeds", "FedAvg", "0.931 ± 0.005", "0.413", "0.0113 ± 0.0010", "0.601"],
+        ["50% noise, 9 seeds", "AHA-Fed", "0.925 ± 0.009", "0.399", "0.0106 ± 0.0016", "0.600"],
         ["50% noise, 3 seeds", "FedBN", "0.876 ± 0.018", "0.298", "0.0133 ± 0.0013", "0.583"],
         ["50% noise, 3 seeds", "FedDisco", "0.919 ± 0.006", "0.378", "0.0113 ± 0.0010", "0.599"],
     ]
     add_table_caption(doc,
         "Table 8: NIH ChestX-ray14 at 224×224, four patient-disjoint "
         "centers. Clean rows are single seed; the corrupted rows are mean ± "
-        "s.d. over six seeds. AUROC and AUPRC are macro-averaged over the "
+        "s.d. over nine seeds for FedAvg and AHA-Fed, three for the other two. AUROC and AUPRC are macro-averaged over the "
         "14 findings; accuracy is exact match over the whole label vector.")
     make_table(doc, nih_data, header_font_size=10, body_font_size=9.5,
                highlight_row_pred=lambda i, row: False)
@@ -1653,10 +1654,11 @@ def build() -> None:
     add_paragraph(doc,
         "The ordering reverses. On the clean federation FedAvg is 13.6% "
         "better than AHA-Fed on ECE; with a corrupted center AHA-Fed is "
-        "12.9% better over six seeds (0.0101 ± 0.0018 against "
-        "0.0117 ± 0.0011), winning on four of the six. That is the "
-        "direction the design predicts and the same reversal the MedMNIST "
-        "experiments show at 28×28.",
+        "7.0% better over nine seeds (0.0106 ± 0.0016 against "
+        "0.0113 ± 0.0010). That is the direction the design predicts and "
+        "the same reversal the MedMNIST experiments show at 28×28, but "
+        "it is a weak effect and we do not claim more than the "
+        "direction.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_paragraph(doc,
         "Adding two further baselines at three seeds sharpens the picture "
@@ -1671,19 +1673,30 @@ def build() -> None:
         "the margins.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_paragraph(doc,
-        "We stop short of calling any of it established, and doubling the "
-        "seed budget from three to six on the FedAvg comparison did not "
-        "change that. The ECE gap "
-        "returns p = 0.22; AUROC slightly favours FedAvg "
-        "(0.930 against 0.921, p = 0.16) as does accuracy "
-        "(0.602 against 0.599, p = 0.31). The honest reading is that at "
-        "clinical resolution the effect is smaller than at 28×28 — 12.9% "
-        "here against 19.1% on PathMNIST — and six seeds cannot resolve "
-        "a difference of that size. Each run costs roughly 1.7 hours on "
-        "the hardware available to us, so the ten-seed budget used "
-        "throughout the MedMNIST experiments would take about seventeen "
-        "GPU-hours for this comparison alone; we report six and say so "
-        "rather than presenting a three-seed result as settled.",
+        "We stop short of calling any of it established, and raising the seed "
+        "budget did not help — it moved the effect the wrong way. At "
+        "three seeds the ECE gap was 10.6%, at six 12.9%, and at nine "
+        "7.0% (p = 0.50), with AHA-Fed ahead on four of the nine seeds. "
+        "AUROC favours FedAvg throughout (0.931 against 0.925, p = 0.16), "
+        "as does accuracy by a negligible margin. The honest reading is "
+        "that at clinical resolution the calibration advantage is small "
+        "enough that our seed budget cannot distinguish it from zero, and "
+        "that adding seeds shrank rather than sharpened it — which is "
+        "what one expects when an apparent effect is largely seed "
+        "variance.",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
+    add_paragraph(doc,
+        "We report the nine-seed figure rather than the six-seed one that "
+        "flattered the method, and note the sequence because it is "
+        "instructive: three seeds, six seeds and nine seeds gave 10.6%, "
+        "12.9% and 7.0% for the same comparison. Readers judging "
+        "small-seed federated results — including ours at 28×28, which "
+        "use ten — should weight them accordingly. What survives at this "
+        "resolution is that the pipeline operates correctly on a "
+        "14-finding multi-label task with patient-disjoint centers, and "
+        "that AHA-Fed is not worse than the alternatives; the "
+        "calibration advantage demonstrated at 28×28 is not "
+        "demonstrated here.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_paragraph(doc,
         "Two things follow for a reader deciding whether to deploy "
