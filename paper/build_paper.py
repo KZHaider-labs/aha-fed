@@ -558,8 +558,6 @@ def build() -> None:
         "accounting; we treat them as orthogonal extensions.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
-    add_heading(doc,
-        "2.2 Statistical heterogeneity: characterisation and metrics", level=2)
     add_paragraph(doc,
         "Statistical heterogeneity in FL is not a single phenomenon "
         "but a small taxonomy. Following Kairouz et al. [18] we "
@@ -1197,7 +1195,7 @@ def build() -> None:
         "property of the method or of untuned hyperparameters, and finds "
         "that a configuration selected honestly on a validation split still "
         "does not beat the baselines. Discrimination is comparable across "
-        "all five methods (AUROC 0.864–0.884), so the ranking is again "
+        "all five methods (AUROC 0.885–0.902), so the ranking is again "
         "driven by calibration rather than by what the models can separate.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_figure(doc, FIGS / "fig_final_bars.png",
@@ -1821,32 +1819,61 @@ def build() -> None:
     # ==================== 6. ABLATION ====================
     add_heading(doc, "6. Ablation Study", level=1)
     add_paragraph(doc,
-        "Table 4 isolates the contribution of each AHA-Fed term by zeroing "
-        "the corresponding hyperparameter on the heterogeneity = 0.7 + 50%-"
-        "noise scenario (single seed, identical to Section 5 setup). "
-        "Removing γ (quality term) recovers FedAvg-level ECE, indicating "
-        "that the calibration gain is driven by the quality reward rather "
-        "than the distance penalty alone. Removing β (distance penalty) "
-        "leaves a milder degradation here because the centers carry "
-        "balanced volumes; the heterogeneity sweep of Section 5.4, where "
-        "priors differ sharply, is where the β term earns its place.",
+        "Table X isolates each term by zeroing its coefficient on the "
+        "PathMNIST federation of Section 5.6, ten seeds throughout, with "
+        "paired Wilcoxon tests against the full rule. Two of the three "
+        "comparisons come out as the design predicts, and one does not.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     abl = [
-        ["Configuration", "α", "β", "γ", "Final ECE", "Notes"],
-        ["FedAvg (baseline)",   "1", "0", "0", "0.0779", "volume-only"],
-        ["No quality (γ = 0)",  "1", "4", "0", "0.0779", "≈ FedAvg here"],
-        ["No distance (β = 0)", "1", "0", "4", "0.0123", "quality alone suffices"],
-        ["AHA-Fed (full)",      "1", "4", "4", "0.0123", "best overall"],
+        ["Configuration", "α", "β", "γ", "ECE (10 seeds)", "vs full", "p"],
+        ["Volume only (= FedAvg)", "1", "0", "0", "0.119 ± 0.019", "+19.1%", "0.020"],
+        ["Distance only",          "1", "4", "0", "0.130 ± 0.019", "+25.7%", "0.010"],
+        ["Quality only",           "1", "0", "4", "0.083 ± 0.018", "−16.0%", "0.004"],
+        ["Full AHA-Fed",           "1", "4", "4", "0.097 ± 0.018", "—", "—"],
     ]
     add_table_caption(doc,
-        "Table 4: Ablation of AHA-Fed terms (α, β, γ).")
-    make_table(doc, abl,
-               highlight_row_pred=lambda i, row: "AHA-Fed" in row[0] and "full" in row[0],
-               header_font_size=10, body_font_size=10)
+        "Table X: Ablation of the AHA-Fed terms on PathMNIST, ten seeds. "
+        "The 'vs full' column is the mean ECE of that configuration relative "
+        "to the full rule; positive means the full rule is better.")
+    make_table(doc, abl, header_font_size=10, body_font_size=9.5,
+               highlight_row_pred=lambda i, row: row[0].startswith("Quality only"))
     add_post_table_spacing(doc)
 
-    # ==================== 7. CONCLUSION ====================
+    add_paragraph(doc,
+        "The quality term carries the method. Removing it — leaving volume "
+        "and distance — gives ECE 0.130, worse than plain volume weighting "
+        "at 0.119, so the distance term on its own is not merely unhelpful "
+        "on this federation but actively harmful. That is consistent with "
+        "Section 5.6, where FedDisco, which uses a distance term without a "
+        "quality signal, is the weakest of the four baselines.",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
+
+    add_paragraph(doc,
+        "The third comparison runs against us and we report it plainly: the "
+        "quality term alone reaches ECE 0.083, which is 16.0% better than "
+        "the full rule (p = 0.004). On this federation the distance term "
+        "costs calibration rather than adding to it. The reason is visible "
+        "in Section 5.4: the advantage of the distance term appears when "
+        "client label priors differ sharply, and the Section 5.6 federation "
+        "is drawn at a moderate heterogeneity of 0.5, where there is little "
+        "for it to act on while it still perturbs the weights. Across the "
+        "heterogeneity sweep the full rule does win at every level, so the "
+        "term is not useless — but a practitioner running a federation with "
+        "mild prior shift and a corrupted site would be better served by "
+        "setting β = 0.",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
+
+    add_paragraph(doc,
+        "We leave the default at β = γ = 4 rather than dropping the distance "
+        "term, because the heterogeneity sweep is the experiment this paper "
+        "leads with and the term is needed there. But the honest summary is "
+        "that AHA-Fed's calibration gain is driven by the quality signal, "
+        "with the distance term contributing only under pronounced prior "
+        "shift, and readers deploying under mild shift should treat β as a "
+        "parameter to tune rather than a default to accept.",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
+
     add_heading(doc, "7. Conclusion and Future Work", level=1)
     add_paragraph(doc,
         "We presented AHA-Fed, an adaptive heterogeneity- and quality-aware "

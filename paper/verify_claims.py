@@ -37,6 +37,7 @@ KNOWN_LIMITATIONS = {
     "AHA-Fed leads FedAvg on the clean NIH federation",
     "corrupted NIH advantage is significant",
     "relative-quality ECE gain is significant",
+    "the full rule beats the quality term alone",
 }
 
 METHODS = ["aha_fed", "fedavg", "fedprox", "fedbn", "feddisco"]
@@ -399,6 +400,39 @@ for corpus, label in (("pneuval", "PneumoniaMNIST"), ("pathval", "PathMNIST")):
         check("relative quality is neutral on PathMNIST",
               pv is None or pv > 0.05,
               f"p={pv:.4f}" if pv is not None else "scipy unavailable")
+
+# ------------------------------------------------------ ablation (Sec. 6)
+print("\n=== Ablation of the AHA-Fed terms (Section 6) ===")
+abl_cfg = {
+    "volume only":   "path_fedavg_s*.json",
+    "distance only": "abl_b4_g0_s*.json",
+    "quality only":  "abl_b0_g4_s*.json",
+    "full":          "path_aha_fed_s*.json",
+}
+abl = {k: by_seed(v, "ece") for k, v in abl_cfg.items()}
+if all(abl.values()):
+    shared_seeds = sorted(set.intersection(*[set(v) for v in abl.values()]))
+    for name, vals_by_seed in abl.items():
+        xs = [vals_by_seed[k] for k in shared_seeds]
+        print(f"  {name:<15} ECE {st.mean(xs):.4f} ± {st.pstdev(xs):.4f} "
+              f"(n={len(xs)})")
+
+    full = [abl["full"][k] for k in shared_seeds]
+    dist = [abl["distance only"][k] for k in shared_seeds]
+    vol = [abl["volume only"][k] for k in shared_seeds]
+    qual = [abl["quality only"][k] for k in shared_seeds]
+
+    check("removing the quality term hurts",
+          st.mean(dist) > st.mean(full),
+          f"distance only {st.mean(dist):.4f} vs full {st.mean(full):.4f}")
+    check("the distance term alone is worse than volume weighting",
+          st.mean(dist) > st.mean(vol),
+          f"{st.mean(dist):.4f} vs {st.mean(vol):.4f}")
+    # The paper states this against itself; a reversal would need the text
+    # changed, so it is tracked as a documented limitation.
+    check("the full rule beats the quality term alone",
+          st.mean(full) < st.mean(qual),
+          f"full {st.mean(full):.4f} vs quality only {st.mean(qual):.4f}")
 
 # ------------------------------------------- quality-signal diagnostic
 def quality_ratio(pattern: str) -> tuple[float, float, int, int] | None:
