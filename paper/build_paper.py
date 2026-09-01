@@ -768,8 +768,9 @@ def build() -> None:
         "applied privacy-preserving FL to pancreatic-tumour "
         "segmentation. Recent reviews [20, 26] and surveys [23] "
         "map the deployment landscape and identify open problems. "
-        "Specifically clinically focused work includes FedHeal [13] "
-        "for multi-site disease diagnosis, PerFedMask [14] for "
+        "Specifically clinically focused work includes FedHeal [6] and "
+        "Liu et al. [13] for multi-site disease diagnosis, "
+        "PerFedMask [14] for "
         "personalised medical-image classification, Khan et al. [21] "
         "for differentially-private chest X-ray analysis, and "
         "Zhang et al. [34] for medical-image segmentation under "
@@ -847,7 +848,7 @@ def build() -> None:
         ["FedRep [4]",          "2023", "Yes (heads)", "No",  "Indirect", "No", "No"],
         ["FedDyn [2, 25]",      "2023", "Yes (dynamic reg.)", "No",  "Yes", "No", "No"],
         ["FedDisco [32]",       "2023", "Yes (label-disc.)", "No",  "Indirect", "No", "No"],
-        ["FedHeal [13]",        "2023", "Yes (medical)", "No",  "Yes", "Partial", "Yes"],
+        ["FedHeal [6]",         "2023", "Yes (medical)", "No",  "Yes", "Partial", "Yes"],
         ["Sheller et al. [27]", "2022", "Yes (medical)", "No",  "No",  "No", "Yes"],
         ["DP-FedAvg [1, 33]",   "2022", "No",  "No",  "Yes", "No", "Partial"],
         ["FedNoiL [30]",        "2024", "No",  "Yes (label noise)",  "No", "No", "No"],
@@ -1195,7 +1196,7 @@ def build() -> None:
                    "with learning rate 0.01.")
     add_bullet_run(doc, "Model. ",
                    "MedCNN (3 convolutional blocks with GroupNorm, ≈ 240K "
-                   "parameters) for the 28×28 MedMNIST corpora; DenseNet-121 "
+                   "parameters) for the 28×28 MedMNIST corpora; DenseNet-121 [9] "
                    "[9] is wired up for the full-resolution loaders.")
     add_bullet_run(doc, "AHA-Fed hyperparameters. ",
                    "α = 1, β = 4, γ = 4, ε_log = 1 × 10⁻⁶ (log stabiliser) "
@@ -1736,7 +1737,8 @@ def build() -> None:
         "data, so we ran the federation on NIH ChestX-ray14 [31]: 112,120 "
         "frontal radiographs, fourteen findings as a multi-label task, "
         "partitioned patient-disjoint across four centers at 224×224 with a "
-        "DenseNet-121 backbone. Patient-disjoint partitioning matters here — "
+        "DenseNet-121 [9] backbone. Patient-disjoint partitioning matters "
+        "here — "
         "an image-level split would place different radiographs of the same "
         "patient in different centers and leak patient-specific features "
         "across the federation, inflating every method's apparent "

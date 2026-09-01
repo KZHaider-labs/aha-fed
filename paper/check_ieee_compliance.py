@@ -214,6 +214,29 @@ def main(template: Path, paper: Path) -> int:
     check("enumerated lists match their stated count", not bad,
           "; ".join(bad) if bad else "all lists consistent")
 
+
+    # Citation integrity: every [n] in the prose must resolve, and every
+    # listed reference should be cited. [6] FedHeal was listed but never
+    # cited because both mentions pointed at [13], a different paper.
+    entries, cites = {}, set()
+    for t in texts:
+        m = re.match(r"^[[](\d+)[]][ ]+(.{10,})", t)
+        if m:
+            entries[int(m.group(1))] = m.group(2)
+            continue
+        for grp in re.findall(r"[[]([\d,\s-]+)[]]", t):
+            # skip intervals like [0, 1] -- a reference id is never 0
+            nums = [int(n) for n in re.findall(r"\d+", grp)]
+            if 0 in nums:
+                continue
+            cites.update(nums)
+    dangling = sorted(c for c in cites if c not in entries)
+    uncited = sorted(e for e in entries if e not in cites)
+    check("every in-text citation resolves to a reference",
+          not dangling, f"dangling: {dangling or chr(110)+chr(111)+chr(110)+chr(101)}")
+    check("every listed reference is cited",
+          not uncited, f"uncited: {uncited or chr(110)+chr(111)+chr(110)+chr(101)}")
+
     print()
     if FAILURES:
         print(f"{len(FAILURES)} check(s) failed:")
