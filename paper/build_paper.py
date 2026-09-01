@@ -1112,8 +1112,9 @@ def build() -> None:
     add_paragraph(doc,
         "What this does not establish. Three limitations should be stated "
         "plainly. First, the bound is loose: at α = 1, β = γ = 4 with "
-        "R = 20 and q_min = 0.22 it gives w_min ≥ 1.0 × 10⁻⁶, whereas the "
-        "smallest weight observed in any of our runs is 0.013 — the terms do "
+        "R = 20 and q_min = 0.22 it gives w_min ≥ 7.2 × 10⁻⁷ at K = 4 and "
+        "1.1 × 10⁻⁷ at K = 20, whereas the smallest weight observed in any "
+        "of our runs is 0.0035 — the terms do "
         "not reach their extremes simultaneously, and a tighter bound would "
         "need distributional assumptions on D_k and q_k that we cannot "
         "justify. Second, it guarantees convergence to a stationary point of "
@@ -1409,7 +1410,10 @@ def build() -> None:
         "largest and most significant of the four (30.6%, p = 0.004). That "
         "ordering is consistent with the quality term rather than the "
         "distance term carrying the gain, and the ablation in Section 6 "
-        "tests the attribution directly.",
+        "tests the attribution directly. All four comparisons survive "
+        "Holm–Bonferroni correction across the family of four, which we "
+        "state explicitly because the sweeps of Sections 5.4 and 5.8 do "
+        "not.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     real_data = [
@@ -2100,11 +2104,11 @@ def build() -> None:
         "resolution: the comparative results are all on 28×28 MedMNIST "
         "images, and the primary corpus is colorectal histopathology "
         "rather than the chest radiography that motivates our "
-        "introduction. Section 5.10 shows the pipeline operating on "
-        "full-resolution NIH ChestX-ray14, but only for FedAvg — the "
-        "aggregator comparison at clinical resolution did not complete, "
-        "so we cannot claim the calibration benefit survives there. "
-        "Second, "
+        "introduction. Section 5.10 compares three aggregators on "
+        "full-resolution NIH ChestX-ray14 and the calibration advantage "
+        "does not reproduce there, so we do not claim it survives at "
+        "clinical resolution. "
+        "Third, "
         "statistical power: the PathMNIST comparisons and the label-noise "
         "sweep, the heterogeneity sweep and the federation-size sweep all "
         "use ten seeds with paired significance tests. That is adequate to "

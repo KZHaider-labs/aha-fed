@@ -386,6 +386,24 @@ if len(frac_ratios) == 3:
           frac_ratios[16] < 1.05,
           f"{frac_ratios[16]:.2f}x")
 
+# Proposition 1 quotes the smallest weight ever observed. Nothing checked
+# it, and the paper carried 0.013 while the artifacts held 0.0035.
+_wmin = 1.0
+for _f in glob.glob(str(REAL / "*.json")):
+    _d = json.loads(Path(_f).read_text())
+    if (_d.get("config") or {}).get("aggregator") != "adaptive":
+        continue
+    for _h in (_d.get("history") or []):
+        _w = _h.get("weights") or _h.get("client_weights")
+        if _w:
+            _wmin = min(_wmin, min(_w))
+if _wmin < 1.0:
+    print(f"  smallest AHA-Fed weight across all runs: {_wmin:.4f}")
+    check("the quoted minimum weight matches the artifacts",
+          abs(_wmin - 0.0035) < 0.0005,
+          f"{_wmin:.4f} (paper says 0.0035)")
+
+
 
 # The paper reports the rule keeps discounting corrupted sites at every level.
 for nn in (1, 2, 3):
