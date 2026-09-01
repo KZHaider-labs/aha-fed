@@ -32,10 +32,9 @@ DEFAULT_OUT = ROOT / "paper" / "AHA_Fed_IEEE_Access.docx"
 
 # IEEE Access wants 150-250 words, one paragraph, no citations or equations.
 ABSTRACT = (
-    "Federated learning lets hospitals train medical-imaging models without "
-    "exchanging patient data, but deployments face heterogeneity across "
-    "sites and per-site annotation noise that volume-weighted aggregation "
-    "silently amplifies. We propose AHA-Fed, whose per-round "
+    "Aggregation rules that reweight federated clients by estimated data "
+    "quality are common, but the conditions under which they help are not "
+    "characterised. We study this through AHA-Fed, whose per-round "
     "client weights are a softmax over a log-space score combining data "
     "volume, total-variation distance to the across-client label-prior "
     "consensus, and a self-supervised quality signal from the local training "
@@ -65,8 +64,8 @@ INDEX_TERMS = (
     "learning, label noise, medical image analysis, statistical heterogeneity"
 )
 
-TITLE = ("Adaptive Heterogeneity-Aware Aggregation for Calibrated Federated "
-         "Learning in Medical Imaging")
+TITLE = ("When Does Quality-Aware Aggregation Help? A Characterisation "
+         "for Federated Medical Imaging")
 
 AUTHORS = "FIRST A. AUTHOR1, SECOND B. AUTHOR2, and THIRD C. AUTHOR3"
 AFFILIATIONS = [
