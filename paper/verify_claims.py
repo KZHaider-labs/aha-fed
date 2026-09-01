@@ -343,6 +343,28 @@ if multi_a:
           f"pooled {st.mean(multi_v) / st.mean(multi_a):.2f}x, p={pv:.5f} "
           f"(n={len(multi_a)})" if pv is not None else "scipy unavailable")
 
+# The two sweeps agree at 25% corrupted despite different client counts;
+# that agreement is what licenses reading the constraint as a fraction.
+scale4_a = by_seed("real_scale_aha_k4_s*.json", "ece")
+scale4_a.update(by_seed("real_scale_aha_k4.json", "ece"))
+scale4_v = by_seed("real_scale_fedavg_k4_s*.json", "ece")
+scale4_v.update(by_seed("real_scale_fedavg_k4.json", "ece"))
+multi1_a = by_seed("multi_aha_n1_s*.json", "ece")
+multi1_v = by_seed("multi_fedavg_n1_s*.json", "ece")
+sh4 = sorted(set(scale4_a) & set(scale4_v))
+sh1 = sorted(set(multi1_a) & set(multi1_v))
+if sh4 and sh1:
+    r_scale = (st.mean([scale4_v[k] for k in sh4])
+               / st.mean([scale4_a[k] for k in sh4]))
+    r_multi = (st.mean([multi1_v[k] for k in sh1])
+               / st.mean([multi1_a[k] for k in sh1]))
+    print(f"  25% corrupted: scaling sweep {r_scale:.2f}x, "
+          f"multi-site sweep {r_multi:.2f}x")
+    check("the two sweeps agree at the same corrupted fraction",
+          abs(r_scale - r_multi) < 0.10,
+          f"{r_scale:.2f}x vs {r_multi:.2f}x")
+
+
 # The paper reports the rule keeps discounting corrupted sites at every level.
 for nn in (1, 2, 3):
     weights = []
