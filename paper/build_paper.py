@@ -1925,6 +1925,19 @@ def build() -> None:
         "ε ∈ {0.5, 1.0, 5.0} and δ = 10⁻⁵, max gradient norm C = 1.0. "
         "Figure 13 shows the privacy-utility tradeoff for FedAvg vs "
         "AHA-Fed on PathMNIST under the same federation as Section 5.6. "
+        "One accounting caveat has to be stated before the numbers, "
+        "because it bounds what they mean. Our implementation "
+        "instantiates a fresh Opacus accountant each communication "
+        "round, so the quoted ε is a per-round budget for one "
+        "client's local training rather than an end-to-end guarantee "
+        "composed over the fifteen rounds. Composing across rounds "
+        "would give a substantially larger effective ε, so the "
+        "privacy delivered here is weaker than the labels suggest and "
+        "the utility cost we report is a lower bound on what a "
+        "properly composed budget would cost. Per-round reporting is "
+        "common in the federated DP literature but is not the "
+        "guarantee a deployment needs, and we flag it rather than "
+        "leave the reader to infer it. "
         "The headline result of this experiment is negative and we report "
         "it as such. Chance accuracy on this 9-class task is 1/9 = 0.111. "
         "At ε = 0.5 and ε = 1.0 both aggregators sit at or below chance "
@@ -2176,9 +2189,11 @@ def build() -> None:
         "further; we have not tested beyond sixteen sites or below 250 "
         "images per client, and make no claim about cross-device "
         "federations. Sixth, privacy: as Section 5.11 documents, our "
-        "DP-SGD configuration destroys utility at every budget tested, so "
-        "the empirical privacy-utility claim is limited to architectural "
-        "compatibility and not to preserved accuracy under privacy.",
+        "DP-SGD configuration destroys utility at every budget tested, "
+        "and those budgets are per-round rather than composed across "
+        "training, so the empirical privacy-utility claim is limited to "
+        "architectural compatibility and not to preserved accuracy "
+        "under a deployment-grade privacy guarantee.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     add_heading(doc, "7.2 Code and data availability", level=2)
