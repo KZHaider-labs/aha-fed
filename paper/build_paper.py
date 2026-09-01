@@ -385,7 +385,8 @@ def build() -> None:
         "distribution itself: GE versus Siemens versus Philips MRI "
         "scanners produce subtly different intensity histograms; "
         "deep-learning models are notoriously sensitive to these "
-        "differences and can drop by ten or more AUROC points across "
+        "differences and can drop by ten or more points of area under the "
+        "receiver operating characteristic curve (AUROC) across "
         "scanner manufacturers. Third, per-institution annotation noise "
         "is driven by junior-versus-senior labelling, rule-based "
         "extraction of structured labels from free-text radiology "
@@ -431,7 +432,8 @@ def build() -> None:
         "has documented that even high-AUROC federated chest-X-ray "
         "classifiers can exhibit Expected Calibration Errors (ECE) "
         "exceeding fifteen percent, and that this miscalibration is "
-        "exacerbated rather than corrected by FedAvg under non-IID "
+        "exacerbated rather than corrected by FedAvg under non-independent "
+        "and identically distributed (non-IID) "
         "data. The dominant evaluation tradition in FL papers — "
         "reporting only accuracy and AUROC — therefore misses the "
         "single most clinically actionable failure mode. We argue "
@@ -456,7 +458,8 @@ def build() -> None:
         "requires formal (ε, δ)-Differential Privacy [1, 33] "
         "accounting on every client's local training round, with "
         "Rényi-DP composition across rounds and clients. Adding "
-        "DP-SGD on top of FedAvg, however, exacerbates exactly the "
+        "differentially private stochastic gradient descent (DP-SGD) "
+        "on top of FedAvg, however, exacerbates exactly the "
         "non-IID and noise problems described above: privacy noise "
         "is added uniformly across clients, but the underlying "
         "client signal qualities are not uniform, so the high-quality "
@@ -641,7 +644,8 @@ def build() -> None:
         "weight, only with a slightly less aggressive local step. "
         "FedBN [12] keeps batch-normalisation parameters local and "
         "only aggregates the convolutional weights, which is "
-        "particularly relevant in medical imaging where BN statistics "
+        "particularly relevant in medical imaging where batch-normalisation "
+        "(BN) statistics "
         "are scanner-specific; FedBN++ extensions [12] address "
         "feature shift more broadly. SCAFFOLD [19] introduces control "
         "variates that correct gradient drift in non-IID regimes at "
@@ -1778,7 +1782,7 @@ def build() -> None:
     add_table_caption(doc,
         "Table 9: NIH ChestX-ray14 at 224×224, four patient-disjoint "
         "centers. Clean rows are single seed; the corrupted rows are mean ± "
-        "s.d. over nine seeds for FedAvg and AHA-Fed, three for the other two. AUROC and AUPRC are macro-averaged over the "
+        "s.d. over nine seeds for FedAvg and AHA-Fed, three for the other two. AUROC and area under the precision-recall curve (AUPRC) are macro-averaged over the "
         "14 findings; accuracy is exact match over the whole label vector.")
     make_table(doc, nih_data, header_font_size=10, body_font_size=9.5,
                highlight_row_pred=lambda i, row: False)
