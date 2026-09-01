@@ -190,6 +190,30 @@ def main(template: Path, paper: Path) -> int:
               not unresolved,
               f"{len(cited)} references, unresolved: {unresolved or 'none'}")
 
+
+    # Enumerations drift when a list is edited in pieces: the limitations
+    # paragraph once said "Six" while listing five, using "Third" twice.
+    WORDS = {"two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7}
+    ORDS = ["first", "second", "third", "fourth", "fifth", "sixth", "seventh"]
+    bad = []
+    for t in texts:
+        m = re.search(r"\b(two|three|four|five|six|seven)\b[ ]+"
+                      r"(?:substantive[ ]+)?(limitations|contributions|results)",
+                      t, re.I)
+        if not m:
+            continue
+        want = WORDS[m.group(1).lower()]
+        seen = [o for o in ORDS if re.search(r"\b" + o + r",", t, re.I)]
+        dupes = [o for o in seen
+                 if len(re.findall(r"\b" + o + r",", t, re.I)) > 1]
+        roman = len(re.findall(r"[(](?:i|ii|iii|iv|v|vi|vii)[)]", t))
+        got = len(seen) or roman
+        if got and (got != want or dupes):
+            bad.append(f"{m.group(0)}: {got} items"
+                       + (f", repeated {dupes}" if dupes else ""))
+    check("enumerated lists match their stated count", not bad,
+          "; ".join(bad) if bad else "all lists consistent")
+
     print()
     if FAILURES:
         print(f"{len(FAILURES)} check(s) failed:")
