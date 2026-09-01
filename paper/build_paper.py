@@ -1147,9 +1147,9 @@ def build() -> None:
         "per-round metrics, so every number in this paper can be traced to "
         "the artifact that produced it; a verification script that re-checks "
         "the claims against those artifacts ships with the framework. "
-        "Loaders for full-resolution CheXpert and NIH "
-        "ChestX-ray14 are released alongside but are not used in the "
-        "reported results.",
+        "A loader for full-resolution CheXpert is released alongside but is "
+        "not used in the reported results; the NIH ChestX-ray14 loader "
+        "drives the clinical-resolution experiments of Section 5.10.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     add_heading(doc, "4.1 Datasets", level=2)
@@ -1160,9 +1160,10 @@ def build() -> None:
         "PneumoniaMNIST, a binary chest-radiograph dataset, as a second "
         "modality. Both are released under permissive licences and require no "
         "data-use agreement, so every result here is directly reproducible. "
-        "Loaders for full-resolution CheXpert [16] and NIH ChestX-ray14 [31] "
-        "are released with the framework but are not part of the reported "
-        "results; Section 7.1 discusses what that restricts. Table 2 "
+        "NIH ChestX-ray14 [31] supplies the clinical-resolution experiments "
+        "of Section 5.10 at 224×224; a CheXpert [16] loader is released "
+        "with the framework but is not used in the reported results. "
+        "Table 2 "
         "summarises the three corpora and their federated partitions, "
         "and Figure 5 shows real PathMNIST samples alongside the "
         "per-hospital label priors the partitioning induces.",
@@ -1867,7 +1868,7 @@ def build() -> None:
         "PathMNIST — though we cannot say from these runs whether that "
         "reflects resolution, the different corruption model a "
         "multi-label task requires, or the smaller seed budget. "
-        "Section 7.2 lists the ten-seed replication as the first item of "
+        "Section 7.3 lists the ten-seed replication as the first item of "
         "future work.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
@@ -2131,7 +2132,21 @@ def build() -> None:
         "compatibility and not to preserved accuracy under privacy.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
-    add_heading(doc, "7.2 Future work", level=2)
+    add_heading(doc, "7.2 Code and data availability", level=2)
+    add_paragraph(doc,
+        "The framework, the seeded sweep runner, the per-run JSON "
+        "manifests behind every number reported here, and the "
+        "verification script that re-checks each claim against those "
+        "manifests are available at "
+        "https://github.com/AUTHOR/aha-fed (to be replaced with the "
+        "archival DOI on acceptance). PathMNIST and PneumoniaMNIST are "
+        "distributed with MedMNIST v2 [39] under CC BY 4.0; NIH "
+        "ChestX-ray14 [31] is available from the NIH Clinical Center. "
+        "No data-use agreement is required to reproduce any result in "
+        "this paper.",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
+
+    add_heading(doc, "7.3 Future work", level=2)
     add_paragraph(doc,
         "Future work follows directly from those limitations. "
         "(i) Full-resolution validation: CheXpert [16], NIH ChestX-ray14 [31], "
