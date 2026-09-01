@@ -738,7 +738,7 @@ def build() -> None:
         "tradeoff on chest X-ray classification under varying ε "
         "budgets, generally finding that DP costs ten to thirty "
         "AUROC points at ε ≤ 1.0 — a substantial price for clinical "
-        "deployment. Our experiments in Section 5.10 are consistent "
+        "deployment. Our experiments in Section 5.11 are consistent "
         "with this finding: on our 9-class PathMNIST federation DP-SGD "
         "costs so much utility that both aggregators fall to or below "
         "chance at ε ≤ 1.0, and we therefore draw no comparative "
@@ -1514,7 +1514,7 @@ def build() -> None:
         "differ in local loss by more than corruption would move it is a "
         "federation where AHA-Fed's quality term has no usable signal, "
         "and volume weighting is the safer choice. This also predicts the "
-        "NIH result of Section 5.8, where the ratio is favourable and "
+        "NIH result of Section 5.10, where the ratio is favourable and "
         "AHA-Fed leads once a site is corrupted, and it is a sharper "
         "statement than 'the hyperparameters did not transfer': the "
         "failure is a property of the federation, not of the tuning. "
@@ -1651,6 +1651,9 @@ def build() -> None:
         "claiming otherwise would deserve scrutiny.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
+    add_heading(doc,
+                "5.9 The operative variable is the corrupted fraction",
+                level=2)
     add_paragraph(doc,
         "Sections 5.4 and 5.8 vary different things — the number of "
         "hospitals, and the number of them that are corrupted — but both "
@@ -1700,7 +1703,7 @@ def build() -> None:
         "number of participants.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
-    add_heading(doc, "5.9 Scaling to full-resolution chest radiography",
+    add_heading(doc, "5.10 Scaling to full-resolution chest radiography",
                 level=2)
     add_paragraph(doc,
         "Every result so far is on 28×28 MedMNIST imagery. The obvious "
@@ -1837,7 +1840,7 @@ def build() -> None:
         "future work.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
-    add_heading(doc, "5.10 Privacy-utility tradeoff with DP-SGD", level=2)
+    add_heading(doc, "5.11 Privacy-utility tradeoff with DP-SGD", level=2)
     add_paragraph(doc,
         "Each client now runs Opacus DP-SGD with target privacy budget "
         "ε ∈ {0.5, 1.0, 5.0} and δ = 10⁻⁵, max gradient norm C = 1.0. "
@@ -1870,7 +1873,7 @@ def build() -> None:
                "Figure 13: DP-SGD privacy-utility tradeoff on PathMNIST "
                "(accuracy and ECE vs ε).")
 
-    add_heading(doc, "5.11 Hyperparameter sensitivity", level=2)
+    add_heading(doc, "5.12 Hyperparameter sensitivity", level=2)
     add_paragraph(doc,
         "We sweep AHA-Fed's two key hyperparameters β ∈ {0, 1, 2, 4, 8} "
         "and γ ∈ {0, 1, 2, 4, 8} on a 5×5 grid (α = 1 fixed) on "
@@ -1901,7 +1904,7 @@ def build() -> None:
                "Figure 14: AHA-Fed (β, γ) hyperparameter sensitivity "
                "heatmap on PathMNIST.")
 
-    add_heading(doc, "5.12 Discussion", level=2)
+    add_heading(doc, "5.13 Discussion", level=2)
     add_paragraph(doc,
         "Taken together the experiments support a narrower claim than we "
         "set out to test, and it is worth stating precisely which one. What "
@@ -1947,7 +1950,7 @@ def build() -> None:
         "FedProx and the BN-local trick of FedBN are designed for "
         "parameter-space heterogeneity, not data-quality heterogeneity; "
         "they are complementary to AHA-Fed and can be composed. The "
-        "(β, γ) sweep of Section 5.10 shows a wide well-behaved interior "
+        "(β, γ) sweep of Section 5.12 shows a wide well-behaved interior "
         "on PathMNIST, but Section 5.7 shows those same values failing to "
         "transfer to a binary chest-radiography task — so "
         "hyperparameter robustness holds within a task, not across tasks.",
@@ -2076,7 +2079,7 @@ def build() -> None:
         "resolution: the comparative results are all on 28×28 MedMNIST "
         "images, and the primary corpus is colorectal histopathology "
         "rather than the chest radiography that motivates our "
-        "introduction. Section 5.8 shows the pipeline operating on "
+        "introduction. Section 5.10 shows the pipeline operating on "
         "full-resolution NIH ChestX-ray14, but only for FedAvg — the "
         "aggregator comparison at clinical resolution did not complete, "
         "so we cannot claim the calibration benefit survives there. "
@@ -2093,7 +2096,7 @@ def build() -> None:
         "volume-weighted FedAvg does not. Fourth, scale: K = 4–12 "
         "simulated clients on a single machine, with the advantage "
         "narrowing as K grows; we make no claim about cross-device "
-        "federations or K beyond 12. Fifth, privacy: as Section 5.8 "
+        "federations or K beyond 12. Fifth, privacy: as Section 5.11 "
         "documents, our DP-SGD configuration destroys "
         "utility at every budget tested, so the empirical "
         "privacy-utility claim is limited to architectural compatibility "

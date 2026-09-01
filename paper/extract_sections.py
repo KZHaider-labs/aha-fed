@@ -100,7 +100,10 @@ def extract() -> tuple[list, dict, dict]:
     # do not silently drop a bibliography that 34 in-text citations rely on.
     refs = references_from_source()
     if refs:
-        sections.append(("h1", "References"))
+        # build_paper calls add_heading("References") itself, which the stub
+        # records; appending another here rendered the heading twice.
+        if not (sections and sections[-1] == ("h1", "References")):
+            sections.append(("h1", "References"))
         for tag, body in refs:
             sections.append(("ref", f"{tag} {body}"))
 

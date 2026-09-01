@@ -164,6 +164,32 @@ def main(template: Path, paper: Path) -> int:
           fig_nums <= fig_refs,
           f"uncited: {sorted(fig_nums - fig_refs, key=int) or 'none'}")
 
+
+    # Section cross-references drift whenever a subsection is inserted, and
+    # three of them were pointing at the wrong experiment before this check
+    # existed. Resolve every "Section N.M" against the source document's own
+    # numbering -- the Access build strips numbers, so the check reads the
+    # numbered manuscript.
+    src_doc = ROOT / "paper" / "AHA_Fed_Paper.docx"
+    if src_doc.exists():
+        src_texts = [q.text.strip() for q in Document(str(src_doc)).paragraphs]
+        heads = {}
+        for t in src_texts:
+            m = re.match(r"^(DD+(?:.DD+)?)SS+(.{4,70})$".replace("DD", '\\b\\d')
+                         .replace("SS", '\\s'), t)
+            if m and not t.endswith("."):
+                heads[m.group(1)] = m.group(2)
+        cited = set()
+        for t in src_texts:
+            cited.update(re.findall(r"SectionsSS+(DD+.DD+)"
+                                    .replace("DD", '\\b\\d').replace("SS", '\\s'), t))
+            cited.update(re.findall(r"SectionSS+(DD+.DD+)"
+                                    .replace("DD", '\\b\\d').replace("SS", '\\s'), t))
+        unresolved = sorted(c for c in cited if c not in heads)
+        check("every section cross-reference resolves",
+              not unresolved,
+              f"{len(cited)} references, unresolved: {unresolved or 'none'}")
+
     print()
     if FAILURES:
         print(f"{len(FAILURES)} check(s) failed:")
