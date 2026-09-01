@@ -360,9 +360,31 @@ if sh4 and sh1:
                / st.mean([multi1_a[k] for k in sh1]))
     print(f"  25% corrupted: scaling sweep {r_scale:.2f}x, "
           f"multi-site sweep {r_multi:.2f}x")
-    check("the two sweeps agree at the same corrupted fraction",
+    check("the two K=4 sweeps agree at the same corrupted fraction",
           abs(r_scale - r_multi) < 0.10,
           f"{r_scale:.2f}x vs {r_multi:.2f}x")
+
+# Section 5.9 claims the advantage decays with federation size at a fixed
+# 25% corrupted fraction. This is the claim the frac sweep tested and the
+# earlier fraction-only reading failed, so it is worth pinning down.
+frac_ratios = {}
+for _K, _nn in ((8, 2), (12, 3), (16, 4)):
+    _a = by_seed(f"frac_aha_k{_K}_n{_nn}_s*.json", "ece")
+    _v = by_seed(f"frac_fedavg_k{_K}_n{_nn}_s*.json", "ece")
+    _sh = sorted(set(_a) & set(_v))
+    if _sh:
+        frac_ratios[_K] = (st.mean([_v[k] for k in _sh])
+                           / st.mean([_a[k] for k in _sh]))
+if len(frac_ratios) == 3:
+    print("  25% corrupted at K=8/12/16: "
+          + ", ".join(f"{k}:{v:.2f}x" for k, v in sorted(frac_ratios.items())))
+    _ordered = [frac_ratios[k] for k in (8, 12, 16)]
+    check("the advantage decays monotonically with federation size",
+          _ordered[0] > _ordered[1] > _ordered[2],
+          ", ".join(f"{r:.2f}x" for r in _ordered))
+    check("the advantage is gone by K=16",
+          frac_ratios[16] < 1.05,
+          f"{frac_ratios[16]:.2f}x")
 
 
 # The paper reports the rule keeps discounting corrupted sites at every level.
