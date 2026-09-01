@@ -938,7 +938,8 @@ def build() -> None:
         "currently uses FedAvg can switch to AHA-Fed and recover identical "
         "behaviour by zeroing β and γ. The hyperparameters admit clear "
         "interpretation — α governs anti-volume-collapse, β penalises "
-        "outlier centers in label space, and γ rewards low-loss clients.",
+        "outlier centers in label space, and γ rewards low-loss clients. "
+        "Figure 2 shows how the three signals combine.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     add_figure(doc, FIGS / "fig_aha_concept.png",
@@ -1038,6 +1039,13 @@ def build() -> None:
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     add_heading(doc, "3.8 Algorithm", level=2)
+    add_paragraph(doc,
+        "Figure 4 states the complete training loop. Each round the "
+        "server broadcasts the global model, every client trains "
+        "locally and returns its update together with three scalars, "
+        "and the server forms the softmax weights of Equation (5) and "
+        "aggregates.",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_figure(doc, FIGS / "fig_algorithm.png",
                "Figure 4: AHA-Fed federated training loop (Algorithm 1).")
 
@@ -1148,7 +1156,10 @@ def build() -> None:
         "data-use agreement, so every result here is directly reproducible. "
         "Loaders for full-resolution CheXpert [16] and NIH ChestX-ray14 [31] "
         "are released with the framework but are not part of the reported "
-        "results; Section 7.1 discusses what that restricts.",
+        "results; Section 7.1 discusses what that restricts. Table 2 "
+        "summarises the three corpora and their federated partitions, "
+        "and Figure 5 shows real PathMNIST samples alongside the "
+        "per-hospital label priors the partitioning induces.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_figure(doc, FIGS / "fig_dataset.png",
                "Figure 5: PathMNIST federation — real samples and the "
@@ -1328,7 +1339,8 @@ def build() -> None:
         "problem than the one the rule is for. Second, a practitioner does "
         "not have to guess: the diagnostic of Section 5.7 is computed on "
         "the federation at hand, whatever its size, and reports directly "
-        "whether the quality signal has anything to separate.",
+        "whether the quality signal has anything to separate. Figure 9 plots "
+        "the sweep across both axes.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_figure(doc, FIGS / "fig_het_scale.png",
                "Figure 9: PathMNIST — Dirichlet heterogeneity sweep "
@@ -1373,7 +1385,8 @@ def build() -> None:
         "this is the natural ablation against our key design choice. "
         "All five aggregators are run for 25 rounds with the MedCNN "
         "backbone (3-conv blocks with GroupNorm, ≈ 240 K parameters) "
-        "and ten random seeds.",
+        "and ten random seeds. Figure 11 plots the five aggregators across "
+        "all four metrics.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_figure(doc, FIGS / "fig_real_pathmnist.png",
                "Figure 11: PathMNIST comparison across five "
@@ -1423,6 +1436,10 @@ def build() -> None:
         ["0.9 (strongly skewed)", "0.092 ± 0.025", "0.128 ± 0.049", "1.38×", "0.106"],
         ["Pooled (n = 50)", "0.089", "0.131", "1.47×", "< 10⁻⁵"],
     ]
+    add_paragraph(doc,
+        "Table 4 reports the same comparison across five levels of "
+        "Dirichlet heterogeneity, ten seeds at each.",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_table_caption(doc,
         "Table 4: Heterogeneity sweep on PathMNIST (mean ± s.d., 10 seeds "
         "per level). p-values are paired Wilcoxon signed-rank tests over "
@@ -1432,6 +1449,12 @@ def build() -> None:
                header_font_size=10, body_font_size=10)
     add_post_table_spacing(doc)
 
+    add_paragraph(doc,
+        "Figure 12 shows the convergence behaviour behind these "
+        "endpoints: the calibration gap opens within the first ten "
+        "rounds and holds, rather than emerging only at the round "
+        "budget we happened to choose.",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_figure(doc, FIGS / "fig_real_convergence.png",
                "Figure 12: Multi-seed convergence on PathMNIST "
                "(mean ± s.d., 10 seeds).")
@@ -1495,7 +1518,8 @@ def build() -> None:
         "AHA-Fed leads once a site is corrupted, and it is a sharper "
         "statement than 'the hyperparameters did not transfer': the "
         "failure is a property of the federation, not of the tuning. "
-        "Section 7.1 records the diagnostic as a deployment prerequisite.",
+        "Section 7.1 records the diagnostic as a deployment prerequisite. "
+        "Table 5 gives the underlying transfer result.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     transfer_data = [
@@ -1521,7 +1545,8 @@ def build() -> None:
         "the relative variant of Section 3.4. We evaluate it against the "
         "absolute rule on both corpora at ten seeds, with everything else "
         "held fixed. Because this is a design choice rather than a reported "
-        "result, the comparison is made on the validation split.",
+        "result, the comparison is made on the validation split; "
+        "Table 6 reports it.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     relq_data = [
@@ -1582,7 +1607,7 @@ def build() -> None:
         "bad data to average in, but a quality-aware rule has less clean data "
         "left to shift weight towards. We therefore repeat the PathMNIST "
         "federation with one, two and three of the four hospitals corrupted "
-        "at 50%, ten seeds each.",
+        "at 50%, ten seeds each. Table 7 reports the sweep.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     multi_data = [
@@ -1631,8 +1656,8 @@ def build() -> None:
         "hospitals, and the number of them that are corrupted — but both "
         "move one underlying quantity: the fraction of the federation's "
         "data that carries unreliable labels. Read against that fraction "
-        "the two sweeps agree, which matters because it changes what the "
-        "K = 12 result means.",
+        "the two sweeps agree, as Table 8 shows, which matters because it "
+        "changes what the K = 12 result means.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     frac_data = [
@@ -1645,7 +1670,7 @@ def build() -> None:
         ["75% (3 of 4)",  "multi-site sweep",      "1.15×"],
     ]
     add_table_caption(doc,
-        "Table XI: The advantage read against the fraction of corrupted "
+        "Table 8: The advantage read against the fraction of corrupted "
         "data rather than the client count. The two rows at 25% come from "
         "separate experiments with different client counts.")
     make_table(doc, frac_data, header_font_size=10, body_font_size=9.5,
@@ -1705,7 +1730,8 @@ def build() -> None:
         "AHA-Fed is ahead of FedBN but behind FedAvg on every metric, and "
         "we report that plainly. The margin is small — 0.004 AUROC on a "
         "single seed — so we do not read it as evidence that AHA-Fed is "
-        "worse; we read it as the absence of any benefit in this setting.",
+        "worse; we read it as the absence of any benefit in this setting. "
+        "Table 9 reports both federations.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     nih_data = [
@@ -1720,7 +1746,7 @@ def build() -> None:
         ["50% noise, 3 seeds", "FedDisco", "0.919 ± 0.006", "0.378", "0.0113 ± 0.0010", "0.599"],
     ]
     add_table_caption(doc,
-        "Table 8: NIH ChestX-ray14 at 224×224, four patient-disjoint "
+        "Table 9: NIH ChestX-ray14 at 224×224, four patient-disjoint "
         "centers. Clean rows are single seed; the corrupted rows are mean ± "
         "s.d. over nine seeds for FedAvg and AHA-Fed, three for the other two. AUROC and AUPRC are macro-averaged over the "
         "14 findings; accuracy is exact match over the whole label vector.")
@@ -1930,7 +1956,7 @@ def build() -> None:
     # ==================== 6. ABLATION ====================
     add_heading(doc, "6. Ablation Study", level=1)
     add_paragraph(doc,
-        "Table X isolates each term by zeroing its coefficient on the "
+        "Table 10 isolates each term by zeroing its coefficient on the "
         "PathMNIST federation of Section 5.6, ten seeds throughout, with "
         "paired Wilcoxon tests against the full rule. Two of the three "
         "comparisons come out as the design predicts, and one does not.",
@@ -1944,7 +1970,7 @@ def build() -> None:
         ["Full AHA-Fed",           "1", "4", "4", "0.097 ± 0.018", "—", "—"],
     ]
     add_table_caption(doc,
-        "Table X: Ablation of the AHA-Fed terms on PathMNIST, ten seeds. "
+        "Table 10: Ablation of the AHA-Fed terms on PathMNIST, ten seeds. "
         "The 'vs full' column is the mean ECE of that configuration relative "
         "to the full rule; positive means the full rule is better.")
     make_table(doc, abl, header_font_size=10, body_font_size=9.5,
