@@ -252,8 +252,10 @@ def build() -> None:
         "chance at ε ≤ 1.0. The first has a measurable cause we turn "
         "into a deployment test — the quality term helps only when "
         "corruption shifts local loss further than ordinary differences "
-        "between healthy sites do, a ratio of 2.37 on PathMNIST against "
-        "0.46 on PneumoniaMNIST, computable from one training round. "
+        "between healthy sites do, computable from one training round. "
+        "The ratio orders all three corpora by outcome — 2.37 on "
+        "PathMNIST, 1.15 on NIH, 0.46 on PneumoniaMNIST — and the NIH "
+        "value was computed after that result was measured. "
         "AHA-Fed adds one scalar per client per round, so bandwidth "
         "matches FedAvg, and it composes with Opacus DP-SGD. The framework "
         "and every run artifact behind these numbers are released."
@@ -1521,6 +1523,33 @@ def build() -> None:
         "under a correct protocol.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_paragraph(doc,
+        "Both of those corpora are ones the diagnostic was constructed to "
+        "explain, so on their own they do not test it. NIH ChestX-ray14 "
+        "does: it is a third corpus at clinical resolution, and its "
+        "calibration result — a 7.0% advantage that does not reach "
+        "significance over nine seeds (Section 5.10) — was measured "
+        "before we computed the ratio there. Applying the same "
+        "computation to the corrupted NIH federation gives a signal of "
+        "0.0097 against a spread of 0.0084, a ratio of 1.15, with the "
+        "corrupted center ranked worst in 9 of 9 runs.",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
+    add_paragraph(doc,
+        "That is the value a weak but correctly directed result should "
+        "have. The corrupted site is identified every time, so the signal "
+        "is real; but at 1.15 it barely exceeds the variation among "
+        "healthy centers, leaving little margin for the reweighting to "
+        "convert into calibration. Ordered by the diagnostic, the three "
+        "corpora are PathMNIST 2.37, NIH 1.15, PneumoniaMNIST 0.46, and "
+        "ordered by outcome they are a 1.47× ECE reduction at p < 10⁻⁵, "
+        "a 1.07× reduction at p = 0.50, and a loss to every baseline. "
+        "The ranking is the same in both, which is the strongest evidence "
+        "we have that the diagnostic measures what it claims to. Three "
+        "points cannot establish a quantitative threshold, and we do not "
+        "propose one; what they support is the ordering and the reading "
+        "that a ratio near unity predicts a null rather than a reversal.",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
+
+    add_paragraph(doc,
         "The practical value of this is that the ratio is computable from a "
         "single round of ordinary federated training, before committing to "
         "an aggregation rule. A federation whose clean clients already "
@@ -1848,7 +1877,14 @@ def build() -> None:
         "three seeds the ECE gap was 10.6%, at six 12.9%, and at nine "
         "7.0% (p = 0.50), with AHA-Fed ahead on four of the nine seeds. "
         "AUROC favours FedAvg throughout (0.931 against 0.925, p = 0.16), "
-        "as does accuracy by a negligible margin. The honest reading is "
+        "as does accuracy by a negligible margin. Section 5.7 gives a "
+        "reason rather than leaving this as an anomaly: the diagnostic "
+        "on this federation is 1.15 against 2.37 on PathMNIST, so the "
+        "corruption signal barely clears the variation among healthy "
+        "centers even though it identifies the corrupted one in 9 of 9 "
+        "runs — a near-unity ratio predicts the right direction at a "
+        "magnitude too small to resolve, which is what we observe. "
+        "The honest reading is "
         "that at clinical resolution the calibration advantage is small "
         "enough that our seed budget cannot distinguish it from zero, and "
         "that adding seeds shrank rather than sharpened it — which is "

@@ -567,6 +567,31 @@ if qonly_h and qonly_n:
 
 
 # ------------------------------------------- quality-signal diagnostic
+def quality_ratio_paths(paths) -> tuple[float, float, int, int] | None:
+    """Same computation as quality_ratio, over an explicit path list."""
+    signals, spreads, correct, n = [], [], 0, 0
+    for f in sorted(paths):
+        d = json.loads(Path(f).read_text())
+        qs = [r.get("client_quality") for r in d.get("history", [])
+              if r.get("client_quality")]
+        if not qs:
+            continue
+        q = qs[-1]
+        noisy_idx = (d.get("config") or {}).get("noisy_client")
+        if noisy_idx is None:
+            noisy_idx = len(q) - 1   # NIH corrupts the last center
+        if noisy_idx >= len(q):
+            continue
+        clean = [x for i, x in enumerate(q) if i != noisy_idx]
+        signals.append(st.mean(clean) - q[noisy_idx])
+        spreads.append(max(clean) - min(clean))
+        correct += q[noisy_idx] == min(q)
+        n += 1
+    if not n:
+        return None
+    return st.mean(signals), st.mean(spreads), correct, n
+
+
 def quality_ratio(pattern: str) -> tuple[float, float, int, int] | None:
     """Corruption signal vs spread among clean clients, from stored quality.
 
@@ -610,6 +635,29 @@ if "PathMNIST" in diag and "PneumoniaMNIST" in diag:
           diag["PathMNIST"] > 1 > diag["PneumoniaMNIST"],
           f"PathMNIST {diag['PathMNIST']:.2f}, "
           f"PneumoniaMNIST {diag['PneumoniaMNIST']:.2f}")
+
+# Section 5.7 now reports the diagnostic on NIH as an out-of-sample test:
+# it was computed after the NIH outcome was measured, and the ordering
+# across all three corpora is the paper's main evidence for it.
+_nih_q = quality_ratio_paths(sorted(glob.glob(
+    str(ROOT / "runs" / "paper" / "nih" / "nih_noisy_aha_fed_s*.json"))))
+if _nih_q:
+    _sig, _spr, _worst, _n = _nih_q
+    _ratio = _sig / _spr if _spr else float("inf")
+    diag["NIH"] = _ratio
+    print(f"  {'NIH':<15} signal {_sig:.4f}  spread {_spr:.4f}  "
+          f"ratio {_ratio:.2f}  corrupted ranked worst {_worst}/{_n}")
+    check("the NIH diagnostic sits between the two MedMNIST corpora",
+          diag["PneumoniaMNIST"] < _ratio < diag["PathMNIST"],
+          f"{diag['PneumoniaMNIST']:.2f} < {_ratio:.2f} < "
+          f"{diag['PathMNIST']:.2f}")
+    check("the corrupted NIH center is always ranked worst",
+          _worst == _n, f"{_worst}/{_n}")
+    check("the diagnostic orders the three corpora by outcome",
+          diag["PathMNIST"] > diag["NIH"] > diag["PneumoniaMNIST"],
+          f"PathMNIST {diag['PathMNIST']:.2f} > NIH {diag['NIH']:.2f} > "
+          f"PneumoniaMNIST {diag['PneumoniaMNIST']:.2f}")
+
 
 # ------------------------------------------------------- NIH ChestX-ray14
 NIH = ROOT / "runs" / "paper" / "nih"
