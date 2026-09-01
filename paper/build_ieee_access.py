@@ -239,7 +239,10 @@ def table(doc: Document, rows: list[list[str]], caption: str):
          align=WD_ALIGN_PARAGRAPH.CENTER)
 
     # The extracted caption already reads "Table 3: ..."; keep only the text.
+    # A caption may also cite another table ("the same convention as
+    # Table 3"), which has to follow the roman titles like body text does.
     body = re.sub(r"^Table\s+\d+[:.]?\s*", "", caption).strip()
+    body = romanise_refs(body)
     cap_style = "Table Caption" if style_or_none(doc, "Table Caption") else None
     para(doc, body.upper() if len(body) < 60 else body,
          style=cap_style, size=8, align=WD_ALIGN_PARAGRAPH.CENTER)

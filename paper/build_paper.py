@@ -1999,8 +1999,8 @@ def build() -> None:
     ]
     add_table_caption(doc,
         "Table 10: Ablation of the AHA-Fed terms on PathMNIST, ten seeds. "
-        "The 'vs full' column is the mean ECE of that configuration relative "
-        "to the full rule; positive means the full rule is better.")
+        "The 'vs full' column is (row ECE − full ECE) / row ECE, the same "
+        "convention as Table 3; positive means the full rule is better.")
     make_table(doc, abl, header_font_size=10, body_font_size=9.5,
                highlight_row_pred=lambda i, row: row[0].startswith("Quality only"))
     add_post_table_spacing(doc)

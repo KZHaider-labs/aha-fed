@@ -47,6 +47,7 @@ LABEL = {"aha_fed": "AHA-Fed", "fedavg": "FedAvg", "fedprox": "FedProx",
 
 def final(path: str) -> dict:
     d = json.loads(Path(path).read_text())
+
     return d.get("final") or (d.get("history") or [{}])[-1]
 
 
@@ -495,6 +496,18 @@ if all(abl.values()):
     check("the full rule beats the quality term alone",
           st.mean(full) < st.mean(qual),
           f"full {st.mean(full):.4f} vs quality only {st.mean(qual):.4f}")
+
+    # Table 10's "vs full" column uses (row - full)/row, the same convention
+    # as Table 3. Nothing checked the arithmetic, and the two tables using
+    # different conventions would be a fair referee complaint.
+    for _name, _vals, _claim in (("volume only", vol, 19.1),
+                                 ("distance only", dist, 25.7),
+                                 ("quality only", qual, -16.0)):
+        _pct = (st.mean(_vals) - st.mean(full)) / st.mean(_vals) * 100
+        check(f"Table 10 '{_name}' percentage",
+              abs(_pct - _claim) < 0.6,
+              f"{_pct:+.1f}% (paper says {_claim:+.1f}%)")
+
 
 # The 16% quality-only advantage is claimed to be federation-specific;
 # these sweeps are what bounds it.
