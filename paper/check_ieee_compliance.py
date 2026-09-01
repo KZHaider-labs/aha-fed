@@ -132,6 +132,38 @@ def main(template: Path, paper: Path) -> int:
         if placeholder.lower() in body.lower():
             check(f"no '{placeholder}' placeholder", False)
 
+
+    # Access titles tables in roman; a body that still says "Table 3" while
+    # the title above it reads "TABLE III" is the kind of mismatch a
+    # reviewer notices immediately.
+    tbl_titles, arabic_refs, roman_refs, orphans = [], set(), set(), []
+    for t in texts:
+        if re.match(r"^TABLE\s+[IVXLC]+$", t):
+            tbl_titles.append(t)
+            continue
+        arabic_refs.update(re.findall(r"\bTable\s+(\d+)\b", t))
+        roman_refs.update(re.findall(r"\bTable\s+([IVXLC]+)\b", t))
+    check("in-text table references use roman numerals",
+          not arabic_refs,
+          f"{len(roman_refs)} roman, {len(arabic_refs)} arabic"
+          + (f" ({sorted(arabic_refs)})" if arabic_refs else ""))
+
+    numerals = [t.split()[1] for t in tbl_titles]
+    check("every table title is referenced in the text",
+          set(numerals) <= roman_refs,
+          f"uncited: {sorted(set(numerals) - roman_refs) or 'none'}")
+
+    fig_nums, fig_refs = set(), set()
+    for t in texts:
+        m = re.match(r"^FIGURE\s+(\d+)\.", t)
+        if m:
+            fig_nums.add(m.group(1))
+        else:
+            fig_refs.update(re.findall(r"\bFigure\s+(\d+)\b", t))
+    check("every figure is referenced in the text",
+          fig_nums <= fig_refs,
+          f"uncited: {sorted(fig_nums - fig_refs, key=int) or 'none'}")
+
     print()
     if FAILURES:
         print(f"{len(FAILURES)} check(s) failed:")

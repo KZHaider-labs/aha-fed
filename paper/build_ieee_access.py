@@ -156,6 +156,21 @@ def first_style(doc: Document, candidates: list[str]) -> str | None:
     return None
 
 
+def romanise_refs(text: str) -> str:
+    """Access titles tables in roman, so in-text references must match.
+
+    The source document numbers them 1..10; the Access renderer emits
+    TABLE I..X in the same order, so the mapping is positional. Figures
+    stay Arabic — Access uses FIGURE 1. for those.
+    """
+    return re.sub(
+        r"\bTable\s+(\d+)\b",
+        lambda m: "Table " + (ROMAN[int(m.group(1)) - 1]
+                              if 1 <= int(m.group(1)) <= len(ROMAN)
+                              else m.group(1)),
+        text)
+
+
 def strip_number(text: str) -> str:
     """Drop a leading '3.' or '5.7' — Access numbers sections itself."""
     return re.sub(r"^\d+(\.\d+)*\.?\s+", "", text).strip()
@@ -309,7 +324,8 @@ def build(template: Path, out: Path) -> None:
         elif kind == "h2":
             heading(doc, item[1], 2)
         elif kind == "p":
-            para(doc, item[1], style="Text" if style_or_none(doc, "Text") else None,
+            para(doc, romanise_refs(item[1]),
+                 style="Text" if style_or_none(doc, "Text") else None,
                  align=WD_ALIGN_PARAGRAPH.JUSTIFY)
         elif kind == "fig":
             figure(doc, FIGURES[item[1]][0], FIGURES[item[1]][1])
