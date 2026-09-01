@@ -236,11 +236,12 @@ def build() -> None:
         "no separation at zero noise, and drives the corrupted client to "
         "weight 0.069 against a uniform 0.250. The advantage persists when "
         "two of four sites are corrupted (1.52×) and decays as they approach "
-        "a majority. Holding that fraction at 25% while growing the "
-        "federation to eight, twelve and sixteen sites shows the "
-        "advantage declining monotonically and vanishing by sixteen, so "
-        "the binding constraint is federation size rather than the "
-        "corrupted share alone. On NIH "
+        "a majority. Holding the corrupted fraction at 25% and per-client "
+        "data at 1,000 images, the advantage is flat from four to "
+        "sixteen hospitals (1.48× to 1.42×, all significant); it decays "
+        "only when a fixed corpus is divided among more clients, so the "
+        "binding constraint is per-client sample size rather than "
+        "federation size. On NIH "
         "ChestX-ray14 at 224×224, fourteen findings across four "
         "patient-disjoint centers, the pipeline operates correctly and "
         "AHA-Fed is not worse than the alternatives, but the calibration "
@@ -1341,11 +1342,11 @@ def build() -> None:
         "tests is the mildness of the corruption rather than the size of "
         "the federation: one bad site among twelve is an 8% corrupted "
         "fraction, and raising it to 25% at the same K recovers some of "
-        "the advantage (1.20× against 1.01×). Only some, though — "
-        "Section 5.9 holds the fraction at 25% while growing the "
-        "federation and finds the advantage gone by sixteen sites, so "
-        "size binds independently and we do not claim the rule extends "
-        "to large federations. Second, a practitioner does "
+        "the advantage (1.20× against 1.01×). The rest is an artifact of "
+        "this sweep holding the corpus fixed, which shrinks per-client "
+        "data as K grows: Section 5.9 shows the advantage flat from "
+        "four to sixteen hospitals once per-client data is held "
+        "constant instead. Second, a practitioner does "
         "not have to guess: the diagnostic of Section 5.7 is computed on "
         "the federation at hand, whatever its size, and reports directly "
         "whether the quality signal has anything to separate. Figure 9 plots "
@@ -1664,74 +1665,84 @@ def build() -> None:
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     add_heading(doc,
-                "5.9 Federation size and corrupted fraction, separated",
+                "5.9 What the scale limit actually is",
                 level=2)
     add_paragraph(doc,
-        "Sections 5.4 and 5.8 vary different things — the number of "
-        "hospitals, and how many of them are corrupted — and both move a "
-        "third quantity with them: the fraction of the federation's data "
-        "carrying unreliable labels. In the four-site experiments the two "
-        "readings coincide, and an earlier draft of this paper read the "
-        "constraint as one on that fraction rather than on federation "
-        "size. We tested that reading by holding the fraction at 25% and "
-        "moving the client count to 8, 12 and 16 — two, three and four "
-        "corrupted sites — at ten seeds each. It does not survive, as "
-        "Table 8 shows.",
+        "Sections 5.4 and 5.8 vary the number of hospitals and the number "
+        "of corrupted ones, and both move a third quantity with them: the "
+        "fraction of the federation's data carrying unreliable labels. An "
+        "earlier draft read the constraint as one on that fraction. We "
+        "tested it by holding the fraction at 25% and moving the client "
+        "count to 8, 12 and 16 at ten seeds each, and the advantage decayed "
+        "— 1.32×, 1.20×, 0.97× against 1.47× at K = 4 — which we read as "
+        "evidence that federation size binds independently.",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
+    add_paragraph(doc,
+        "That reading was also wrong, and the design is why. To isolate "
+        "federation size those runs hold the total corpus near 4,000 "
+        "images, so per-client data falls as K grows: sixteen sites get "
+        "250 images each. Client count and per-client sample size are "
+        "perfectly anti-correlated, and the sweep cannot say which one "
+        "drives the decay. We therefore repeated it with per-client data "
+        "held at 1,000 images — the same as the K = 4 experiments — "
+        "letting the corpus grow with the federation. Table 8 reports "
+        "both.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     frac_data = [
-        ["K", "Corrupted", "Fraction", "ECE reduction", "p"],
-        ["4",  "1 of 4",  "25%", "1.46×", "0.010"],
-        ["4",  "1 of 4",  "25%", "1.49×", "0.006"],
-        ["8",  "2 of 8",  "25%", "1.32×", "0.002"],
-        ["12", "3 of 12", "25%", "1.20×", "0.275"],
-        ["16", "4 of 16", "25%", "0.97×", "0.846"],
+        ["K", "Corrupted", "1,000 img/client", "p", "~4,000 total", "p"],
+        ["4",  "1 of 4",  "1.47×", "0.004", "1.47×", "0.004"],
+        ["8",  "2 of 8",  "1.48×", "0.002", "1.32×", "0.002"],
+        ["12", "3 of 12", "1.42×", "0.006", "1.20×", "0.275"],
+        ["16", "4 of 16", "1.42×", "0.002", "0.97×", "0.846"],
     ]
     add_table_caption(doc,
         "Table 8: The same 25% corrupted fraction at four federation "
-        "sizes, ten seeds each. The two K = 4 rows are independent "
-        "experiments — the scaling sweep and the multi-site sweep. "
-        "p-values are paired Wilcoxon signed-rank tests against FedAvg.")
+        "sizes under two designs, ten seeds each. Holding per-client data "
+        "fixed keeps the advantage flat; holding the total corpus fixed "
+        "makes it decay, because per-client data then falls with K. "
+        "p-values are paired Wilcoxon signed-rank tests against FedAvg. "
+        "The K = 4 column is the same experiment under both designs.")
     make_table(doc, frac_data, header_font_size=10, body_font_size=9.5,
                highlight_row_pred=lambda i, row: row[0] == "16")
     add_post_table_spacing(doc)
 
     add_paragraph(doc,
-        "At a fixed corrupted fraction the advantage declines "
-        "monotonically with federation size and is gone by sixteen sites, "
-        "where AHA-Fed is marginally behind FedAvg (0.178 against 0.173, "
-        "p = 0.85). Across the nine (K, fraction) configurations we have "
-        "run, the correlation between the ECE ratio and the client count "
-        "is −0.78, against +0.26 for the corrupted fraction. Federation "
-        "size is the stronger predictor, and the fraction reading is "
-        "wrong as a general statement.",
+        "With per-client data held fixed the advantage is flat across a "
+        "fourfold range of federation sizes — 1.48×, 1.48×, 1.42×, 1.42× "
+        "at K = 4, 8, 12 and 16 — and every point is significant, with "
+        "AHA-Fed ahead on 37 of the 40 paired seeds. Across the seven "
+        "25%-corrupted configurations we have run, the ECE ratio "
+        "correlates +0.91 with per-client sample size and −0.57 with "
+        "client count. The operative variable is how much data each "
+        "hospital holds, not how many hospitals there are.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     add_paragraph(doc,
-        "The fraction is not irrelevant, though. Holding K fixed and "
-        "raising it does help: at K = 8 the reduction goes from 1.17× at "
-        "one corrupted site to 1.32× at two, and at K = 12 from 1.01× at "
-        "one to 1.20× at three. Both variables move the advantage, in "
-        "opposite directions, which is why the four-site experiments "
-        "could not distinguish them. The practical statement is the "
-        "conjunction rather than either alone: AHA-Fed helps when a "
-        "substantial share of a small federation is unreliable, and the "
-        "benefit erodes as the federation grows whatever that share is.",
+        "The mechanism is the quality signal. It is estimated from a "
+        "client's local training loss, and that estimate gets noisier as "
+        "the client's sample shrinks; at 250 images the corruption signal "
+        "no longer separates cleanly from ordinary sampling variation, "
+        "which is the same failure the diagnostic of Section 5.7 measures "
+        "directly. Federation size enters only through this channel, "
+        "which is why the constant-corpus sweep looked like a size limit. "
+        "It is a per-client sample-size limit that a constant corpus "
+        "converts into one.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     add_paragraph(doc,
-        "One confound we cannot remove from this design deserves stating. "
-        "All nine configurations hold the total training set near 4,000 "
-        "images so that federation size is the only thing changing, which "
-        "makes client count and per-client sample size perfectly "
-        "anti-correlated: K = 16 gives each site 250 images. The decay is "
-        "therefore consistent with two mechanisms — more clients dilute "
-        "the weight any one corrupted site can be denied, or smaller "
-        "per-client samples make the quality signal too noisy to act on — "
-        "and this sweep cannot separate them. Distinguishing the two "
-        "requires holding per-client data fixed while growing K, which "
-        "grows the corpus with the federation and is the experiment we "
-        "would run next.",
+        "This is the more useful statement of the two, because it maps "
+        "onto how federations actually grow. Recruiting more hospitals "
+        "usually adds their data rather than dividing a fixed pool, which "
+        "is the fixed-per-client column; that column shows no decay to "
+        "K = 16. We have not tested beyond sixteen sites, nor below 250 "
+        "images per client, and we do not extrapolate past either. Nor "
+        "does this rescue Section 5.4, whose sweep holds the corpus "
+        "constant by design and where the advantage does fade — it "
+        "explains it. The corrupted fraction still matters "
+        "independently: at K = 8 the reduction goes from 1.17× at one "
+        "corrupted site to 1.32× at two, and at K = 12 from 1.01× to "
+        "1.20×.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     add_heading(doc, "5.10 Scaling to full-resolution chest radiography",
@@ -2123,9 +2134,11 @@ def build() -> None:
         "a nine-class task are actively harmful on a binary one, so "
         "AHA-Fed carries a real deployment cost — a per-task validation "
         "split — that volume-weighted FedAvg does not. Fifth, scale: "
-        "K = 4–32 simulated clients on a single machine, with the "
-        "advantage narrowing as K grows and absent by K = 16 at a fixed "
-        "corrupted fraction; we make no claim about cross-device "
+        "K = 4–32 simulated clients on a single machine. Section 5.9 "
+        "shows the advantage holding to K = 16 when each client keeps "
+        "1,000 images, and decaying when a fixed corpus is divided "
+        "further; we have not tested beyond sixteen sites or below 250 "
+        "images per client, and make no claim about cross-device "
         "federations. Sixth, privacy: as Section 5.11 documents, our "
         "DP-SGD configuration destroys utility at every budget tested, so "
         "the empirical privacy-utility claim is limited to architectural "

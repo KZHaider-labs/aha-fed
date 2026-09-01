@@ -380,12 +380,35 @@ if len(frac_ratios) == 3:
     print("  25% corrupted at K=8/12/16: "
           + ", ".join(f"{k}:{v:.2f}x" for k, v in sorted(frac_ratios.items())))
     _ordered = [frac_ratios[k] for k in (8, 12, 16)]
-    check("the advantage decays monotonically with federation size",
+    check("the constant-corpus sweep decays with K",
           _ordered[0] > _ordered[1] > _ordered[2],
           ", ".join(f"{r:.2f}x" for r in _ordered))
-    check("the advantage is gone by K=16",
+    check("the constant-corpus advantage is gone by K=16",
           frac_ratios[16] < 1.05,
           f"{frac_ratios[16]:.2f}x")
+
+# Section 5.9's actual conclusion: with per-client data held at 1000 the
+# advantage does NOT decay, so the limit is sample size and not client
+# count. This is the claim the fixn sweep established, reversing the
+# constant-corpus reading above.
+fixn_ratios = {}
+for _K, _nn in ((8, 2), (12, 3), (16, 4)):
+    _a = by_seed(f"fixn_aha_k{_K}_n{_nn}_s*.json", "ece")
+    _v = by_seed(f"fixn_fedavg_k{_K}_n{_nn}_s*.json", "ece")
+    _sh = sorted(set(_a) & set(_v))
+    if _sh:
+        fixn_ratios[_K] = (st.mean([_v[k] for k in _sh])
+                           / st.mean([_a[k] for k in _sh]))
+if len(fixn_ratios) == 3:
+    print("  25% corrupted, 1000 img/client: "
+          + ", ".join(f"{k}:{v:.2f}x" for k, v in sorted(fixn_ratios.items())))
+    check("the advantage survives to K=16 at fixed per-client data",
+          min(fixn_ratios.values()) > 1.25,
+          ", ".join(f"{fixn_ratios[k]:.2f}x" for k in (8, 12, 16)))
+    check("fixed per-client data beats the constant corpus at every K",
+          all(fixn_ratios[k] > frac_ratios[k] for k in (8, 12, 16)),
+          ", ".join(f"K={k}: {fixn_ratios[k]:.2f}x vs {frac_ratios[k]:.2f}x"
+                    for k in (8, 12, 16)))
 
 # Proposition 1 quotes the smallest weight ever observed. Nothing checked
 # it, and the paper carried 0.013 while the artifacts held 0.0035.
