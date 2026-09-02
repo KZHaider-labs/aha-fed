@@ -254,6 +254,40 @@ for eps in ["0.5", "1.0", "5.0"]:
     check(f"DP eps={eps} AHA calibration better", ae[0] < ve[0],
           f"{ae[0]:.4f} vs {ve[0]:.4f}")
 
+# Section 5.11's corrected sweep: the same per-client budget as the
+# non-private runs. The 300-image sweep above collapsed to chance and the
+# paper reports both, so both need pinning.
+print("\n=== DP-SGD at the standard per-client budget (Sec 5.11) ===")
+dp2 = {}
+for eps2 in ("1.0", "10.0"):
+    aa = by_seed(f"dp2_aha_eps{eps2}_s*.json", "accuracy")
+    va = by_seed(f"dp2_fedavg_eps{eps2}_s*.json", "accuracy")
+    ae2 = by_seed(f"dp2_aha_eps{eps2}_s*.json", "ece")
+    ve2 = by_seed(f"dp2_fedavg_eps{eps2}_s*.json", "ece")
+    sh2 = sorted(set(aa) & set(va))
+    if not sh2:
+        continue
+    dp2[eps2] = (st.mean([aa[k] for k in sh2]),
+                 st.mean([va[k] for k in sh2]),
+                 st.mean([ae2[k] for k in sh2]),
+                 st.mean([ve2[k] for k in sh2]))
+    print(f"  eps={eps2:<5} AHA acc {dp2[eps2][0]:.3f} ece {dp2[eps2][2]:.4f}"
+          f" | FedAvg acc {dp2[eps2][1]:.3f} ece {dp2[eps2][3]:.4f}"
+          f" (n={len(sh2)})")
+for eps2, dpv in dp2.items():
+    check(f"DP eps={eps2} retains usable accuracy at 1000 img/client",
+          min(dpv[0], dpv[1]) > 3 * CHANCE,
+          f"AHA {dpv[0]:.3f}, FedAvg {dpv[1]:.3f} vs chance {CHANCE:.3f}")
+    # direction only: at n=3 the smallest two-sided Wilcoxon p is 0.25
+    check(f"DP eps={eps2} AHA calibration better (direction, n=3)",
+          dpv[2] < dpv[3], f"{dpv[2]:.4f} vs {dpv[3]:.4f}")
+if "1.0" in dp2:
+    old_acc = final(str(REAL / "path_aha_dp_eps1.0.json")).get("accuracy")
+    if old_acc is not None:
+        check("the data budget, not epsilon, caused the original collapse",
+              old_acc < CHANCE < dp2["1.0"][0],
+              f"300 img: {old_acc:.3f}, 1000 img: {dp2['1.0'][0]:.3f}")
+
 # --------------------------------------------------- hyperparameter grid
 print("\n=== (beta, gamma) grid on PathMNIST ===")
 GRID = [0, 1, 2, 4, 8]

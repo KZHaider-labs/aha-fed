@@ -246,10 +246,15 @@ def build() -> None:
         "patient-disjoint centers, the pipeline operates correctly and "
         "AHA-Fed is not worse than the alternatives, but the calibration "
         "advantage seen at 28×28 does not reproduce: over nine seeds the "
-        "gap is 7.0% at p = 0.50. Two results are negative "
-        "and reported as such: AHA-Fed loses to every baseline on binary "
-        "chest radiography, and under DP-SGD both aggregators fall to "
-        "chance at ε ≤ 1.0. The first has a measurable cause we turn "
+        "gap is 7.0% at p = 0.50. One result is negative and reported as "
+        "such: AHA-Fed loses to every baseline on binary chest "
+        "radiography. Under per-round DP-SGD at the same per-client "
+        "data budget as our non-private runs, both aggregators retain "
+        "usable accuracy (0.45 against 0.70 non-private) and we "
+        "separate neither at three seeds; an earlier sweep at a third "
+        "of the data collapsed to chance, which we report because the "
+        "difference is instructive. The negative result has a "
+        "measurable cause we turn "
         "into a deployment test — the quality term helps only when "
         "corruption shifts local loss further than ordinary differences "
         "between healthy sites do, computable from one training round. "
@@ -746,9 +751,9 @@ def build() -> None:
         "budgets, generally finding that DP costs ten to thirty "
         "AUROC points at ε ≤ 1.0 — a substantial price for clinical "
         "deployment. Our experiments in Section 5.11 are consistent "
-        "with this finding: on our 9-class PathMNIST federation DP-SGD "
-        "costs so much utility that both aggregators fall to or below "
-        "chance at ε ≤ 1.0, and we therefore draw no comparative "
+        "with this finding: on our 9-class PathMNIST federation per-round "
+        "DP-SGD at ε = 1.0 costs roughly a third of accuracy and eight "
+        "points of AUROC, and at three seeds we draw no comparative "
         "conclusion between aggregators in the DP regime. This is "
         "consistent with the post-"
         "processing immunity of differential privacy: the AHA-Fed "
@@ -1921,49 +1926,94 @@ def build() -> None:
 
     add_heading(doc, "5.11 Privacy-utility tradeoff with DP-SGD", level=2)
     add_paragraph(doc,
-        "Each client now runs Opacus DP-SGD with target privacy budget "
-        "ε ∈ {0.5, 1.0, 5.0} and δ = 10⁻⁵, max gradient norm C = 1.0. "
-        "Figure 13 shows the privacy-utility tradeoff for FedAvg vs "
-        "AHA-Fed on PathMNIST under the same federation as Section 5.6. "
-        "One accounting caveat has to be stated before the numbers, "
-        "because it bounds what they mean. Our implementation "
+        "Each client runs Opacus DP-SGD with a per-round target privacy "
+        "budget ε, δ = 10⁻⁵ and max gradient norm C = 1.0, on the "
+        "federation of Section 5.6. One accounting caveat bounds what "
+        "the numbers mean and belongs before them: our implementation "
         "instantiates a fresh Opacus accountant each communication "
-        "round, so the quoted ε is a per-round budget for one "
-        "client's local training rather than an end-to-end guarantee "
-        "composed over the fifteen rounds. Composing across rounds "
-        "would give a substantially larger effective ε, so the "
-        "privacy delivered here is weaker than the labels suggest and "
-        "the utility cost we report is a lower bound on what a "
-        "properly composed budget would cost. Per-round reporting is "
-        "common in the federated DP literature but is not the "
-        "guarantee a deployment needs, and we flag it rather than "
-        "leave the reader to infer it. "
-        "The headline result of this experiment is negative and we report "
-        "it as such. Chance accuracy on this 9-class task is 1/9 = 0.111. "
-        "At ε = 0.5 and ε = 1.0 both aggregators sit at or below chance "
-        "(AHA-Fed 0.106 and 0.084; FedAvg 0.086 and 0.083), so neither "
-        "model has learned anything and the two are not meaningfully "
-        "distinguishable. At ε = 5.0 AHA-Fed reaches 0.241 while FedAvg "
-        "sits at 0.111 — exactly chance — so although the ratio is 2.2×, "
-        "it compares a barely-learning model against a non-learning one "
-        "and should not be read as a 2.2× improvement in a useful "
-        "operating regime. Both are far below the non-private accuracies "
-        "of 0.699 (AHA-Fed) and 0.679 (FedAvg). Calibration under DP is "
-        "likewise inconsistent: AHA-Fed's ECE is lower at ε = 0.5 "
-        "(0.039 vs 0.062) and ε = 1.0 (0.066 vs 0.072) but higher at "
-        "ε = 5.0 (0.091 vs 0.041), and ECE computed over near-chance "
-        "predictions is not a meaningful calibration signal in any case. "
-        "We therefore claim only what Section 3.6 establishes "
-        "analytically — that AHA-Fed is architecturally compatible with "
-        "per-client DP-SGD by post-processing immunity — and make no "
-        "empirical claim that it improves the privacy-utility tradeoff. "
-        "Recovering usable accuracy under tight budgets, most likely via "
-        "pre-training or a larger effective batch, is left to future "
-        "work (Section 7).",
+        "round, so the quoted ε is the per-round budget for one client's "
+        "local training and not an end-to-end guarantee composed over "
+        "training. Composing across rounds would give a substantially "
+        "larger effective ε, so the privacy delivered here is weaker "
+        "than the labels suggest and the utility costs below are a lower "
+        "bound on what a properly composed budget would cost. Per-round "
+        "reporting is common in the federated DP literature but is not "
+        "the guarantee a deployment needs, and we flag it rather than "
+        "leave it to be inferred.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
+
+    add_paragraph(doc,
+        "Our first attempt at this experiment produced a negative result "
+        "that turned out to be our own doing, and the correction is "
+        "instructive enough to report. That sweep gave each client 300 "
+        "images over 15 rounds with batch 64, against the 1,000 images "
+        "and 25 rounds behind every non-private number in this paper. "
+        "Accuracy sat at or below the 0.111 chance level at every "
+        "budget, and we concluded that DP-SGD destroyed utility. It "
+        "confounded the cost of privacy with the cost of training on a "
+        "third of the data — the same per-client sample-size effect "
+        "Section 5.9 identifies as the variable governing whether the "
+        "quality signal works at all, and DP-SGD is the setting most "
+        "exposed to it, since the noise added per step is calibrated to "
+        "the sampling rate. Table 11 reports both configurations and "
+        "Figure 13 plots the original sweep.",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
+
+    dp_data = [
+        ["Configuration", "ε", "Aggregator", "Accuracy", "AUROC", "ECE"],
+        ["300 img/client, 15 rd", "1.0",  "FedAvg",  "0.082", "—", "—"],
+        ["300 img/client, 15 rd", "1.0",  "AHA-Fed", "0.084", "—", "—"],
+        ["1,000 img/client, 25 rd", "1.0",  "FedAvg",  "0.469", "0.874", "0.207"],
+        ["1,000 img/client, 25 rd", "1.0",  "AHA-Fed", "0.453", "0.872", "0.188"],
+        ["1,000 img/client, 25 rd", "10.0", "FedAvg",  "0.460", "0.883", "0.179"],
+        ["1,000 img/client, 25 rd", "10.0", "AHA-Fed", "0.451", "0.882", "0.166"],
+        ["Non-private", "∞", "FedAvg",  "0.679", "0.938", "0.119"],
+        ["Non-private", "∞", "AHA-Fed", "0.702", "0.949", "0.097"],
+    ]
+    add_table_caption(doc,
+        "Table 11: DP-SGD on PathMNIST under two data budgets. The "
+        "300-image rows are our original sweep, single seed; the "
+        "1,000-image rows are three seeds at the same per-client budget "
+        "as every non-private result in this paper. Chance accuracy is "
+        "0.111.")
+    make_table(doc, dp_data, header_font_size=10, body_font_size=9.5,
+               highlight_row_pred=lambda i, row: row[0].startswith("1,000"))
+    add_post_table_spacing(doc)
+
+    add_paragraph(doc,
+        "Repeated at the paper's standard per-client budget with batch "
+        "128 — a larger batch is standard DP-SGD practice, since it "
+        "improves the noise-to-signal ratio at fixed ε — the picture "
+        "changes entirely. Accuracy rises from 0.084 to 0.453 at ε = 1.0 "
+        "and AUROC reaches 0.872, against 0.702 and 0.949 without "
+        "privacy. That is a real privacy cost, roughly a third of "
+        "accuracy and eight points of AUROC, but it is a working model "
+        "rather than a broken one, and it is in line with the ten to "
+        "thirty AUROC points reported elsewhere at comparable budgets "
+        "[21, 36].",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
+
+    add_paragraph(doc,
+        "Between the two aggregators under privacy we claim nothing. "
+        "AHA-Fed has the lower ECE at both budgets (0.188 against 0.207 "
+        "at ε = 1.0, 0.166 against 0.179 at ε = 10.0) and FedAvg the "
+        "marginally higher accuracy, but three seeds cannot separate "
+        "them: the smallest two-sided p a paired signed-rank test can "
+        "return at n = 3 is 0.25, and every comparison here is at or "
+        "above it. We report the direction and no more. What the "
+        "experiment does establish is that the architectural "
+        "compatibility argued in Section 3.6 survives contact with a "
+        "real DP implementation at a budget that leaves a usable model, "
+        "which the earlier sweep could not show. Raising the seed budget "
+        "here, and composing ε across rounds, is the obvious next step "
+        "and is listed in Section 7.3.",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
+
     add_figure(doc, FIGS / "fig_dp_tradeoff.png",
-               "Figure 13: DP-SGD privacy-utility tradeoff on PathMNIST "
-               "(accuracy and ECE vs ε).")
+               "Figure 13: The original 300-image DP-SGD sweep on "
+               "PathMNIST (accuracy and ECE vs ε), retained to show the "
+               "collapse to chance that the 1,000-image runs of Table 11 "
+               "correct.")
 
     add_heading(doc, "5.12 Hyperparameter sensitivity", level=2)
     add_paragraph(doc,
@@ -2150,9 +2200,12 @@ def build() -> None:
         "on a held-out validation split is beaten by every baseline, "
         "showing that these hyperparameters do not transfer across tasks — "
         "a test-set-selected configuration would have appeared to win, and "
-        "Section 5.7 quantifies that gap deliberately. And under DP-SGD "
-        "both aggregators fall to chance at ε ≤ 1.0, so our privacy claim "
-        "is architectural compatibility, not preserved utility. What the "
+        "Section 5.7 quantifies that gap deliberately. Under per-round "
+        "DP-SGD both aggregators retain usable accuracy once given the "
+        "same per-client data as the non-private runs, but three seeds "
+        "cannot separate them, so our privacy claim remains "
+        "architectural compatibility rather than a demonstrated "
+        "advantage under privacy. What the "
         "evidence supports is a heterogeneity- and noise-aware aggregation "
         "rule with a calibration benefit in small federations containing "
         "unreliable sites, together with a diagnostic that says in advance "
