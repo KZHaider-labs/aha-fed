@@ -1708,7 +1708,7 @@ def build() -> None:
         "earlier draft read the constraint as one on that fraction. We "
         "tested it by holding the fraction at 25% and moving the client "
         "count to 8, 12 and 16 at ten seeds each, and the advantage decayed "
-        "— 1.32×, 1.20×, 0.97× against 1.47× at K = 4 — which we read as "
+        "— 1.32×, 1.20×, 0.97× against 1.46× at K = 4 — which we read as "
         "evidence that federation size binds independently.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_paragraph(doc,
@@ -1725,7 +1725,7 @@ def build() -> None:
 
     frac_data = [
         ["K", "Corrupted", "1,000 img/client", "p", "~4,000 total", "p"],
-        ["4",  "1 of 4",  "1.47×", "0.004", "1.47×", "0.004"],
+        ["4",  "1 of 4",  "1.46×", "0.004", "1.46×", "0.004"],
         ["8",  "2 of 8",  "1.48×", "0.002", "1.32×", "0.002"],
         ["12", "3 of 12", "1.42×", "0.006", "1.20×", "0.275"],
         ["16", "4 of 16", "1.42×", "0.002", "0.97×", "0.846"],
@@ -1743,7 +1743,7 @@ def build() -> None:
 
     add_paragraph(doc,
         "With per-client data held fixed the advantage is flat across a "
-        "fourfold range of federation sizes — 1.48×, 1.48×, 1.42×, 1.42× "
+        "fourfold range of federation sizes — 1.46×, 1.48×, 1.42×, 1.42× "
         "at K = 4, 8, 12 and 16 — and every point is significant, with "
         "AHA-Fed ahead on 37 of the 40 paired seeds. Across the seven "
         "25%-corrupted configurations we have run, the ECE ratio "
@@ -2211,7 +2211,8 @@ def build() -> None:
         "unreliable sites, together with a diagnostic that says in advance "
         "whether a given federation is one of those. What it does not "
         "support is a general-purpose replacement for volume weighting, or "
-        "any claim about utility under differential privacy.",
+        "any claim that AHA-Fed outperforms volume weighting under "
+        "differential privacy.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_heading(doc, "7.1 Limitations", level=2)
     add_paragraph(doc,
@@ -2242,11 +2243,13 @@ def build() -> None:
         "further; we have not tested beyond sixteen sites or below 250 "
         "images per client, and make no claim about cross-device "
         "federations. Sixth, privacy: as Section 5.11 documents, our "
-        "DP-SGD configuration destroys utility at every budget tested, "
-        "and those budgets are per-round rather than composed across "
-        "training, so the empirical privacy-utility claim is limited to "
-        "architectural compatibility and not to preserved accuracy "
-        "under a deployment-grade privacy guarantee.",
+        "DP-SGD budgets are per-round rather than composed across training, "
+        "so the effective end-to-end ε is substantially larger than the "
+        "labels and the utility costs we report are a lower bound. The "
+        "private runs also use three seeds, which cannot separate the "
+        "two aggregators. Our privacy claim is therefore architectural "
+        "compatibility at a budget that leaves a usable model, not a "
+        "demonstrated advantage under a deployment-grade guarantee.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     add_heading(doc, "7.2 Code and data availability", level=2)

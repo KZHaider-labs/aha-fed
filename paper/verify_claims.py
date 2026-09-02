@@ -399,6 +399,13 @@ if sh4 and sh1:
           abs(r_scale - r_multi) < 0.10,
           f"{r_scale:.2f}x vs {r_multi:.2f}x")
 
+    # Table 8's K=4 row is quoted as 1.46x; it is the scaling sweep's
+    # K=4 point, and both of its columns are that same run. The paper
+    # briefly carried 1.47x, which matched neither sweep.
+    check("Table 8 K=4 reference matches the scaling sweep",
+          abs(r_scale - 1.46) < 0.006,
+          f"{r_scale:.3f}x (paper says 1.46x)")
+
 # Section 5.9 claims the advantage decays with federation size at a fixed
 # 25% corrupted fraction. This is the claim the frac sweep tested and the
 # earlier fraction-only reading failed, so it is worth pinning down.
