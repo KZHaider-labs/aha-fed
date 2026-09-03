@@ -67,13 +67,18 @@ INDEX_TERMS = (
 TITLE = ("When Does Quality-Aware Aggregation Help? A Characterisation "
          "for Federated Medical Imaging")
 
-AUTHORS = "FIRST A. AUTHOR1, SECOND B. AUTHOR2, and THIRD C. AUTHOR3"
+AUTHORS = ("ABU UBAIDA¹, KHURRAM ZEESHAN HAIDER², "
+           "FARHAN AADIL³, and CELAL ALAGOZ³")
 AFFILIATIONS = [
-    "1Department, University, City, Country",
-    "2Department, University, City, Country",
-    "3Department, University, City, Country",
+    "¹Center of Data Science, Government College University Faisalabad, "
+    "Faisalabad 38000, Pakistan",
+    "²Department of Software Engineering, Government College University "
+    "Faisalabad, Faisalabad 38000, Pakistan",
+    "³Department of Computer Engineering, Sivas University of Science "
+    "and Technology, Sivas 58000, Türkiye",
 ]
-CORRESPONDING = "Corresponding author: First A. Author (e-mail: author@example.edu)."
+CORRESPONDING = ("Corresponding author: Farhan Aadil "
+                 "(e-mail: farhan.aadil@sivas.edu.tr).")
 # No external funding to declare; the template's support-acknowledgement
 # paragraph is therefore omitted rather than left as a placeholder.
 FUNDING = None
