@@ -196,17 +196,36 @@ def main(template: Path, paper: Path) -> int:
     WORDS = {"two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7}
     ORDS = ["first", "second", "third", "fourth", "fifth", "sixth", "seventh"]
     bad = []
-    for t in texts:
+    for i, t in enumerate(texts):
         m = re.search(r"\b(two|three|four|five|six|seven)\b[ ]+"
                       r"(?:substantive[ ]+)?(limitations|contributions|results)",
                       t, re.I)
         if not m:
             continue
         want = WORDS[m.group(1).lower()]
-        seen = [o for o in ORDS if re.search(r"\b" + o + r",", t, re.I)]
+        # A list may span paragraphs. Gather following ones while they
+        # keep contributing ordinals, stopping at a heading or at another
+        # paragraph that announces its own count.
+        ORD_RE = r"\b(" + "|".join(ORDS) + r"),"
+        ROM_RE = r"[(](?:i|ii|iii|iv|v|vi|vii)[)]"
+        span = [t]
+        for nxt in texts[i + 1:]:
+            if not nxt.strip():
+                continue
+            if nxt.isupper() and len(nxt.split()) < 12:
+                break
+            if re.search(r"\b(two|three|four|five|six|seven)\b[ ]+"
+                         r"(?:substantive[ ]+)?(limitations|contributions|results)",
+                         nxt, re.I):
+                break
+            if not re.search(ORD_RE, nxt, re.I) and not re.search(ROM_RE, nxt):
+                break
+            span.append(nxt)
+        joined = " ".join(span)
+        seen = [o for o in ORDS if re.search(r"\b" + o + r",", joined, re.I)]
         dupes = [o for o in seen
-                 if len(re.findall(r"\b" + o + r",", t, re.I)) > 1]
-        roman = len(re.findall(r"[(](?:i|ii|iii|iv|v|vi|vii)[)]", t))
+                 if len(re.findall(r"\b" + o + r",", joined, re.I)) > 1]
+        roman = len(re.findall(ROM_RE, joined))
         got = len(seen) or roman
         if got and (got != want or dupes):
             bad.append(f"{m.group(0)}: {got} items"

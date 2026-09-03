@@ -2237,7 +2237,9 @@ def build() -> None:
         "convergence result of Section 3.9 guarantees non-degenerate "
         "weights and hence the standard rate, but for a round-averaged "
         "reweighted objective; it does not establish that the reweighted "
-        "objective is the better one, which remains an empirical claim. "
+        "objective is the better one, which remains an empirical claim.",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
+    add_paragraph(doc,
         "Second, resolution: the comparative results are all on 28×28 "
         "MedMNIST images, and the primary corpus is colorectal "
         "histopathology rather than the chest radiography that motivates "
@@ -2249,24 +2251,28 @@ def build() -> None:
         "the federation-size sweep all use ten seeds with paired "
         "significance tests. That is adequate to resolve the effects we "
         "report but remains modest, and none of these results has been "
-        "replicated on an independent corpus at full resolution. Fourth, "
-        "hyperparameter transfer: as Section 5.7 shows, (β, γ) tuned for "
-        "a nine-class task are actively harmful on a binary one, so "
-        "AHA-Fed carries a real deployment cost — a per-task validation "
-        "split — that volume-weighted FedAvg does not. Fifth, scale: "
-        "K = 4–32 simulated clients on a single machine. Section 5.9 "
-        "shows the advantage holding to K = 16 when each client keeps "
+        "replicated on an independent corpus at full resolution.",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
+    add_paragraph(doc,
+        "Fourth, hyperparameter transfer: as Section 5.7 shows, (β, γ) "
+        "tuned for a nine-class task are actively harmful on a binary "
+        "one, so AHA-Fed carries a real deployment cost — a per-task "
+        "validation split — that volume-weighted FedAvg does not. Fifth, "
+        "scale: K = 4–32 simulated clients on a single machine. Section "
+        "5.9 shows the advantage holding to K = 16 when each client keeps "
         "1,000 images, and decaying when a fixed corpus is divided "
         "further; we have not tested beyond sixteen sites or below 250 "
         "images per client, and make no claim about cross-device "
-        "federations. Sixth, privacy: as Section 5.11 documents, our "
-        "DP-SGD budgets are per-round rather than composed across training, "
-        "so the effective end-to-end ε is substantially larger than the "
-        "labels and the utility costs we report are a lower bound. The "
-        "private runs also use three seeds, which cannot separate the "
-        "two aggregators. Our privacy claim is therefore architectural "
-        "compatibility at a budget that leaves a usable model, not a "
-        "demonstrated advantage under a deployment-grade guarantee.",
+        "federations.",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
+    add_paragraph(doc,
+        "Sixth, privacy: as Section 5.11 documents, our DP-SGD budgets "
+        "are per-round rather than composed across training, so the "
+        "effective end-to-end ε is substantially larger than the labels "
+        "and the utility costs we report are a lower bound. Our privacy "
+        "claim is therefore a calibration advantage at a per-round budget "
+        "that leaves a usable model, not a demonstrated advantage under a "
+        "deployment-grade guarantee.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     add_heading(doc, "7.2 Code and data availability", level=2)
