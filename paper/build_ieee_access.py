@@ -77,6 +77,12 @@ AFFILIATIONS = [
     "³Department of Computer Engineering, Sivas University of Science "
     "and Technology, Sivas 58000, Türkiye",
 ]
+BIOS = [
+    "ABU UBAIDA",
+    "KHURRAM ZEESHAN HAIDER",
+    "FARHAN AADIL",
+    "CELAL ALAGOZ",
+]
 CORRESPONDING = ("Corresponding author: Farhan Aadil "
                  "(e-mail: farhan.aadil@sivas.edu.tr).")
 # No external funding to declare; the template's support-acknowledgement
@@ -348,6 +354,17 @@ def build(template: Path, out: Path) -> None:
         elif kind == "ref":
             ref_style = first_style(doc, ["References", "REF_Txt", "Ref"])
             para(doc, item[1], style=ref_style, size=8)
+
+    # Access closes with one short biography per author, in AU_Bios.
+    # These are career details only the authors can supply; they are
+    # emitted as marked placeholders so the structure and styling are
+    # right and the text is obviously outstanding.
+    bio_style = first_style(doc, ["AU_Bios", "Author Bios", "Biography"])
+    for name in BIOS:
+        para(doc, f"{name} [AUTHOR BIOGRAPHY TO BE SUPPLIED: degrees with "
+                  f"field, institution and year; current position and "
+                  f"affiliation; research interests.]",
+             style=bio_style, size=8)
 
     doc.save(str(out))
     words = sum(len(p.text.split()) for p in doc.paragraphs)

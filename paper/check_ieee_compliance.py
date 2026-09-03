@@ -256,6 +256,34 @@ def main(template: Path, paper: Path) -> int:
     check("every listed reference is cited",
           not uncited, f"uncited: {uncited or chr(110)+chr(111)+chr(110)+chr(101)}")
 
+
+    # Access closes with one biography per author. The paper had none
+    # until the author block was filled in.
+    bio_paras = [pp for pp in doc.paragraphs
+                 if pp.style.name in ("AU_Bios", "Author Bios", "Biography")
+                 and pp.text.strip()]
+    # The author line carries superscript affiliation marks, so
+    # str.isupper() is False; test the letters only.
+    def _is_author_line(t):
+        # IEEE sets the names in caps but keeps a lowercase "and"
+        letters = [c for c in re.sub(r"(?<![A-Za-z])and(?![A-Za-z])", "", t)
+                   if c.isalpha()]
+        return (letters and all(c.isupper() for c in letters)
+                and "," in t and 10 < len(t) < 250
+                and not t.startswith(("ABSTRACT", "INDEX", "TABLE",
+                                      "FIGURE")))
+    authors_line = next((t for t in texts[:12] if _is_author_line(t)), "")
+    n_authors = len(re.split(r",|(?<![A-Za-z])and(?![A-Za-z])",
+                             authors_line)) if authors_line else 0
+    n_authors = len([x for x in re.split(r",| and ", authors_line)
+                     if x.strip()]) if authors_line else 0
+    check("one author biography per author",
+          bool(bio_paras) and len(bio_paras) == n_authors,
+          f"{len(bio_paras)} biographies for {n_authors} authors")
+    todo = [b.text[:40] for b in bio_paras if "TO BE SUPPLIED" in b.text]
+    check("author biographies are written",
+          not todo,
+          f"{len(todo)} still placeholders" if todo else "all written")
     print()
     if FAILURES:
         print(f"{len(FAILURES)} check(s) failed:")
