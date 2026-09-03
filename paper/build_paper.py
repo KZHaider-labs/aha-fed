@@ -248,13 +248,15 @@ def build() -> None:
         "advantage seen at 28×28 does not reproduce: over nine seeds the "
         "gap is 7.0% at p = 0.50. One result is negative and reported as "
         "such: AHA-Fed loses to every baseline on binary chest "
-        "radiography. Under per-round DP-SGD at the same per-client "
-        "data budget as our non-private runs, both aggregators retain "
-        "usable accuracy (0.45 against 0.70 non-private) and we "
-        "separate neither at three seeds; an earlier sweep at a third "
-        "of the data collapsed to chance, which we report because the "
-        "difference is instructive. The negative result has a "
-        "measurable cause we turn "
+        "radiography. Under per-round DP-SGD at the same per-client data "
+        "budget as our non-private runs, both aggregators retain usable "
+        "accuracy (0.47 against 0.70 non-private) and the calibration "
+        "advantage survives: ECE 0.194 against 0.215 at ε = 1.0 over "
+        "ten seeds (p = 0.006), for a 2.2% accuracy cost that also "
+        "reaches significance. An earlier sweep at a third of the data "
+        "collapsed to chance, which we report because the difference is "
+        "instructive. The negative result has a measurable cause we "
+        "turn "
         "into a deployment test — the quality term helps only when "
         "corruption shifts local loss further than ordinary differences "
         "between healthy sites do, computable from one training round. "
@@ -1963,17 +1965,17 @@ def build() -> None:
         ["Configuration", "ε", "Aggregator", "Accuracy", "AUROC", "ECE"],
         ["300 img/client, 15 rd", "1.0",  "FedAvg",  "0.082", "—", "—"],
         ["300 img/client, 15 rd", "1.0",  "AHA-Fed", "0.084", "—", "—"],
-        ["1,000 img/client, 25 rd", "1.0",  "FedAvg",  "0.469", "0.874", "0.207"],
-        ["1,000 img/client, 25 rd", "1.0",  "AHA-Fed", "0.453", "0.872", "0.188"],
-        ["1,000 img/client, 25 rd", "10.0", "FedAvg",  "0.460", "0.883", "0.179"],
-        ["1,000 img/client, 25 rd", "10.0", "AHA-Fed", "0.451", "0.882", "0.166"],
+        ["1,000 img/client, 25 rd", "1.0",  "FedAvg",  "0.481", "0.857", "0.215"],
+        ["1,000 img/client, 25 rd", "1.0",  "AHA-Fed", "0.470", "0.858", "0.194"],
+        ["1,000 img/client, 25 rd", "10.0", "FedAvg",  "0.484", "0.869", "0.203"],
+        ["1,000 img/client, 25 rd", "10.0", "AHA-Fed", "0.476", "0.870", "0.185"],
         ["Non-private", "∞", "FedAvg",  "0.679", "0.938", "0.119"],
         ["Non-private", "∞", "AHA-Fed", "0.702", "0.949", "0.097"],
     ]
     add_table_caption(doc,
         "Table 11: DP-SGD on PathMNIST under two data budgets. The "
         "300-image rows are our original sweep, single seed; the "
-        "1,000-image rows are three seeds at the same per-client budget "
+        "1,000-image rows are ten seeds at the same per-client budget "
         "as every non-private result in this paper. Chance accuracy is "
         "0.111.")
     make_table(doc, dp_data, header_font_size=10, body_font_size=9.5,
@@ -1984,8 +1986,8 @@ def build() -> None:
         "Repeated at the paper's standard per-client budget with batch "
         "128 — a larger batch is standard DP-SGD practice, since it "
         "improves the noise-to-signal ratio at fixed ε — the picture "
-        "changes entirely. Accuracy rises from 0.084 to 0.453 at ε = 1.0 "
-        "and AUROC reaches 0.872, against 0.702 and 0.949 without "
+        "changes entirely. Accuracy rises from 0.084 to 0.470 at ε = 1.0 "
+        "and AUROC reaches 0.858, against 0.702 and 0.949 without "
         "privacy. That is a real privacy cost, roughly a third of "
         "accuracy and eight points of AUROC, but it is a working model "
         "rather than a broken one, and it is in line with the ten to "
@@ -1994,19 +1996,34 @@ def build() -> None:
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     add_paragraph(doc,
-        "Between the two aggregators under privacy we claim nothing. "
-        "AHA-Fed has the lower ECE at both budgets (0.188 against 0.207 "
-        "at ε = 1.0, 0.166 against 0.179 at ε = 10.0) and FedAvg the "
-        "marginally higher accuracy, but three seeds cannot separate "
-        "them: the smallest two-sided p a paired signed-rank test can "
-        "return at n = 3 is 0.25, and every comparison here is at or "
-        "above it. We report the direction and no more. What the "
-        "experiment does establish is that the architectural "
-        "compatibility argued in Section 3.6 survives contact with a "
-        "real DP implementation at a budget that leaves a usable model, "
-        "which the earlier sweep could not show. Raising the seed budget "
-        "here, and composing ε across rounds, is the obvious next step "
-        "and is listed in Section 7.3.",
+        "Ten seeds resolve the comparison between aggregators, and it is a "
+        "trade-off rather than a win. AHA-Fed keeps its calibration "
+        "advantage under privacy: ECE 0.194 against 0.215 at ε = 1.0 "
+        "(p = 0.006) and 0.185 against 0.203 at ε = 10.0 (p = 0.004), "
+        "ahead on nine of ten seeds at both budgets. FedAvg is the more "
+        "accurate of the two, significantly so at ε = 1.0 (0.481 against "
+        "0.470, p = 0.002, ahead on ten of ten). Discrimination is "
+        "indistinguishable (AUROC p = 0.28 and 0.43). Under "
+        "Holm–Bonferroni across the six comparisons both calibration "
+        "results and the ε = 1.0 accuracy result survive; the ε = 10.0 "
+        "accuracy margin does not.",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
+    add_paragraph(doc,
+        "The effect sizes matter as much as the signs. AHA-Fed buys "
+        "roughly a tenth off calibration error for roughly a fiftieth "
+        "of accuracy — 9.7% ECE reduction against 2.2% accuracy cost at "
+        "ε = 1.0. Whether that trade is worth making is a deployment "
+        "question rather than a methodological one, and it depends on "
+        "whether the model feeds a triage decision, where confidence "
+        "calibration governs whether a clinician can act on it, or a "
+        "throughput metric, where accuracy is the thing. We report the "
+        "trade rather than recommending one side of it. What the "
+        "experiment settles is that the architectural compatibility "
+        "argued in Section 3.6 is not merely formal: the calibration "
+        "benefit that motivates AHA-Fed survives DP-SGD noise at a "
+        "budget that leaves a usable model, which the earlier "
+        "300-image sweep could not show. Composing ε across rounds "
+        "remains the open item and is listed in Section 7.3.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     add_figure(doc, FIGS / "fig_dp_tradeoff.png",
@@ -2201,11 +2218,11 @@ def build() -> None:
         "showing that these hyperparameters do not transfer across tasks — "
         "a test-set-selected configuration would have appeared to win, and "
         "Section 5.7 quantifies that gap deliberately. Under per-round "
-        "DP-SGD both aggregators retain usable accuracy once given the "
-        "same per-client data as the non-private runs, but three seeds "
-        "cannot separate them, so our privacy claim remains "
-        "architectural compatibility rather than a demonstrated "
-        "advantage under privacy. What the "
+        "DP-SGD, given the same per-client data as the non-private "
+        "runs, both aggregators retain usable accuracy and the "
+        "comparison is a trade rather than a win: AHA-Fed holds its "
+        "calibration advantage over ten seeds while FedAvg is the more "
+        "accurate, both significantly. What the "
         "evidence supports is a heterogeneity- and noise-aware aggregation "
         "rule with a calibration benefit in small federations containing "
         "unreliable sites, together with a diagnostic that says in advance "

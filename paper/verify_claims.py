@@ -278,9 +278,21 @@ for eps2, dpv in dp2.items():
     check(f"DP eps={eps2} retains usable accuracy at 1000 img/client",
           min(dpv[0], dpv[1]) > 3 * CHANCE,
           f"AHA {dpv[0]:.3f}, FedAvg {dpv[1]:.3f} vs chance {CHANCE:.3f}")
-    # direction only: at n=3 the smallest two-sided Wilcoxon p is 0.25
-    check(f"DP eps={eps2} AHA calibration better (direction, n=3)",
-          dpv[2] < dpv[3], f"{dpv[2]:.4f} vs {dpv[3]:.4f}")
+    # ten seeds resolve this; the paper reports it as significant.
+    _ae = by_seed(f"dp2_aha_eps{eps2}_s*.json", "ece")
+    _ve = by_seed(f"dp2_fedavg_eps{eps2}_s*.json", "ece")
+    _sh = sorted(set(_ae) & set(_ve))
+    _p = wilcoxon_p([_ae[k] for k in _sh], [_ve[k] for k in _sh])
+    check(f"DP eps={eps2} AHA calibration better and significant",
+          dpv[2] < dpv[3] and _p is not None and _p < 0.05,
+          f"{dpv[2]:.4f} vs {dpv[3]:.4f}, p={_p:.4f}, n={len(_sh)}")
+    _aa = by_seed(f"dp2_aha_eps{eps2}_s*.json", "accuracy")
+    _va = by_seed(f"dp2_fedavg_eps{eps2}_s*.json", "accuracy")
+    _s2 = sorted(set(_aa) & set(_va))
+    check(f"DP eps={eps2} FedAvg is the more accurate (the trade-off)",
+          st.mean([_va[k] for k in _s2]) > st.mean([_aa[k] for k in _s2]),
+          f"FedAvg {st.mean([_va[k] for k in _s2]):.4f} vs "
+          f"AHA {st.mean([_aa[k] for k in _s2]):.4f}")
 if "1.0" in dp2:
     old_acc = final(str(REAL / "path_aha_dp_eps1.0.json")).get("accuracy")
     if old_acc is not None:
