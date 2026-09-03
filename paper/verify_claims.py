@@ -534,6 +534,28 @@ for corpus, label in (("pneuval", "PneumoniaMNIST"), ("pathval", "PathMNIST")):
                   st.mean(xv) > st.mean(yv) and pm is not None and pm < 0.05,
                   f"{st.mean(xv):.4f} vs {st.mean(yv):.4f}, p={pm:.4f}"
                   if pm is not None else "scipy unavailable")
+        # Section 5.7 now says only the AUROC gain survives Holm across
+        # the three metrics. Twenty seeds moved ECE the wrong way
+        # (p = 0.065 at n = 10), so the claim has to be pinned.
+        _ps = []
+        for _met in ("ece", "accuracy", "auroc"):
+            _r = by_seed(f"{corpus}_relq_s*.json", _met)
+            _a = by_seed(f"{corpus}_absq_s*.json", _met)
+            _sh = sorted(set(_r) & set(_a))
+            if len(_sh) > 1:
+                _ps.append((_met, wilcoxon_p([_r[k] for k in _sh],
+                                             [_a[k] for k in _sh])))
+        _ps = [q for q in _ps if q[1] is not None]
+        if len(_ps) == 3:
+            _ps.sort(key=lambda q: q[1])
+            _surv, _ok = [], True
+            for _i, (_m, _pv) in enumerate(_ps):
+                _ok = _ok and _pv < 0.05 / (3 - _i)
+                if _ok:
+                    _surv.append(_m)
+            check("only AUROC survives Holm on PneumoniaMNIST",
+                  _surv == ["auroc"],
+                  f"survivors: {_surv}")
     else:
         # And that it is neutral where the absolute rule already worked.
         check("relative quality is neutral on PathMNIST",

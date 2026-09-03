@@ -518,7 +518,8 @@ def build() -> None:
         "loss, computable from one round of ordinary federated training "
         "before committing to an aggregation rule (Section 5.7). It "
         "separates the two corpora where the method succeeds and fails, and "
-        "it motivated a variant that recovers part of the failure. "
+        "it motivated a variant that recovers the discrimination that "
+        "failure costs, though not the calibration. "
         "(iii) AHA-Fed itself: a heterogeneity- and quality-aware rule that "
         "strictly generalises FedAvg, admits a closed-form weight "
         "expression, introduces no auxiliary network, requires one extra "
@@ -1592,7 +1593,7 @@ def build() -> None:
         "task difficulty with corruption, then referencing each client "
         "against its own starting quality should recover the signal — this is "
         "the relative variant of Section 3.4. We evaluate it against the "
-        "absolute rule on both corpora at ten seeds, with everything else "
+        "absolute rule on both corpora at twenty seeds, with everything else "
         "held fixed. Because this is a design choice rather than a reported "
         "result, the comparison is made on the validation split; "
         "Table 6 reports it.",
@@ -1600,33 +1601,50 @@ def build() -> None:
 
     relq_data = [
         ["Corpus", "Metric", "Relative q̃", "Absolute q", "p"],
-        ["PneumoniaMNIST", "ECE", "0.119", "0.148", "0.065"],
-        ["(binary)", "Accuracy", "0.802", "0.761", "0.027"],
-        ["", "AUROC", "0.921", "0.896", "0.006"],
-        ["PathMNIST", "ECE", "0.060", "0.062", "1.000"],
-        ["(9-class)", "Accuracy", "0.611", "0.627", "0.375"],
-        ["", "AUROC", "0.928", "0.930", "0.492"],
+        ["PneumoniaMNIST", "ECE", "0.123", "0.142", "0.105"],
+        ["(binary)", "Accuracy", "0.811", "0.782", "0.049"],
+        ["", "AUROC", "0.930", "0.912", "0.006"],
+        ["PathMNIST", "ECE", "0.057", "0.057", "0.784"],
+        ["(9-class)", "Accuracy", "0.620", "0.617", "1.000"],
+        ["", "AUROC", "0.932", "0.932", "0.870"],
     ]
     add_table_caption(doc,
-        "Table 6: Relative versus absolute quality signal, ten seeds, "
+        "Table 6: Relative versus absolute quality signal, twenty seeds, "
         "validation split. Paired Wilcoxon signed-rank tests over matched "
-        "seeds.")
+        "seeds; only the AUROC gain survives Holm–Bonferroni across the "
+        "three PneumoniaMNIST metrics.")
     make_table(doc, relq_data, header_font_size=10, body_font_size=9.5,
                highlight_row_pred=lambda i, row: False)
     add_post_table_spacing(doc)
 
     add_paragraph(doc,
-        "The variant helps exactly where the diagnostic says it should. On "
-        "PneumoniaMNIST — the task with the unfavourable ratio — it improves "
-        "all three metrics, significantly for accuracy (p = 0.027) and AUROC "
-        "(p = 0.006), with ECE at the boundary (0.119 against 0.148, "
-        "p = 0.065). On PathMNIST, where the ratio was already favourable and "
-        "the absolute rule worked, it changes nothing measurable "
-        "(p = 1.00, 0.375, 0.492). That selectivity is the point: a "
-        "modification that improved both corpora would be difficult to "
-        "attribute to the mechanism we claim, whereas one that acts only "
-        "where the diagnostic predicts a problem is evidence the diagnosis "
-        "was right.",
+        "The variant acts exactly where the diagnostic says it should, but "
+        "not on every metric. On PneumoniaMNIST — the task with the "
+        "unfavourable ratio — it improves all three, significantly for "
+        "AUROC (0.930 against 0.912, p = 0.006, ahead on 15 of 20 "
+        "seeds) and marginally for accuracy (p = 0.049). ECE improves by "
+        "13.7% in the mean (0.123 against 0.142) but does not reach "
+        "significance (p = 0.105). Under Holm–Bonferroni across the "
+        "three metrics only the AUROC gain survives. On PathMNIST, "
+        "where the ratio was already favourable and the absolute rule "
+        "worked, the variant changes nothing measurable (p = 0.78, "
+        "1.00, 0.87). That selectivity is the point: a modification "
+        "that improved both corpora would be hard to attribute to the "
+        "mechanism we claim, whereas one acting only where the "
+        "diagnostic predicts a problem is evidence the diagnosis was "
+        "right.",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
+    add_paragraph(doc,
+        "The calibration result deserves a note on how it moved. At ten "
+        "seeds ECE stood at p = 0.065 — close enough that we ran ten "
+        "more to settle it. It went the wrong way, to p = 0.105, which "
+        "is what an apparent effect made largely of seed variance does "
+        "when given more seeds. We report the twenty-seed figure rather "
+        "than the ten-seed one that read better, and note the sequence "
+        "for the same reason we note the NIH one in Section 5.10: a "
+        "borderline p-value at a modest seed budget is not weak "
+        "evidence of an effect, it is an absence of evidence either "
+        "way.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     add_paragraph(doc,
@@ -1635,9 +1653,13 @@ def build() -> None:
         "0.628 to 0.704 (p = 0.012) and AUROC from 0.888 to 0.906 "
         "(p = 0.037), with ECE improving from 0.219 to 0.192 but not reaching "
         "significance (p = 0.28). We therefore report the variant as "
-        "improving discrimination on this task, and as promising but "
-        "unconfirmed for calibration — the metric this paper otherwise "
-        "treats as primary.",
+        "improving discrimination on this task and as not improving "
+        "calibration — the metric this paper otherwise treats as "
+        "primary. That is a partial fix, and calling it one matters: "
+        "the diagnostic of this section identifies why AHA-Fed fails "
+        "on a binary task, and the variant recovers the "
+        "discrimination that failure costs, but the calibration "
+        "advantage that motivates the method does not return.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_paragraph(doc,
         "One methodological note. An earlier three-seed reading of this same "
