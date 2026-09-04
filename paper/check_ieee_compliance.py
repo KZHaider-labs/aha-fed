@@ -10,6 +10,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import datetime
 import re
 import sys
 from pathlib import Path
@@ -268,11 +269,11 @@ def main(template: Path, paper: Path) -> int:
     # cited because both mentions pointed at [13], a different paper.
     entries, cites = {}, set()
     for t in texts:
-        m = re.match(r"^[[](\d+)[]][ ]+(.{10,})", t)
+        m = re.match(r"^\[(\d+)\] +(.{10,})", t)
         if m:
             entries[int(m.group(1))] = m.group(2)
             continue
-        for grp in re.findall(r"[[]([\d,\s-]+)[]]", t):
+        for grp in re.findall(r"\[([\d,\s-]+)\]", t):
             # skip intervals like [0, 1] -- a reference id is never 0
             nums = [int(n) for n in re.findall(r"\d+", grp)]
             if 0 in nums:
@@ -358,7 +359,7 @@ def main(template: Path, paper: Path) -> int:
     # References are alphabetical by first author, with no gaps.
     entries = {}
     for t in texts:
-        m = re.match(r"^[[](\d+)[]][ ]+(.{6,})", t)
+        m = re.match(r"^\[(\d+)\] +(.{6,})", t)
         if m:
             entries[int(m.group(1))] = m.group(2)
     if entries:
@@ -410,6 +411,44 @@ def main(template: Path, paper: Path) -> int:
     script = [c for t in texts for c in t if 0x1D400 <= ord(c) <= 0x1D7FF]
     check("no unrenderable maths-script characters", not script,
           f"{len(script)} found" if script else "clean")
+
+    # A list was once shipped in which real papers had been relabelled
+    # into journals with invented volumes and "a 2022 retrospective"
+    # style suffixes on their titles. The tells below catch six of the
+    # eight worst entries from that list, but they are only tells: a
+    # fabrication with a clean title and a plausible volume passes here.
+    # verify_references.py resolves each entry against Crossref and is
+    # the check that actually establishes a reference exists; run it
+    # whenever the list changes.
+    refs = []
+    for t in texts:
+        m = re.match(r"^\[(\d+)\] +(.{6,})", t.strip())
+        if m:
+            refs.append(m.group(2))
+    if refs:
+        # A reference dated in the current year or later cannot have been
+        # read while this work was done, so it wants a human to confirm it
+        # exists. Two entries dated 2026 in an earlier list did not.
+        cutoff = datetime.date.today().year
+        suspicious = []
+        for r in refs:
+            years = [int(y) for y in re.findall(r"(?:19|20)\d\d", r)]
+            if years and max(years) >= cutoff:
+                suspicious.append(("unverifiable year", r))
+            elif re.search(r"(?:a )?20\d\d (?:retrospective|update)"
+                           r"|revisited|in the wild", r, re.I):
+                suspicious.append(("retitled", r))
+        check("no reference looks retitled or post-dated", not suspicious,
+              "; ".join(f"{why}: {r[:48]}" for why, r in suspicious[:3])
+              if suspicious else f"{len(refs)} entries")
+
+        no_venue = [r for r in refs if not re.search(
+            r"In Proceedings|Conference|Symposium|Workshop|Transactions"
+            r"|Journal|IEEE|ACM|Nature|Science|Medical|Pattern|Radiology"
+            r"|npj|Neurocomputing|Foundations|PMLR|NeurIPS|ICLR|MLSys"
+            r"|Scientific|Lancet|Cell|PLOS|BMJ|Informatics|Access", r)]
+        check("every reference names a venue", not no_venue,
+              no_venue[0][:60] if no_venue else f"{len(refs)} entries")
     print()
     if FAILURES:
         print(f"{len(FAILURES)} check(s) failed:")
