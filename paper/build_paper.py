@@ -177,8 +177,8 @@ def build() -> None:
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_after = Pt(4)
     r = p.add_run(
-        "AHA-Fed: Adaptive Heterogeneity-Aware Federated Learning for "
-        "Privacy-Preserving Multi-Center Medical Imaging"
+        "Quality-Aware Aggregation Improves Calibration but Only Under "
+        "Measurable Conditions in Federated Medical Imaging"
     )
     r.bold = True
     r.font.size = Pt(16)
@@ -188,7 +188,8 @@ def build() -> None:
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_after = Pt(2)
-    r = p.add_run("Wahib Ullah")
+    r = p.add_run("Abu Ubaida, Khurram Zeeshan Haider, "
+                  "Farhan Aadil, Celal Alagoz")
     r.bold = True
     r.font.size = Pt(12.5)
     r.font.name = "Times New Roman"
@@ -196,7 +197,8 @@ def build() -> None:
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_after = Pt(2)
-    r = p.add_run("Department of Data Science (PhD Programme)")
+    r = p.add_run("Government College University Faisalabad, Pakistan; "
+                  "Sivas University of Science and Technology, Turkiye")
     r.italic = True
     r.font.size = Pt(11)
     r.font.name = "Times New Roman"
@@ -204,7 +206,7 @@ def build() -> None:
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_after = Pt(14)
-    r = p.add_run("itswahib6@gmail.com")
+    r = p.add_run("Corresponding author: farhan.aadil@sivas.edu.tr")
     r.font.size = Pt(11)
     r.font.name = "Times New Roman"
 
