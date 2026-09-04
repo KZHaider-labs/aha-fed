@@ -67,8 +67,8 @@ INDEX_TERMS = (
     "learning, label noise, medical image analysis, statistical heterogeneity"
 )
 
-TITLE = ("Quality-Aware Aggregation Improves Calibration but Only Under "
-         "Measurable Conditions in Federated Medical Imaging")
+TITLE = ("Measurable Conditions for Quality-Aware Federated "
+         "Aggregation in Medical Imaging")
 
 AUTHORS = ("ABU UBAIDA¹, KHURRAM ZEESHAN HAIDER², "
            "FARHAN AADIL³, and CELAL ALAGOZ³")

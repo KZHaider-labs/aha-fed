@@ -226,8 +226,8 @@ def build() -> None:
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_after = Pt(4)
     r = p.add_run(
-        "Quality-Aware Aggregation Improves Calibration but Only Under "
-        "Measurable Conditions in Federated Medical Imaging"
+        "Measurable Conditions for Quality-Aware Federated "
+        "Aggregation in Medical Imaging"
     )
     r.bold = True
     r.font.size = Pt(16)
@@ -351,10 +351,13 @@ def build() -> None:
     add_paragraph(doc,
         "This paper answers that question for one such rule. We find the "
         "advantage is real but narrow. It requires a corrupted site: on a "
-        "clean federation volume weighting is better. It requires a small "
-        "federation: at four hospitals the reduction in calibration error "
-        "is 1.46×, by twelve it is gone. It survives two corrupted sites of "
-        "four but not three. And it did not reproduce when we moved from "
+        "clean federation volume weighting is better. It requires enough "
+        "data at each site: with 1,000 images per hospital the reduction "
+        "in calibration error holds from four hospitals to twenty-four, "
+        "and fades only when a fixed corpus is divided among more of "
+        "them. "
+        "It survives two corrupted sites of four but not three. And it "
+        "did not reproduce when we moved from "
         "28×28 images to full-resolution chest radiographs. Each boundary "
         "is measured over ten seeds with paired significance tests, and we "
         "report the cases that went against the method as prominently as "
@@ -570,7 +573,9 @@ def build() -> None:
         "We make five contributions. (i) A characterisation of when "
         "quality-aware weighting helps. The advantage is not uniform: it "
         "appears when a site is corrupted and disappears when none is, it "
-        "holds at four hospitals and is gone by twelve, it survives two "
+        "holds from four hospitals to twenty-four while each keeps "
+        "1,000 images and fades only when a fixed corpus is divided "
+        "among more of them, it survives two "
         "corrupted sites of four but not three, and it does not reproduce "
         "at clinical resolution. We map each boundary with ten seeds and "
         "paired tests rather than asserting a general improvement. "
@@ -578,7 +583,8 @@ def build() -> None:
         "between the corruption signal and the baseline spread in local "
         "loss, computable from one round of ordinary federated training "
         "before committing to an aggregation rule (Section 5.7). It "
-        "separates the two corpora where the method succeeds and fails, and "
+        "orders all three corpora by outcome, including one whose result "
+        "was measured before the ratio was computed there, and "
         "it motivated a variant that recovers the discrimination that "
         "failure costs, though not the calibration. "
         "(iii) AHA-Fed itself: a heterogeneity- and quality-aware rule that "
