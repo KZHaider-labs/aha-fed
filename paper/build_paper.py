@@ -505,7 +505,7 @@ def build() -> None:
         "exceeding fifteen percent, and that this miscalibration is "
         "exacerbated rather than corrected by FedAvg under non-independent "
         "and identically distributed (non-IID) "
-        "data. The dominant evaluation tradition in FL papers,"
+        "data. The dominant evaluation tradition in FL papers, "
         "reporting only accuracy and AUROC, therefore misses the "
         "single most clinically actionable failure mode. We argue "
         "throughout this paper that any clinically credible federated "
@@ -738,7 +738,7 @@ def build() -> None:
 
     add_heading(doc, "2.2 Robustness to client-side label noise", level=2)
     add_paragraph(doc,
-        "Robust FL has historically focused on Byzantine attackers,"
+        "Robust FL has historically focused on Byzantine attackers, "
         "adversarial clients that submit arbitrarily corrupted updates "
         "[42], rather than the more clinically realistic case of "
         "well-meaning clients with noisy labels. The Byzantine "
@@ -1040,8 +1040,8 @@ def build() -> None:
                 level=2)
     add_paragraph(doc,
         "The quality signal as defined above conflates two things. A client's "
-        "local loss is high both when its labels disagree with its inputs,"
-        "the corruption we want to detect; and when its slice of the data is "
+        "local loss is high both when its labels disagree with its inputs "
+        "(the corruption we want to detect) and when its slice of the data is "
         "simply harder, which a Dirichlet partition guarantees will differ "
         "across sites. Only the first should move the weights. Section 5.7 "
         "shows this conflation is not hypothetical: on a binary task one "
@@ -1060,8 +1060,8 @@ def build() -> None:
         "largely cancels, leaving the component that changes as training "
         "proceeds. A site that starts hard and stays hard is no longer "
         "penalised; a site whose loss fails to fall because its labels are "
-        "wrong still is. The change costs nothing at runtime, one stored "
-        "scalar per client; and reduces to the absolute rule when every "
+        "wrong still is. The change costs nothing at runtime (one stored "
+        "scalar per client) and reduces to the absolute rule when every "
         "client begins at the same quality.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_paragraph(doc,
@@ -1469,7 +1469,7 @@ def build() -> None:
         "four. FedAvg would hold all four at the uniform 0.250, since the "
         "hospitals carry equal volume here. AHA-Fed instead drives the "
         "corrupted hospital down to 0.069 by the final round, roughly a "
-        "quarter of uniform; and redistributes that mass across the three "
+        "quarter of uniform, and redistributes that mass across the three "
         "clean hospitals (0.377, 0.398, 0.155). No noise label, oracle, or "
         "external validation set is involved: the reallocation follows "
         "directly from equation (5) applied to the loss-derived quality "
@@ -1496,7 +1496,7 @@ def build() -> None:
         "federated into K = 4 hospitals via Dirichlet partitioning "
         "(heterogeneity = 0.5) with 50% label noise injected at "
         "hospital D. We add FedDisco [37] as a fifth baseline since it "
-        "shares AHA-Fed's distance term but lacks the quality term,"
+        "shares AHA-Fed's distance term but lacks the quality term, "
         "this is the natural ablation against our key design choice. "
         "All five aggregators are run for 25 rounds with the MedCNN "
         "backbone (3-conv blocks with GroupNorm, ≈ 240 K parameters) "
@@ -1715,7 +1715,7 @@ def build() -> None:
     add_paragraph(doc,
         "The variant acts exactly where the diagnostic says it should, but "
         "not on every metric. On PneumoniaMNIST, the task with the "
-        "unfavourable ratio; it improves all three, significantly for "
+        "unfavourable ratio, it improves all three, significantly for "
         "AUROC (0.930 against 0.912, p = 0.006, ahead on 15 of 20 "
         "seeds) and marginally for accuracy (p = 0.049). ECE improves by "
         "13.7% in the mean (0.123 against 0.142) but does not reach "
@@ -1837,7 +1837,7 @@ def build() -> None:
         "250 images each. Client count and per-client sample size are "
         "perfectly anti-correlated, and the sweep cannot say which one "
         "drives the decay. We therefore repeated it with per-client data "
-        "held at 1,000 images, the same as the K = 4 experiments,"
+        "held at 1,000 images, the same as the K = 4 experiments, "
         "letting the corpus grow with the federation. Table 8 reports "
         "both.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
@@ -1863,7 +1863,7 @@ def build() -> None:
     add_paragraph(doc,
         "With per-client data held fixed the advantage is flat across a "
         "fourfold range of federation sizes: 1.46×, 1.48×, 1.42×, 1.42× "
-        "at K = 4, 8, 12 and 16; and every point is significant, with "
+        "at K = 4, 8, 12 and 16, and every point is significant, with "
         "AHA-Fed ahead on 37 of the 40 paired seeds. Across the seven "
         "25%-corrupted configurations we have run, the ECE ratio "
         "correlates +0.91 with per-client sample size and −0.57 with "
@@ -1887,7 +1887,7 @@ def build() -> None:
         "This is the more useful statement of the two, because it maps "
         "onto how federations actually grow. Recruiting more hospitals "
         "usually adds their data rather than dividing a fixed pool, which "
-        "is the fixed-per-client column; that column shows no decay to "
+        "is the fixed-per-client column, and that column shows no decay to "
         "K = 16. We have not tested beyond sixteen sites, nor below 250 "
         "images per client, and we do not extrapolate past either. Nor "
         "does this rescue Section 5.4, whose sweep holds the corpus "
@@ -1907,7 +1907,7 @@ def build() -> None:
         "frontal radiographs, fourteen findings as a multi-label task, "
         "partitioned patient-disjoint across four centers at 224×224 with a "
         "DenseNet-121 [11] backbone. Patient-disjoint partitioning matters "
-        "here,"
+        "here, "
         "an image-level split would place different radiographs of the same "
         "patient in different centers and leak patient-specific features "
         "across the federation, inflating every method's apparent "
@@ -1965,7 +1965,7 @@ def build() -> None:
         "operates correctly rather than as benchmark results.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_paragraph(doc,
-        "Second, this federation contains no corrupted center; and every "
+        "Second, this federation contains no corrupted center, and every "
         "experiment in which AHA-Fed shows an advantage, Sections 5.3 "
         "through 5.6, injects annotation noise at one site. That "
         "suggests an explanation for the null result above: with no bad "
@@ -1987,7 +1987,7 @@ def build() -> None:
         "Adding two further baselines at three seeds sharpens the picture "
         "without settling it. AHA-Fed has the lowest ECE of the four "
         "(0.0107, against 0.0113 for FedDisco, 0.0120 for FedAvg and 0.0133 "
-        "for FedBN), and FedBN is clearly the weakest at this resolution,"
+        "for FedBN), and FedBN is clearly the weakest at this resolution, "
         "its AUROC of 0.876 sits well below the 0.92–0.93 the others reach, "
         "which is consistent with per-client batch-norm statistics being a "
         "poor fit when the corruption is in the labels rather than the "
@@ -2286,7 +2286,7 @@ def build() -> None:
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_paragraph(doc,
         "So the 16% figure is a property of one federation, moderate "
-        "prior shift with a corrupted site; and not a general result. "
+        "prior shift with a corrupted site, not a general result. "
         "The reading is that the distance term earns its place where "
         "priors are either close enough that small differences matter or "
         "far enough apart to be informative, and contributes little "
@@ -2298,7 +2298,7 @@ def build() -> None:
     add_paragraph(doc,
         "The default therefore stays at β = γ = 4. The honest summary is that "
         "AHA-Fed's calibration gain is driven mainly by the quality "
-        "signal, removing it is worse than plain volume weighting,"
+        "signal, removing it is worse than plain volume weighting, "
         "while the distance term contributes at the extremes of prior "
         "shift and costs a little in between. A practitioner who knows "
         "their federation sits in that middle regime can set β = 0, but "
@@ -2332,7 +2332,7 @@ def build() -> None:
         "prominently as the positive ones. On "
         "PneumoniaMNIST chest radiography, a (β, γ) configuration selected "
         "on a held-out validation split is beaten by every baseline, "
-        "showing that these hyperparameters do not transfer across tasks,"
+        "showing that these hyperparameters do not transfer across tasks, "
         "a test-set-selected configuration would have appeared to win, and "
         "Section 5.7 quantifies that gap deliberately. Under per-round "
         "DP-SGD, given the same per-client data as the non-private "
@@ -2373,8 +2373,9 @@ def build() -> None:
     add_paragraph(doc,
         "Fourth, hyperparameter transfer: as Section 5.7 shows, (β, γ) "
         "tuned for a nine-class task are actively harmful on a binary "
-        "one, so AHA-Fed carries a real deployment cost, a per-task "
-        "validation split; that volume-weighted FedAvg does not. Fifth, "
+        "one, so AHA-Fed carries a real deployment cost that "
+        "volume-weighted FedAvg does not: a per-task validation split. "
+        "Fifth, "
         "scale: K = 4–32 simulated clients on a single machine. Section "
         "5.9 shows the advantage holding to K = 16 when each client keeps "
         "1,000 images, and decaying when a fixed corpus is divided "

@@ -367,6 +367,27 @@ def main(template: Path, paper: Path) -> int:
         check("the reference list is alphabetical by first author",
               sur == sorted(sur, key=str.lower),
               f"{len(sur)} entries")
+
+    # Punctuation faults the em-dash removal introduced: a comma with
+    # no space after it, and a semicolon followed by a conjunction,
+    # which is what a paired dash becomes if only one end is converted.
+    prose = " ".join(t for t in texts if not t.startswith("["))
+    nospace = re.findall(r"[a-z],[a-z]{2,}", prose)
+    # A semicolon before "and" is correct when it separates the last two
+    # items of a list whose items contain commas, so judge by the whole
+    # sentence: two or more semicolons means a list, exactly one means
+    # the fault.
+    semiconj = []
+    for sent in re.split(r"(?<=[.!?])\s+", prose):
+        if sent.count(";") == 1 and re.search(r";\s+(?:and|that|which)\s", sent):
+            semiconj.append(sent[:60])
+    faults = []
+    if nospace:
+        faults.append(f"{len(nospace)} commas without a space")
+    if semiconj:
+        faults.append(f"{len(semiconj)} semicolons before a conjunction")
+    check("no punctuation left broken by the dash removal",
+          not faults, "; ".join(faults) if faults else "clean")
     print()
     if FAILURES:
         print(f"{len(FAILURES)} check(s) failed:")
