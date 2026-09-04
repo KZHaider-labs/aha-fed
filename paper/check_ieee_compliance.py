@@ -303,6 +303,18 @@ def main(template: Path, paper: Path) -> int:
     check("author biographies are written",
           not todo,
           f"{len(todo)} still placeholders" if todo else "all written")
+
+    # Variables written in ASCII ("q_k", "e^{s_k}") render as literal
+    # underscores and carets beside properly typeset displays.
+    body = " ".join(t for t in texts if not t.startswith("["))
+    leftovers = {
+        "subscripts": re.findall(r"\b[A-Za-z]{1,4}_[A-Za-z0-9]+", body),
+        "carets": re.findall(r"\^", body),
+        "sigma": re.findall(r"\u03a3_", body),
+    }
+    found = {k: len(v) for k, v in leftovers.items() if v}
+    check("prose math is typeset, not ASCII",
+          not found, str(found) if found else "no ASCII math left")
     print()
     if FAILURES:
         print(f"{len(FAILURES)} check(s) failed:")

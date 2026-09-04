@@ -986,7 +986,8 @@ def build() -> None:
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_paragraph(doc,
         "We therefore define a relative variant that references each client "
-        "against its own first-round quality, q̃_k = q_k / q_k^(1), and "
+        "against its own first-round quality, forming q̃_k as the ratio of "
+        "q_k to its own first-round value, and "
         "substitutes q̃_k for q_k in the score. Writing the local loss as a "
         "sum of a client-specific difficulty term and a corruption term, the "
         "difficulty term is present in both numerator and denominator and "

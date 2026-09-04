@@ -144,10 +144,35 @@ def style_or_none(doc: Document, name: str):
 
 def para(doc: Document, text: str, style: str | None = None,
          align=None, size: float | None = None, bold: bool = False,
-         italic: bool = False):
+         italic: bool = False, inline_math: bool = False):
+    """Add a paragraph.
+
+    With inline_math, ASCII variable forms in the text ("q_k", "e^{s_k}")
+    are emitted as real inline equations rather than literal underscores
+    and carets. Off by default so headings, captions and references keep
+    their punctuation.
+    """
     p = doc.add_paragraph()
     if style and style_or_none(doc, style) is not None:
         p.style = doc.styles[style]
+
+    if inline_math:
+        from paper.inline_math import split, has_math
+        if has_math(text):
+            from paper.omml import math as _math
+            for kind, payload in split(text):
+                if kind == "text":
+                    run = p.add_run(payload)
+                    if size is not None:
+                        run.font.size = Pt(size)
+                    run.bold = bold
+                    run.italic = italic
+                else:
+                    p._p.append(_math(payload))
+            if align is not None:
+                p.alignment = align
+            return p
+
     run = p.add_run(text)
     if size is not None:
         run.font.size = Pt(size)
@@ -431,7 +456,7 @@ def build(template: Path, out: Path) -> None:
             body_style = (first_style(doc, ["PARA", "Text"]) if after_heading
                           else first_style(doc, ["PARA_Indent", "PARA", "Text"]))
             para(doc, romanise_refs(item[1]), style=body_style,
-                 align=WD_ALIGN_PARAGRAPH.JUSTIFY)
+                 align=WD_ALIGN_PARAGRAPH.JUSTIFY, inline_math=True)
             after_heading = False
         elif kind == "fig":
             figure(doc, FIGURES[item[1]][0], FIGURES[item[1]][1])
