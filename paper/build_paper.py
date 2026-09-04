@@ -1088,8 +1088,31 @@ def build() -> None:
         "and the server forms the softmax weights of Equation (5) and "
         "aggregates.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
-    add_figure(doc, FIGS / "fig_algorithm.png",
-               "Figure 4: AHA-Fed federated training loop (Algorithm 1).")
+    add_paragraph(doc, "Algorithm 1: AHA-Fed federated training loop",
+                  bold=True, space_after=3)
+    algo = [
+        ("Input:", "K hospitals holding local datasets D_k, total rounds "
+                   "T, and hyperparameters α, β and γ."),
+        ("1", "Server initialises θ⁰; computes label priors π_k and "
+              "the consensus prior."),
+        ("2", "for round t = 0 to T-1 do"),
+        ("3", "    Server broadcasts the current θ to all clients."),
+        ("4", "    for each hospital k = 1 to K in parallel do"),
+        ("5", "        Run local DP-SGD for E epochs to obtain θ_k."),
+        ("6", "        Compute the local loss L_k and quality q_k by (3)."),
+        ("7", "        Send the update, q_k and n_k to the server."),
+        ("8", "    end for"),
+        ("9", "    Server: s_k = α log n_k − β D_k + "
+              "γ log(q_k + ε)."),
+        ("10", "    Server: w_k = softmax(s_1, ..., s_K)."),
+        ("11", "    Server: aggregate the client states with weights w_k."),
+        ("12", "end for"),
+        ("Output:", "Global model θᵀ with a per-client "
+                    "(ε, δ)-DP guarantee."),
+    ]
+    for tag, body in algo:
+        add_paragraph(doc, f"{tag}	{body}", size=10, space_after=1,
+                      first_line_indent=0.0)
 
     # ==================== 4. EXPERIMENTAL SETUP ====================
     add_heading(doc, "3.9 Convergence analysis", level=2)
@@ -1202,11 +1225,11 @@ def build() -> None:
         "with the framework but is not used in the reported results. "
         "Table 2 "
         "summarises the three corpora and their federated partitions, "
-        "and Figure 5 shows real PathMNIST samples alongside the "
+        "and Figure 4 shows real PathMNIST samples alongside the "
         "per-hospital label priors the partitioning induces.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_figure(doc, FIGS / "fig_dataset.png",
-               "Figure 5: PathMNIST federation, real samples and the "
+               "Figure 4: PathMNIST federation, real samples and the "
                "per-hospital label priors induced by Dirichlet partitioning.")
 
     # Dataset table
@@ -1261,7 +1284,7 @@ def build() -> None:
 
     add_heading(doc, "5.1 Convergence and calibration", level=2)
     add_paragraph(doc,
-        "Figure 6 plots per-round accuracy and calibration on the PathMNIST "
+        "Figure 5 plots per-round accuracy and calibration on the PathMNIST "
         "federation with 50% label noise at one hospital. Accuracy is not "
         "where the methods differ: both AHA-Fed and FedAvg climb to roughly "
         "0.70 and track each other closely, which is expected since the "
@@ -1274,12 +1297,12 @@ def build() -> None:
         "reason we treat ECE rather than accuracy as the primary endpoint.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_figure(doc, FIGS / "fig_convergence.png",
-               "Figure 6: PathMNIST, four hospitals, 50% label noise at one "
+               "Figure 5: PathMNIST, four hospitals, 50% label noise at one "
                "client (seed 42), accuracy and ECE per communication round.")
 
     add_heading(doc, "5.2 Final performance with error bars", level=2)
     add_paragraph(doc,
-        "Figure 7 reports the second modality, PneumoniaMNIST chest "
+        "Figure 6 reports the second modality, PneumoniaMNIST chest "
         "radiography, across five aggregators and ten seeds. Here the "
         "picture is different from PathMNIST and we report it plainly: with "
         "the PathMNIST hyperparameters carried over (β = γ = 4), AHA-Fed is "
@@ -1292,14 +1315,14 @@ def build() -> None:
         "driven by calibration rather than by what the models can separate.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_figure(doc, FIGS / "fig_final_bars.png",
-               "Figure 7: PneumoniaMNIST (chest radiography), four "
+               "Figure 6: PneumoniaMNIST (chest radiography), four "
                "hospitals, final ECE, accuracy and AUROC "
                "(mean ± s.d., 10 seeds).")
 
     add_heading(doc, "5.3 Robustness to label-noise rate", level=2)
     add_paragraph(doc,
         "We sweep the label-noise rate at one hospital over {0.0, 0.3, 0.5, "
-        "0.7}, with ten seeds at each point on PathMNIST (Figure 8). "
+        "0.7}, with ten seeds at each point on PathMNIST (Figure 7). "
         "AHA-Fed attains the lower mean ECE at all four rates, and the "
         "structure of where it does so is the informative part. At "
         "ρ = 0 the two methods are indistinguishable (0.061 vs 0.064, "
@@ -1323,7 +1346,7 @@ def build() -> None:
         "driven to roughly a quarter of its uniform weight.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_figure(doc, FIGS / "fig_noise_sweep.png",
-               "Figure 8: ECE versus label-noise rate at the corrupted "
+               "Figure 7: ECE versus label-noise rate at the corrupted "
                "client, PathMNIST (mean ± s.d., 10 seeds) and "
                "PneumoniaMNIST (single seed).")
 
@@ -1385,17 +1408,17 @@ def build() -> None:
         "constant instead. Second, a practitioner does "
         "not have to guess: the diagnostic of Section 5.7 is computed on "
         "the federation at hand, whatever its size, and reports directly "
-        "whether the quality signal has anything to separate. Figure 9 plots "
+        "whether the quality signal has anything to separate. Figure 8 plots "
         "the sweep across both axes.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_figure(doc, FIGS / "fig_het_scale.png",
-               "Figure 9: PathMNIST, Dirichlet heterogeneity sweep "
+               "Figure 8: PathMNIST, Dirichlet heterogeneity sweep "
                "(0.0–0.9, 10 seeds per level) and federation-size scaling "
                "(K = 4 to 32, 10 seeds each).")
 
     add_heading(doc, "5.5 Per-client aggregation weights", level=2)
     add_paragraph(doc,
-        "Figure 10 traces the aggregation weights AHA-Fed assigns over the "
+        "Figure 9 traces the aggregation weights AHA-Fed assigns over the "
         "course of training on PathMNIST with 50% label noise at hospital "
         "four. FedAvg would hold all four at the uniform 0.250, since the "
         "hospitals carry equal volume here. AHA-Fed instead drives the "
@@ -1415,7 +1438,7 @@ def build() -> None:
         "does not, at the seed count we ran.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_figure(doc, FIGS / "fig_weights.png",
-               "Figure 10: AHA-Fed per-client aggregation weights per round "
+               "Figure 9: AHA-Fed per-client aggregation weights per round "
                ", PathMNIST, ρ = 0.5 at hospital four, seed 42.")
 
     add_heading(doc, "5.6 Aggregator comparison on PathMNIST", level=2)
@@ -1431,11 +1454,11 @@ def build() -> None:
         "this is the natural ablation against our key design choice. "
         "All five aggregators are run for 25 rounds with the MedCNN "
         "backbone (3-conv blocks with GroupNorm, ≈ 240 K parameters) "
-        "and ten random seeds. Figure 11 plots the five aggregators across "
+        "and ten random seeds. Figure 10 plots the five aggregators across "
         "all four metrics.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_figure(doc, FIGS / "fig_real_pathmnist.png",
-               "Figure 11: PathMNIST comparison across five "
+               "Figure 10: PathMNIST comparison across five "
                "aggregators (mean ± s.d., 10 seeds).")
     add_paragraph(doc,
         "Table 3 reports the final-round metrics over ten seeds. AHA-Fed "
@@ -1499,13 +1522,13 @@ def build() -> None:
     add_post_table_spacing(doc)
 
     add_paragraph(doc,
-        "Figure 12 shows the convergence behaviour behind these "
+        "Figure 11 shows the convergence behaviour behind these "
         "endpoints: the calibration gap opens within the first ten "
         "rounds and holds, rather than emerging only at the round "
         "budget we happened to choose.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_figure(doc, FIGS / "fig_real_convergence.png",
-               "Figure 12: Multi-seed convergence on PathMNIST "
+               "Figure 11: Multi-seed convergence on PathMNIST "
                "(mean ± s.d., 10 seeds).")
 
     add_heading(doc, "5.7 When does the quality signal work? A diagnostic",
@@ -2006,7 +2029,7 @@ def build() -> None:
         "quality signal works at all, and DP-SGD is the setting most "
         "exposed to it, since the noise added per step is calibrated to "
         "the sampling rate. Table 11 reports both configurations and "
-        "Figure 13 plots the original sweep.",
+        "Figure 12 plots the original sweep.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     dp_data = [
@@ -2075,7 +2098,7 @@ def build() -> None:
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     add_figure(doc, FIGS / "fig_dp_tradeoff.png",
-               "Figure 13: The original 300-image DP-SGD sweep on "
+               "Figure 12: The original 300-image DP-SGD sweep on "
                "PathMNIST (accuracy and ECE vs ε), retained to show the "
                "collapse to chance that the 1,000-image runs of Table 11 "
                "correct.")
@@ -2084,7 +2107,7 @@ def build() -> None:
     add_paragraph(doc,
         "We sweep AHA-Fed's two key hyperparameters β ∈ {0, 1, 2, 4, 8} "
         "and γ ∈ {0, 1, 2, 4, 8} on a 5×5 grid (α = 1 fixed) on "
-        "PathMNIST with the same federation. Figure 14 reports the final "
+        "PathMNIST with the same federation. Figure 13 reports the final "
         "ECE at each grid point. Across the sixteen-point interior "
         "β ∈ {1, 2, 4, 8} × γ ∈ {1, 2, 4, 8}, which contains our default "
         "(β = 4, γ = 4), ECE stays at or below 0.114, every interior "
@@ -2102,13 +2125,13 @@ def build() -> None:
         "This robustness is within a task, not across tasks. The same grid "
         "run on binary PneumoniaMNIST selects a different optimum and, as "
         "Section 5.7 reports, the validation-selected configuration there "
-        "is beaten by every baseline. A practitioner should read Figure 14 "
+        "is beaten by every baseline. A practitioner should read Figure 13 "
         "as evidence that (β, γ) need not be tuned finely for a given "
         "federation, not as licence to carry values from one task to "
         "another.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_figure(doc, FIGS / "fig_hp_heatmap.png",
-               "Figure 14: AHA-Fed (β, γ) hyperparameter sensitivity "
+               "Figure 13: AHA-Fed (β, γ) hyperparameter sensitivity "
                "heatmap on PathMNIST.")
 
     add_heading(doc, "5.13 Discussion", level=2)
@@ -2132,7 +2155,7 @@ def build() -> None:
         "there would suggest the gain came from something other than the "
         "mechanism we claim. The separation appears exactly when "
         "corruption is introduced and is stable across its severity "
-        "(1.44×, 1.56×, 1.47×). Figure 10 shows the corresponding "
+        "(1.44×, 1.56×, 1.47×). Figure 9 shows the corresponding "
         "behaviour at the level of the weights, with the corrupted client "
         "driven to roughly a quarter of uniform without any noise label.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
