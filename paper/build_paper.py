@@ -30,6 +30,55 @@ def set_cell_shading(cell, color_hex: str) -> None:
     tc_pr.append(shd)
 
 
+def add_algorithm(doc, title, rows):
+    """Set an algorithm the way IEEE does: ruled above and below, with
+    the step numbers in a hanging indent so the body text aligns.
+
+    A tab stop is not enough -- a wrapped step returns to the left margin
+    and its continuation collides with the numbers. The hanging indent
+    keeps continuations under the body, which is what makes the block
+    readable.
+    """
+    from docx.enum.text import WD_TAB_ALIGNMENT
+
+    def rule(space_before, space_after):
+        p = doc.add_paragraph()
+        pf = p.paragraph_format
+        pf.space_before = Pt(space_before)
+        pf.space_after = Pt(space_after)
+        pPr = p._p.get_or_add_pPr()
+        borders = OxmlElement("w:pBdr")
+        top = OxmlElement("w:top")
+        top.set(qn("w:val"), "single")
+        top.set(qn("w:sz"), "8")
+        top.set(qn("w:space"), "1")
+        top.set(qn("w:color"), "000000")
+        borders.append(top)
+        pPr.append(borders)
+        return p
+
+    rule(6, 2)
+    head = doc.add_paragraph()
+    head.paragraph_format.space_after = Pt(2)
+    r = head.add_run(title)
+    r.bold = True
+    r.font.size = Pt(9.5)
+    rule(0, 3)
+
+    for tag, body in rows:
+        p = doc.add_paragraph()
+        pf = p.paragraph_format
+        pf.space_after = Pt(0)
+        pf.left_indent = Cm(1.05)
+        pf.first_line_indent = Cm(-1.05)
+        pf.tab_stops.add_tab_stop(Cm(1.05), WD_TAB_ALIGNMENT.LEFT)
+        run = p.add_run(f"{tag}\t{body}")
+        run.font.size = Pt(9)
+        run.font.name = "Times New Roman"
+
+    rule(3, 6)
+
+
 def add_paragraph(doc, text: str, *, bold=False, italic=False,
                   size=11, align=None, space_after=6,
                   first_line_indent: float | None = None) -> None:
@@ -1088,9 +1137,7 @@ def build() -> None:
         "and the server forms the softmax weights of Equation (5) and "
         "aggregates.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
-    add_paragraph(doc, "Algorithm 1: AHA-Fed federated training loop",
-                  bold=True, space_after=3)
-    algo = [
+    ALGO_ROWS = [
         ("Input:", "K hospitals holding local datasets D_k, total rounds "
                    "T, and hyperparameters α, β and γ."),
         ("1", "Server initialises θ⁰; computes label priors π_k and "
@@ -1110,9 +1157,8 @@ def build() -> None:
         ("Output:", "Global model θᵀ with a per-client "
                     "(ε, δ)-DP guarantee."),
     ]
-    for tag, body in algo:
-        add_paragraph(doc, f"{tag}	{body}", size=10, space_after=1,
-                      first_line_indent=0.0)
+    add_algorithm(doc, "Algorithm 1  AHA-Fed federated training loop",
+                  ALGO_ROWS)
 
     # ==================== 4. EXPERIMENTAL SETUP ====================
     add_heading(doc, "3.9 Convergence analysis", level=2)

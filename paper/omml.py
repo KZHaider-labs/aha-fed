@@ -148,11 +148,38 @@ def brk():
     return r
 
 
-def math(children):
+def set_size(element, pt):
+    """Force a point size on every run inside an OMML element.
+
+    Word otherwise sizes inline math from the document default, so a
+    variable in an 8 pt block comes out at 11 pt.
+    """
+    half = str(int(round(pt * 2)))
+    for r in element.iter(f"{{{M}}}r"):
+        rpr = r.find(f"{{{M}}}rPr")
+        if rpr is None:
+            rpr = _m("rPr")
+            r.insert(0, rpr)
+        wpr = r.find(qn("w:rPr"))
+        if wpr is None:
+            wpr = OxmlElement("w:rPr")
+            r.insert(list(r).index(rpr) + 1, wpr)
+        for tag in ("w:sz", "w:szCs"):
+            el = wpr.find(qn(tag))
+            if el is None:
+                el = OxmlElement(tag)
+                wpr.append(el)
+            el.set(qn("w:val"), half)
+    return element
+
+
+def math(children, size_pt=None):
     """Wrap children in an oMath element ready to drop into a paragraph."""
     m = _m("oMath")
     for c in children:
         m.append(c)
+    if size_pt is not None:
+        set_size(m, size_pt)
     return m
 
 

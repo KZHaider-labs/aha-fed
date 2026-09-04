@@ -25,6 +25,8 @@ from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.text import WD_TAB_ALIGNMENT
 from docx.shared import Inches, Pt
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
 
 ROOT = Path(__file__).resolve().parent.parent
 FIGS = ROOT / "paper" / "figures"
@@ -323,6 +325,64 @@ def equation(doc: Document, name: str, label: str,
         run.italic = False
 
 
+def algorithm(doc: Document, title: str, rows):
+    """An IEEE-style algorithm block: ruled above and below, step numbers
+    in a hanging indent so wrapped lines sit under the body text.
+
+    A tab alone is not enough -- a step that wraps returns to the left
+    margin and its continuation runs into the numbers column.
+    """
+    from docx.enum.text import WD_TAB_ALIGNMENT
+
+    def rule(before, after):
+        p = doc.add_paragraph()
+        pf = p.paragraph_format
+        pf.space_before = Pt(before)
+        pf.space_after = Pt(after)
+        pPr = p._p.get_or_add_pPr()
+        bdr = OxmlElement("w:pBdr")
+        top = OxmlElement("w:top")
+        top.set(qn("w:val"), "single")
+        top.set(qn("w:sz"), "8")
+        top.set(qn("w:space"), "1")
+        top.set(qn("w:color"), "000000")
+        bdr.append(top)
+        pPr.append(bdr)
+
+    rule(6, 2)
+    head = doc.add_paragraph()
+    head.paragraph_format.space_after = Pt(2)
+    r = head.add_run(title)
+    r.bold = True
+    r.font.size = Pt(8.5)
+    rule(0, 3)
+
+    indent, gutter = Inches(0.40), Inches(0.06)
+    for tag, body in rows:
+        p = doc.add_paragraph()
+        pf = p.paragraph_format
+        pf.space_after = Pt(0)
+        # the block is inset by `gutter`; the number hangs into that inset
+        # rather than into the column margin, where it would be clipped
+        pf.left_indent = indent + gutter
+        pf.first_line_indent = -indent
+        pf.tab_stops.add_tab_stop(indent + gutter,
+                                  WD_TAB_ALIGNMENT.LEFT)
+        from paper.inline_math import split, has_math
+        from paper.omml import math as _math
+        p.add_run(f"{tag}\t").font.size = Pt(8)
+        if has_math(body):
+            for kind, payload in split(body):
+                if kind == "text":
+                    p.add_run(payload).font.size = Pt(8)
+                else:
+                    p._p.append(_math(payload, size_pt=8))
+        else:
+            p.add_run(body).font.size = Pt(8)
+
+    rule(3, 6)
+
+
 def table(doc: Document, rows: list[list[str]], caption: str):
     """Access precedes each table with a 'TABLE N' title line."""
     _table_no[0] += 1
@@ -465,6 +525,8 @@ def build(template: Path, out: Path) -> None:
             table(doc, rows, cap)
         elif kind == "eq":
             equation(doc, *item[1])
+        elif kind == "algo":
+            algorithm(doc, item[1][0], item[1][1])
         elif kind == "ref":
             ref_style = first_style(doc, ["REF_Txt", "References", "Ref"])
             para(doc, item[1], style=ref_style,
