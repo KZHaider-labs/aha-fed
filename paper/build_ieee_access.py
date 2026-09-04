@@ -256,29 +256,42 @@ _table_no = [0]
 
 def equation(doc: Document, name: str, label: str,
              width_in: float = 2.6):
-    """Centred equation image with a right-aligned number, IEEE style."""
-    path = FIGS / "equations" / name
-    if not path.exists():
-        print(f"  [warn] missing equation {name}")
-        return
+    """Native Word math, with the number flush right on the same line.
+
+    OMML rather than an image: editable, searchable, scales with the font,
+    and does not have to be re-typeset by the publisher. The PNG name is
+    kept as the lookup key and used only as a fallback.
+    """
+    from paper.equations_omml import EQUATIONS
+    from paper.omml import add_math
+
     p = doc.add_paragraph()
-    # The template carries an Equation style with the tab stops that put
-    # the number flush right; without it the paragraph falls back to Normal.
     eq_style = first_style(doc, ["Equation"])
     if eq_style:
         p.style = doc.styles[eq_style]
+
     # The style's left tab at 3.18 in was set for the template's
     # one-column sample; in the 3.35 in body column it leaves too little
     # room and the number wraps. A right tab at the column edge puts the
-    # number flush right whatever its width. Do not set alignment: it
-    # overrides the tab.
+    # number flush right whatever its width.
     pf = p.paragraph_format
     pf.tab_stops.clear_all()
     pf.tab_stops.add_tab_stop(Inches(COLUMN_WIDTH_IN),
                               WD_TAB_ALIGNMENT.RIGHT)
-    p.add_run().add_picture(str(path), width=Inches(width_in))
+
+    builder = EQUATIONS.get(name)
+    if builder is not None:
+        add_math(p, builder())
+    else:
+        path = FIGS / "equations" / name
+        if not path.exists():
+            print(f"  [warn] missing equation {name}")
+            return
+        print(f"  [warn] no OMML for {name}; falling back to the image")
+        p.add_run().add_picture(str(path), width=Inches(width_in))
+
     if label:
-        p.add_run(f"\t{label}")
+        p.add_run(f"	{label}")
 
 
 def table(doc: Document, rows: list[list[str]], caption: str):

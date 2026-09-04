@@ -108,14 +108,23 @@ def main(template: Path, paper: Path) -> int:
           bool(caps) and all(figpat.match(c) for c in caps),
           f"{len(caps)} captions")
 
-    # Equations are images in this pipeline; a silent drop leaves the
-    # methodology reading as prose with gaps where the formulas belong.
+    # A silent drop leaves the methodology reading as prose with gaps
+    # where the formulas belong. The source document carries equations as
+    # images; this build renders them as native Word math, so the two are
+    # counted separately.
+    n_omml = doc.element.body.xml.count("<m:oMath")
+    check("equations are native Word math, not images",
+          n_omml >= 9, f"{n_omml} OMML equations")
+
     original = ROOT / "paper" / "AHA_Fed_Paper.docx"
     if original.exists():
-        want = len(Document(str(original)).inline_shapes)
-        got = len(doc.inline_shapes)
+        src = Document(str(original))
+        src_imgs = len(src.inline_shapes)
+        got = len(doc.inline_shapes) + n_omml
         check("no figures or equations lost against the source document",
-              got >= want, f"{got} images here vs {want} in the source")
+              got >= src_imgs,
+              f"{len(doc.inline_shapes)} figures + {n_omml} equations "
+              f"= {got} vs {src_imgs} in the source")
 
     # Figures must fit a single column or Word reflows the page.
     gutter = 0.28
