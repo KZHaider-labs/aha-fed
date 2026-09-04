@@ -814,6 +814,28 @@ if w:
           weights[noisy] < uniform,
           f"{weights[noisy]:.4f} < {uniform:.4f}")
 
+# Figure 2 plots the mean weight and quality trajectories. The caption
+# quotes the corrupted site falling to 0.08 while the clean sites rise
+# above the 0.25 uniform share, so both belong in the checks.
+fig2_w = []
+for _f in sorted(glob.glob(str(REAL / "path_aha_fed_s*.json"))):
+    _d = json.loads(Path(_f).read_text())
+    _rows = [_h["client_weights"] for _h in (_d.get("history") or [])
+             if _h.get("client_weights")]
+    if _rows:
+        fig2_w.append(_rows)
+if fig2_w:
+    _n = min(len(_r) for _r in fig2_w)
+    _last = [st.mean(_s[_n - 1][_c] for _s in fig2_w) for _c in range(4)]
+    print(f"  final mean weights: "
+          + ", ".join(f"{_v:.3f}" for _v in _last)
+          + f" ({len(fig2_w)} seeds)")
+    check("Figure 2: the corrupted site ends near 0.08",
+          abs(_last[3] - 0.083) < 0.006, f"{_last[3]:.3f}")
+    check("Figure 2: the clean sites end above uniform",
+          all(_v > 0.25 for _v in _last[:2]),
+          ", ".join(f"{_v:.3f}" for _v in _last[:3]))
+
 print("\n" + "=" * 60)
 if FAILED:
     print(f"{len(FAILED)} CLAIM(S) OUT OF SYNC WITH THE PAPER:")

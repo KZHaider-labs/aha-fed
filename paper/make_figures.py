@@ -495,67 +495,122 @@ def fig_dataset():
 #                         FIGURE 3 — AHA-FED CONCEPT
 # =====================================================================
 def fig_aha_concept():
-    fig, ax = plt.subplots(figsize=(11, 4.8))
-    ax.set_xlim(0, 12)
-    ax.set_ylim(0, 5)
+    """Figure 2: the weighting rule, and the rule at work on real data.
+
+    The old version was three boxes and three arrows -- the equation
+    redrawn as a flowchart, carrying nothing the text did not already
+    say. This keeps a compact schematic of where the three signals enter,
+    and then shows the mechanism actually working: the quality signal
+    separating the corrupted hospital, and its weight collapsing as a
+    result. Both panels are means over the ten PathMNIST seeds.
+    """
+    NAVY, RED, GREY = "#1f3a5f", "#a11d21", "#6b6b6b"
+    CLEAN = ["#4878a8", "#7aa5c9", "#a8c4dc"]
+
+    # means over ten seeds, from runs/paper/real/path_aha_fed_s*.json
+    W = [[0.2513, 0.2820, 0.2235, 0.2432], [0.2454, 0.2903, 0.2510, 0.2133],
+         [0.2762, 0.3124, 0.2006, 0.2108], [0.2717, 0.3114, 0.2382, 0.1787],
+         [0.2888, 0.3021, 0.2530, 0.1561], [0.2556, 0.2848, 0.2984, 0.1611],
+         [0.3148, 0.2930, 0.2616, 0.1306], [0.2720, 0.3054, 0.3065, 0.1162],
+         [0.3196, 0.3190, 0.2569, 0.1045], [0.3143, 0.3289, 0.2661, 0.0907],
+         [0.2758, 0.3152, 0.3164, 0.0926], [0.3282, 0.3624, 0.2204, 0.0889],
+         [0.3175, 0.3513, 0.2484, 0.0828]]
+    Q = [[0.3489, 0.3447, 0.3370, 0.3205], [0.3584, 0.3635, 0.3616, 0.3258],
+         [0.3778, 0.3750, 0.3478, 0.3270], [0.3949, 0.3927, 0.3836, 0.3312],
+         [0.4172, 0.4062, 0.4020, 0.3311], [0.4027, 0.3973, 0.4173, 0.3348],
+         [0.4560, 0.4251, 0.4273, 0.3360], [0.4516, 0.4460, 0.4635, 0.3369],
+         [0.4786, 0.4609, 0.4535, 0.3355], [0.4971, 0.4833, 0.4757, 0.3377],
+         [0.4782, 0.4724, 0.4911, 0.3375], [0.5033, 0.4994, 0.4514, 0.3379],
+         [0.5140, 0.5054, 0.4789, 0.3403]]
+    rounds = list(range(1, len(W) + 1))
+
+    fig, axes = plt.subplots(3, 1, figsize=(3.3, 5.3),
+                             gridspec_kw={"height_ratios": [0.55, 1, 1]})
+    plt.subplots_adjust(hspace=0.58, left=0.175, right=0.97,
+                        top=0.955, bottom=0.075)
+
+    # ---- (a) where the three signals enter the score ------------------
+    ax = axes[0]
+    ax.set_xlim(0, 10)
+    ax.set_ylim(0.25, 3.25)
     ax.axis("off")
+    sig = [(2.75, r"$n_k$", "volume", "#dce6f1"),
+           (1.75, r"$D_k$", "distance", "#fdebd0"),
+           (0.75, r"$q_k$", "quality", "#dcecdc")]
+    for y, sym, name, fc in sig:
+        ax.add_patch(FancyBboxPatch((0.1, y - 0.34), 2.15, 0.68,
+                                    boxstyle="round,pad=0.03",
+                                    facecolor=fc, edgecolor="#555",
+                                    linewidth=0.7))
+        ax.text(0.42, y, sym, ha="left", va="center", fontsize=9)
+        ax.text(1.05, y, name, ha="left", va="center", fontsize=7.5,
+                color="#333")
+        ax.annotate("", xy=(4.0, 1.75), xytext=(2.33, y),
+                    arrowprops=dict(arrowstyle="->", color="#666", lw=0.8))
+    ax.add_patch(FancyBboxPatch((4.05, 1.42), 3.75, 0.66,
+                                boxstyle="round,pad=0.03",
+                                facecolor="#eef3fa", edgecolor=NAVY,
+                                linewidth=1.0))
+    ax.text(5.93, 2.30, "log-score", ha="center", va="center",
+            fontsize=7.5, color=NAVY)
+    ax.text(5.9, 1.58,
+            r"$\alpha\log n_k-\beta D_k+\gamma\log q_k$",
+            ha="center", va="center", fontsize=7.5)
+    ax.annotate("", xy=(9.3, 1.75), xytext=(7.85, 1.75),
+                arrowprops=dict(arrowstyle="->", color="#666", lw=1.0))
+    ax.text(8.6, 2.10, "softmax", ha="center", va="center",
+            fontsize=7.5, color=RED)
+    ax.text(8.6, 1.40, r"$w_k$", ha="center", va="center", fontsize=9,
+            color=RED)
+    ax.set_title("(a) Three signals form one weight", fontsize=8.5, pad=2)
 
-    inputs = [
-        (0.3, 3.5, r"$n_k$" + "\n(volume)",
-         "#cfe2f3", "anti-collapse\nterm $\\alpha\\log n_k$"),
-        (0.3, 2.0, r"$D_k$" + "\n(prior distance)",
-         "#fdebd0", "hetero. penalty\n$-\\beta\\,D_k$"),
-        (0.3, 0.5, r"$q_k$" + "\n(quality)",
-         "#d5e8d4", "quality reward\n$\\gamma\\log q_k$"),
-    ]
-    for x, y, t, col, anno in inputs:
-        ax.add_patch(FancyBboxPatch((x, y), 1.7, 1.1,
-                                    boxstyle="round,pad=0.06",
-                                    edgecolor="black", facecolor=col,
-                                    linewidth=1.0))
-        ax.text(x + 0.85, y + 0.55, t, ha="center", va="center",
-                fontsize=11.5)
-        ax.text(x + 1.95, y + 0.55, anno, ha="left", va="center",
-                fontsize=9, color="#444", style="italic")
+    # ---- (b) the quality signal separates the corrupted site ----------
+    ax = axes[1]
+    for c in range(3):
+        ax.plot(rounds, [q[c] for q in Q], "-", color=CLEAN[c],
+                linewidth=1.1, zorder=2)
+    ax.plot(rounds, [q[3] for q in Q], "-", color=RED, linewidth=1.6,
+            zorder=3)
+    ax.text(rounds[-1] - 0.3, Q[-1][0] + 0.012, "clean sites",
+            ha="right", va="bottom", fontsize=7, color=CLEAN[0])
+    ax.text(rounds[-1] - 0.3, Q[-1][3] - 0.012, "corrupted site",
+            ha="right", va="top", fontsize=7, color=RED)
+    ax.set_ylabel(r"quality $q_k$", fontsize=8)
+    ax.set_xlabel("Communication round", fontsize=8)
+    ax.set_xlim(1, len(W))
+    ax.tick_params(labelsize=7.5)
+    ax.set_title("(b) The signal the rule acts on", fontsize=8.5, pad=3)
+    ax.grid(linewidth=0.4, alpha=0.3, zorder=0)
+    ax.set_axisbelow(True)
 
-    # central score box
-    ax.add_patch(FancyBboxPatch((5.6, 2.0), 3.6, 1.5,
-                                boxstyle="round,pad=0.08",
-                                edgecolor="#1f3a5f", facecolor="#e8f0fe",
-                                linewidth=1.6))
-    ax.text(7.4, 3.05, "log-score", ha="center", fontsize=10,
-            color="#1f3a5f")
-    ax.text(7.4, 2.55,
-            r"$s_k=\alpha\log n_k-\beta D_k+\gamma\log q_k$",
-            ha="center", fontsize=12.5, fontweight="bold",
-            color="#1f3a5f")
+    # ---- (c) the weight it produces ----------------------------------
+    ax = axes[2]
+    ax.axhline(0.25, color=GREY, linewidth=0.8, linestyle=":", zorder=1)
+    ax.text(12.7, 0.232, "uniform (FedAvg)", fontsize=7, color=GREY,
+            ha="right", va="top")
+    for c in range(3):
+        ax.plot(rounds, [w[c] for w in W], "-", color=CLEAN[c],
+                linewidth=1.1, zorder=2)
+    ax.plot(rounds, [w[3] for w in W], "-", color=RED, linewidth=1.6,
+            zorder=3)
+    ax.annotate(f"{W[-1][3]:.2f}", xy=(rounds[-1], W[-1][3]),
+                xytext=(-4, -11), textcoords="offset points",
+                fontsize=7, color=RED, ha="right")
+    ax.set_ylabel(r"weight $w_k$", fontsize=8)
+    ax.set_xlabel("Communication round", fontsize=8)
+    ax.set_xlim(1, len(W))
+    ax.set_ylim(0, 0.44)
+    ax.tick_params(labelsize=7.5)
+    ax.set_title("(c) The corrupted site is down-weighted",
+                 fontsize=8.5, pad=3)
+    ax.grid(linewidth=0.4, alpha=0.3, zorder=0)
+    ax.set_axisbelow(True)
 
-    # softmax + aggregation
-    ax.add_patch(FancyBboxPatch((10.0, 2.0), 1.8, 1.5,
-                                boxstyle="round,pad=0.08",
-                                edgecolor="#7a1f1f", facecolor="#fadbd8",
-                                linewidth=1.6))
-    ax.text(10.9, 2.85, r"softmax", ha="center", fontsize=11,
-            color="#7a1f1f")
-    ax.text(10.9, 2.4, r"$w_k=\dfrac{e^{s_k}}{\sum_j e^{s_j}}$",
-            ha="center", fontsize=12, color="#7a1f1f")
-
-    # arrows
-    for _, y, _, _, _ in inputs:
-        ax.add_patch(FancyArrowPatch((2.0, y + 0.55), (5.6, 2.75),
-                                     arrowstyle="->", mutation_scale=12,
-                                     color="#444"))
-    ax.add_patch(FancyArrowPatch((9.2, 2.75), (10.0, 2.75),
-                                 arrowstyle="->", mutation_scale=14,
-                                 color="#444", linewidth=1.5))
-
-    plt.savefig(FIGS / "fig_aha_concept.png")
+    plt.savefig(FIGS / "fig_aha_concept.png", dpi=400,
+                bbox_inches="tight", facecolor="white")
     plt.close()
 
 
-# =====================================================================
-#                  FIGURE 4 — MULTI-SEED CONVERGENCE
-# =====================================================================
 def fig_convergence_multiseed():
     fig, axes = plt.subplots(1, 2, figsize=(11.5, 4.2))
     for tag in ("fedavg", "fedprox", "fedbn", "aha_fed"):

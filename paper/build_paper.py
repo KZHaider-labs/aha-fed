@@ -977,8 +977,15 @@ def build() -> None:
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     add_figure(doc, FIGS / "fig_aha_concept.png",
-               "Figure 2: AHA-Fed weighting scheme, three signals combined "
-               "in log-space and softmax-normalised.")
+               "Figure 2: The weighting rule, and the rule at work. "
+               "(a) The three signals enter a log-space score that is "
+               "softmax-normalised into a weight. (b) The quality "
+               "signal on the PathMNIST federation with one of four "
+               "hospitals corrupted: the clean sites separate from "
+               "the corrupted one within a few rounds. (c) The "
+               "weights that follow, with the corrupted site falling "
+               "from near-uniform to 0.08 while the clean sites rise "
+               "above 0.25. Both panels are means over ten seeds.")
 
     add_heading(doc, "3.4 Relative quality: removing the difficulty term",
                 level=2)
