@@ -1844,18 +1844,22 @@ def build() -> None:
 
     frac_data = [
         ["K", "Corrupted", "1,000 img/client", "p", "~4,000 total", "p"],
-        ["4",  "1 of 4",  "1.46×", "0.004", "1.46×", "0.004"],
+        ["4",  "1 of 4",  "1.49×", "0.010", "1.46×", "0.004"],
         ["8",  "2 of 8",  "1.48×", "0.002", "1.32×", "0.002"],
         ["12", "3 of 12", "1.42×", "0.006", "1.20×", "0.275"],
         ["16", "4 of 16", "1.42×", "0.002", "0.97×", "0.846"],
+        ["20", "5 of 20", "1.29×", "0.010", "—", "—"],
+        ["24", "6 of 24", "1.65×", "0.002", "—", "—"],
     ]
     add_table_caption(doc,
-        "Table 8: The same 25% corrupted fraction at four federation "
-        "sizes under two designs, ten seeds each. Holding per-client data "
+        "Table 8: The same 25% corrupted fraction at six federation "
+        "sizes under two designs, ten seeds each. The constant-corpus "
+        "sweep was not run past sixteen sites. Holding per-client data "
         "fixed keeps the advantage flat; holding the total corpus fixed "
         "makes it decay, because per-client data then falls with K. "
         "p-values are paired Wilcoxon signed-rank tests against FedAvg. "
-        "The K = 4 column is the same experiment under both designs.")
+        "The two K = 4 entries are separate experiments at the same "
+        "per-client budget: the multi-site and scaling sweeps.")
     make_table(doc, frac_data, header_font_size=10, body_font_size=9.5,
                highlight_row_pred=lambda i, row: row[0] == "16")
     add_post_table_spacing(doc)
@@ -1888,7 +1892,7 @@ def build() -> None:
         "onto how federations actually grow. Recruiting more hospitals "
         "usually adds their data rather than dividing a fixed pool, which "
         "is the fixed-per-client column, and that column shows no decay to "
-        "K = 16. We have not tested beyond sixteen sites, nor below 250 "
+        "K = 24. We have not tested beyond twenty-four sites, nor below 250 "
         "images per client, and we do not extrapolate past either. Nor "
         "does this rescue Section 5.4, whose sweep holds the corpus "
         "constant by design and where the advantage does fade; it "
@@ -2377,9 +2381,9 @@ def build() -> None:
         "volume-weighted FedAvg does not: a per-task validation split. "
         "Fifth, "
         "scale: K = 4–32 simulated clients on a single machine. Section "
-        "5.9 shows the advantage holding to K = 16 when each client keeps "
+        "5.9 shows the advantage holding to K = 24 when each client keeps "
         "1,000 images, and decaying when a fixed corpus is divided "
-        "further; we have not tested beyond sixteen sites or below 250 "
+        "further; we have not tested beyond twenty-four sites or below 250 "
         "images per client, and make no claim about cross-device "
         "federations.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)

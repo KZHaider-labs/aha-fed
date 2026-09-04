@@ -445,19 +445,30 @@ if len(frac_ratios) == 3:
 # count. This is the claim the fixn sweep established, reversing the
 # constant-corpus reading above.
 fixn_ratios = {}
-for _K, _nn in ((8, 2), (12, 3), (16, 4)):
+for _K, _nn in ((8, 2), (12, 3), (16, 4), (20, 5), (24, 6)):
     _a = by_seed(f"fixn_aha_k{_K}_n{_nn}_s*.json", "ece")
     _v = by_seed(f"fixn_fedavg_k{_K}_n{_nn}_s*.json", "ece")
     _sh = sorted(set(_a) & set(_v))
     if _sh:
         fixn_ratios[_K] = (st.mean([_v[k] for k in _sh])
                            / st.mean([_a[k] for k in _sh]))
-if len(fixn_ratios) == 3:
+if len(fixn_ratios) == 5:
     print("  25% corrupted, 1000 img/client: "
           + ", ".join(f"{k}:{v:.2f}x" for k, v in sorted(fixn_ratios.items())))
-    check("the advantage survives to K=16 at fixed per-client data",
+    check("the advantage survives to K=24 at fixed per-client data",
           min(fixn_ratios.values()) > 1.25,
-          ", ".join(f"{fixn_ratios[k]:.2f}x" for k in (8, 12, 16)))
+          ", ".join(f"{fixn_ratios[k]:.2f}x" for k in (8, 12, 16, 20, 24)))
+    # The paper reads the series as level, not rising, so pin that too:
+    # a strong positive correlation would mean the reading is wrong.
+    _ks = [4.0, 8.0, 12.0, 16.0, 20.0, 24.0]
+    _rs = [1.49] + [fixn_ratios[k] for k in (8, 12, 16, 20, 24)]
+    _mx, _my = st.mean(_ks), st.mean(_rs)
+    _num = sum((a - _mx) * (b - _my) for a, b in zip(_ks, _rs))
+    _den = (sum((a - _mx) ** 2 for a in _ks)
+            * sum((b - _my) ** 2 for b in _rs)) ** 0.5
+    _r = _num / _den if _den else 0.0
+    check("the fixed-per-client series is flat in K",
+          abs(_r) < 0.35, f"r={_r:+.2f}")
     check("fixed per-client data beats the constant corpus at every K",
           all(fixn_ratios[k] > frac_ratios[k] for k in (8, 12, 16)),
           ", ".join(f"K={k}: {fixn_ratios[k]:.2f}x vs {frac_ratios[k]:.2f}x"
