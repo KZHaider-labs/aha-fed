@@ -4,7 +4,7 @@ Each builder returns a list of OMML elements for one equation. Numbering
 matches the manuscript: (1) federated objective through (9) ECE.
 """
 from paper.omml import (run as r, op, sub, sup, subsup, frac, nary, func,
-                        delim)
+                        delim, brk)
 
 
 def _theta():
@@ -42,13 +42,17 @@ def eq3_quality():
 
 
 def eq4_score():
-    """s_k = alpha log n_k - beta D_k + gamma log(q_k + eps)"""
+    """s_k = alpha log n_k - beta D_k + gamma log q_k
+
+    Operators carry no manual padding: Word spaces binary operators in a
+    math run itself, and the extra spaces pushed the number onto its own
+    line.
+    """
     return [
-        sub(r("s"), r("k")), op(" = "),
-        r("\u03b1"), op(" "), func("log", [sub(r("n"), r("k"))]),
-        op(" \u2212 "), r("\u03b2"), op(" "), sub(r("D"), r("k")),
-        op(" + "), r("\u03b3"), op(" "),
-        func("log", [delim([sub(r("q"), r("k")), op(" + "), r("\u03b5")])]),
+        sub(r("s"), r("k")), op("="),
+        r("α"), func("log", [sub(r("n"), r("k"))]),
+        op("−"), r("β"), sub(r("D"), r("k")),
+        op("+"), r("γ"), func("log", [sub(r("q"), r("k"))]),
     ]
 
 
@@ -62,8 +66,6 @@ def eq5_softmax():
                    [r("K")],
                    [func("exp", [delim([sub(r("s"), r("j")), op(" \u2212 "),
                                         sup(r("s"), op("\u22c6"))])])])]),
-        op(",   "), sup(r("s"), op("\u22c6")), op(" = "),
-        sub(op("max"), r("j")), op(" "), sub(r("s"), r("j")),
     ]
 
 
@@ -78,13 +80,11 @@ def eq6_aggregation():
 
 
 def eq7_fedavg():
-    """alpha=1, beta=gamma=0  =>  w_k = n_k / sum_j n_j"""
+    """w_k = n_k / sum_j n_j  (the FedAvg weights, recovered at b=g=0)"""
     return [
-        r("\u03b1"), op(" = 1, "), r("\u03b2"), op(" = "), r("\u03b3"),
-        op(" = 0  \u27f9  "),
         sub(r("w"), r("k")), op(" = "),
         frac([sub(r("n"), r("k"))],
-             [nary("\u2211", [r("j")], [], [sub(r("n"), r("j"))])]),
+             [nary("∑", [r("j")], [], [sub(r("n"), r("j"))])]),
     ]
 
 
@@ -97,7 +97,8 @@ def eq8_dpsgd():
              [func("clip", [op("\u2207"), sub(r("L"), r("i")),
                             delim([sub(_theta(), r("t"))]),
                             op(", "), r("C")])]),
-        op(" + "), r("\U0001d4a9"),
+        brk(),
+        op("+ "), r("\U0001d4a9"),
         delim([op("0, "), sup(r("\u03c3"), op("2")),
                sup(r("C"), op("2")), r("I")]),
     ]

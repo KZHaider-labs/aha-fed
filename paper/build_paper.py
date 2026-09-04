@@ -934,13 +934,14 @@ def build() -> None:
     add_heading(doc, "3.3 Aggregation rule", level=2)
     add_paragraph(doc,
         "The three signals are linearly combined in log-space to form the "
-        "client log-score:",
+        "client log-score, where the quality term is evaluated as "
+        "log(q_k + ε) with ε = 10⁻⁶ guarding against a zero argument:",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_equation_image(doc, "eq4_score.png", "(4)", width_in=5.4)
     add_paragraph(doc,
         "Aggregation weights are then obtained by a numerically stable "
-        "softmax (subtract the maximum before exponentiating) and applied "
-        "to the per-client states:",
+        "softmax, subtracting the largest score s⋆ = max_j s_j before "
+        "exponentiating, and applied to the per-client states:",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_equation_image(doc, "eq5_softmax.png", "(5)", width_in=5.6)
     add_equation_image(doc, "eq6_aggregation.png", "(6)", width_in=4.6)

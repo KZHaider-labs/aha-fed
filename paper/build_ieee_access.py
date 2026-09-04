@@ -291,7 +291,11 @@ def equation(doc: Document, name: str, label: str,
         p.add_run().add_picture(str(path), width=Inches(width_in))
 
     if label:
-        p.add_run(f"	{label}")
+        # A right tab is ignored once the formula has passed it, which
+        # glues the number to the equation. The spaces guarantee a gap
+        # in that case; where the tab still works they are absorbed by it.
+        run = p.add_run(f"  	{label}")
+        run.italic = False
 
 
 def table(doc: Document, rows: list[list[str]], caption: str):

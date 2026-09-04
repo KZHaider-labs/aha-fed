@@ -134,6 +134,20 @@ def delim(children, *, left="(", right=")"):
     return d
 
 
+def brk():
+    """A hard line break inside an equation.
+
+    IEEE breaks a long display equation before a binary operator rather
+    than letting Word wrap it, which strands the equation number.
+    """
+    r = _m("r")
+    rpr = _m("rPr")
+    brk = _m("brk")
+    rpr.append(brk)
+    r.append(rpr)
+    return r
+
+
 def math(children):
     """Wrap children in an oMath element ready to drop into a paragraph."""
     m = _m("oMath")
