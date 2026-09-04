@@ -941,9 +941,14 @@ def build() -> None:
     add_paragraph(doc,
         "Aggregation weights are then obtained by a numerically stable "
         "softmax, subtracting the largest score s⋆ = max_j s_j before "
-        "exponentiating, and applied to the per-client states:",
+        "exponentiating:",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_equation_image(doc, "eq5_softmax.png", "(5)", width_in=5.6)
+    add_paragraph(doc,
+        "The weights are positive and sum to one by construction, so the "
+        "server forms the next global state as their convex combination "
+        "of the per-client states:",
+        align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_equation_image(doc, "eq6_aggregation.png", "(6)", width_in=4.6)
 
     add_paragraph(doc,
@@ -1050,7 +1055,7 @@ def build() -> None:
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_equation_image(doc, "eq8_ece.png", "(9)", width_in=5.6)
     add_paragraph(doc,
-        "where acc(B_m) is the empirical accuracy and conf(B_m) the mean "
+        "where A(B_m) is the empirical accuracy and C(B_m) the mean "
         "predicted confidence in bin m. ECE is the most clinically "
         "actionable metric for triage and decision-support deployments: a "
         "model that is confidently wrong on rare-class cases is more "

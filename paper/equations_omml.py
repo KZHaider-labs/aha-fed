@@ -105,15 +105,21 @@ def eq8_dpsgd():
 
 
 def eq9_ece():
-    """ECE = sum_{m=1}^{M} |B_m|/N |acc(B_m) - conf(B_m)|"""
+    """ECE = sum_{m=1}^{M} (|B_m|/N) |A(B_m) - C(B_m)|
+
+    A and C stand for the accuracy and confidence of a bin; the sentence
+    after the display names them. Spelling them out ran past the column
+    and split the absolute value across two lines.
+    """
     return [
-        op("ECE"), op(" = "),
-        nary("\u2211", [op("m = 1")], [r("M")],
-             [frac([op("\u2502"), sub(r("B"), r("m")), op("\u2502")],
+        op("ECE"), op("="),
+        nary("\u2211", [op("m=1")], [r("M")],
+             [frac([delim([sub(r("B"), r("m"))], left="|", right="|")],
                    [r("N")]),
-              op(" \u2502"), func("acc", [sub(r("B"), r("m"))]),
-              op(" \u2212 "), func("conf", [sub(r("B"), r("m"))]),
-              op("\u2502")]),
+              delim([r("A"), delim([sub(r("B"), r("m"))]),
+                     op("\u2212"),
+                     r("C"), delim([sub(r("B"), r("m"))])],
+                    left="|", right="|")]),
     ]
 
 
