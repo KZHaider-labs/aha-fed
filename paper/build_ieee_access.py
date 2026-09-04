@@ -23,6 +23,7 @@ import copy
 
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.text import WD_TAB_ALIGNMENT
 from docx.shared import Inches, Pt
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -254,7 +255,7 @@ _table_no = [0]
 
 
 def equation(doc: Document, name: str, label: str,
-             width_in: float = 2.9):
+             width_in: float = 2.6):
     """Centred equation image with a right-aligned number, IEEE style."""
     path = FIGS / "equations" / name
     if not path.exists():
@@ -266,9 +267,15 @@ def equation(doc: Document, name: str, label: str,
     eq_style = first_style(doc, ["Equation"])
     if eq_style:
         p.style = doc.styles[eq_style]
-    # the template centres equations; set it explicitly since the style's
-    # alignment does not always survive being applied to a new paragraph
-    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    # The style's left tab at 3.18 in was set for the template's
+    # one-column sample; in the 3.35 in body column it leaves too little
+    # room and the number wraps. A right tab at the column edge puts the
+    # number flush right whatever its width. Do not set alignment: it
+    # overrides the tab.
+    pf = p.paragraph_format
+    pf.tab_stops.clear_all()
+    pf.tab_stops.add_tab_stop(Inches(COLUMN_WIDTH_IN),
+                              WD_TAB_ALIGNMENT.RIGHT)
     p.add_run().add_picture(str(path), width=Inches(width_in))
     if label:
         p.add_run(f"\t{label}")
