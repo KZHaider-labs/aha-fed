@@ -80,7 +80,7 @@ def fig_real_data():
         aurocs_m.append(ar.mean()); aurocs_s.append(ar.std())
         eces_m.append(e.mean()); eces_s.append(e.std())
 
-    fig, axes = plt.subplots(1, 3, figsize=(13.5, 4.2))
+    fig, axes = plt.subplots(3, 1, figsize=(3.4, 5.0))
     x = np.arange(len(tags))
     colors = [PALETTE[t] for t in tags]
 
@@ -144,7 +144,7 @@ def fig_dp():
     ah_ece_full = ah_ece + [ah_inf["ece"]]
     xticks_lab = [str(e) for e in eps_list] + [r"$\infty$"]
 
-    fig, axes = plt.subplots(1, 2, figsize=(12.0, 4.2))
+    fig, axes = plt.subplots(2, 1, figsize=(3.4, 3.9))
     xs = np.arange(len(eps_axis))
     axes[0].plot(xs, fa_acc_full, marker="o", linewidth=2.0, markersize=8,
                  color=PALETTE["fedavg"], label="FedAvg + DP-SGD")
@@ -191,7 +191,7 @@ def fig_hp_heatmap():
                 ece[i, j] = np.nan
                 acc[i, j] = np.nan
 
-    fig, axes = plt.subplots(1, 2, figsize=(11.5, 4.6))
+    fig, axes = plt.subplots(2, 1, figsize=(3.4, 4.0))
     im0 = axes[0].imshow(ece, cmap="RdYlGn_r", aspect="auto")
     axes[0].set_xticks(range(len(grid))); axes[0].set_xticklabels(grid)
     axes[0].set_yticks(range(len(grid))); axes[0].set_yticklabels(grid)
@@ -231,7 +231,7 @@ def fig_hp_heatmap():
 #       FIGURE — Multi-seed convergence on PathMNIST (real data)
 # =====================================================================
 def fig_real_convergence():
-    fig, axes = plt.subplots(1, 2, figsize=(11.5, 4.2))
+    fig, axes = plt.subplots(2, 1, figsize=(3.4, 3.9))
     for tag in ["fedavg", "fedprox", "fedbn", "feddisco", "aha_fed"]:
         all_loss, all_ece, rounds = [], [], None
         for s in SEEDS:

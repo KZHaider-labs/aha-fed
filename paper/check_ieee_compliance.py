@@ -388,6 +388,28 @@ def main(template: Path, paper: Path) -> int:
         faults.append(f"{len(semiconj)} semicolons before a conjunction")
     check("no punctuation left broken by the dash removal",
           not faults, "; ".join(faults) if faults else "clean")
+
+    # A figure squeezed below about an inch has unreadable axis labels;
+    # one taller than the column crowds out the text beside it.
+    heights = [doc.inline_shapes[i].height.inches
+               for i in range(len(doc.inline_shapes))]
+    cramped = [round(h, 2) for h in heights if h < 1.25]
+    check("no figure is too short to read",
+          not cramped, f"{len(cramped)} under 1.25 in: {cramped}"
+          if cramped else f"{len(heights)} figures")
+
+    # A table cell holding only a comma is a placeholder dash the
+    # em-dash removal ate.
+    stray = sum(1 for t in doc.tables for r in t.rows for c in r.cells
+                if c.text.strip() == ",")
+    check("no table cell is a bare comma", not stray,
+          f"{stray} cells" if stray else "clean")
+
+    # Times New Roman has no glyph for the mathematical-alphanumeric
+    # block, so those characters print as empty boxes.
+    script = [c for t in texts for c in t if 0x1D400 <= ord(c) <= 0x1D7FF]
+    check("no unrenderable maths-script characters", not script,
+          f"{len(script)} found" if script else "clean")
     print()
     if FAILURES:
         print(f"{len(FAILURES)} check(s) failed:")

@@ -444,11 +444,62 @@ def table(doc: Document, rows: list[list[str]], caption: str):
     t = doc.add_table(rows=len(rows), cols=len(rows[0]))
     if style_or_none(doc, "Normal Table") is not None:
         t.style = doc.styles["Normal Table"]
-    # Let Word size columns to their content and cap the table at the text
-    # width. Without this a 6- or 7-column table keeps its default widths and
-    # runs off the edge of a 3.35 in column.
-    t.autofit = True
-    t.allow_autofit = True
+    # Word ignores an autofit request here and keeps the 1 in defaults, so
+    # a seven-column table becomes 7 in of content in a 3.3 in column and
+    # the headers break mid-word. Allocate the width explicitly instead,
+    # in proportion to the longest cell in each column.
+    t.autofit = False
+    t.allow_autofit = False
+    ncol = len(rows[0])
+
+    def longest_word(j):
+        """Longest unbreakable run in the column.
+
+        "0.119 ± 0.019" reads as one value and must not split across
+        lines, so a plus-minus joins its operands rather than separating
+        them.
+        """
+        best = 1
+        for r in rows:
+            cell = str(r[j]).replace(" ± ", "±")
+            for word in cell.replace("-", "- ").split():
+                best = max(best, len(word))
+        return best
+
+    def longest_cell(j):
+        return max(len(str(r[j])) for r in rows)
+
+    # A cell wraps; a word does not. Weight by the longest word so a
+    # header like "Heterogeneity" cannot break mid-word, but let a long
+    # multi-word cell pull the column a little wider too.
+    def body_word(j):
+        """Longest unbreakable run below the header row.
+
+        Header words wrap onto a second line without harm; a value like
+        "0.020" or a header like "AUROC" cannot break at all, so the body
+        decides the minimum width and the header only nudges it.
+        """
+        best = 1
+        for r in rows[1:]:
+            cell = str(r[j]).replace(" ± ", "±")
+            for word in cell.replace("-", "- ").split():
+                best = max(best, len(word))
+        return best
+
+    weights = [max(body_word(j) * 1.7,
+                   longest_word(j) * 1.15,
+                   longest_cell(j) * 0.5,
+                   4.5)
+               for j in range(ncol)]
+    total = sum(weights)
+    widths = [COLUMN_WIDTH_IN * w / total for w in weights]
+    tblPr = t._tbl.tblPr
+    layout = OxmlElement("w:tblLayout")
+    layout.set(qn("w:type"), "fixed")
+    tblPr.append(layout)
+    for j, w in enumerate(widths):
+        for row in t.rows:
+            row.cells[j].width = Inches(w)
     for i, row in enumerate(rows):
         for j, cell in enumerate(row):
             c = t.cell(i, j)

@@ -916,29 +916,33 @@ def build() -> None:
 
     # ---------- Literature review table (extended to 18 rows) ----------
     table_data = [
-        ["Method", "Year", "Heterogeneity",
-         "Noise-aware", "DP-FL ready", "Calibration", "Medical-imaging tested"],
-        ["FedAvg [23]",         "2022", "No",  "No",  "Indirect", "No",  "No"],
-        ["FedProx [18]",        "2022", "Partial (proximal)", "No",  "Indirect", "No", "No"],
-        ["FedBN [19]",          "2023", "Partial (BN-local)", "No",  "Indirect", "No", "Partial"],
-        ["FedRep [7]",          "2023", "Yes (heads)", "No",  "Indirect", "No", "No"],
-        ["FedDyn [2, 27]",      "2023", "Yes (dynamic reg.)", "No",  "Yes", "No", "No"],
-        ["FedDisco [37]",       "2023", "Yes (label-disc.)", "No",  "Indirect", "No", "No"],
-        ["FedHeal [6]",         "2023", "Yes (medical)", "No",  "Yes", "Partial", "Yes"],
-        ["Sheller et al. [30]", "2022", "Yes (medical)", "No",  "No",  "No", "Yes"],
-        ["DP-FedAvg [1, 38]",   "2022", "No",  "No",  "Yes", "No", "Partial"],
-        ["FedNoiL [33]",        "2024", "No",  "Yes (label noise)",  "No", "No", "No"],
-        ["Auto-FedRL [9]",      "2024", "Yes (HP search)",  "No",  "Yes",  "No", "Yes"],
-        ["SCAFFOLD-rev. [15]",  "2024", "Yes (control var.)", "No",  "Yes", "No", "No"],
-        ["PerFedMask [21]",     "2024", "Yes (per-client mask)", "No",  "Indirect", "No", "Yes"],
-        ["Khan et al. [17]",    "2024", "No",  "No",  "Yes (DP-CXR)", "No", "Yes"],
-        ["FedDyn++ [27]",       "2024", "Yes (dynamic reg.)", "No",  "Yes", "No", "No"],
-        ["Zhao et al. [41]",    "2025", "No",  "No",  "Yes (ε sweep)", "Partial", "Yes"],
-        ["Calib-FL [40]",       "2026", "Partial",  "No",  "Indirect",  "Yes (CDS)", "Yes"],
-        ["AHA-Fed (ours)",      "2026", "Yes (volume + distance)", "Yes (loss-quality)", "Yes (DP-SGD/Opacus)", "Yes (ECE)", "Yes (3 real corpora)"],
+        ["Method", "Yr", "Het.", "Noise", "DP-SGD", "Cal.", "Med."],
+        ["FedAvg [23]",         "22", "\u2013", "\u2013", "~", "\u2013", "\u2013"],
+        ["FedProx [18]",        "22", "P", "\u2013", "~", "\u2013", "\u2013"],
+        ["FedBN [19]",          "23", "P", "\u2013", "~", "\u2013", "P"],
+        ["FedRep [7]",          "23", "Y", "\u2013", "~", "\u2013", "\u2013"],
+        ["FedDyn [2, 27]",      "23", "Y", "\u2013", "Y", "\u2013", "\u2013"],
+        ["FedDisco [37]",       "23", "Y", "\u2013", "~", "\u2013", "\u2013"],
+        ["FedHeal [6]",         "23", "Y", "\u2013", "Y", "P", "Y"],
+        ["Sheller et al. [30]", "22", "Y", "\u2013", "\u2013", "\u2013", "Y"],
+        ["DP-FedAvg [1, 38]",   "22", "\u2013", "\u2013", "Y", "\u2013", "P"],
+        ["FedNoiL [33]",        "24", "\u2013", "Y", "\u2013", "\u2013", "\u2013"],
+        ["Auto-FedRL [9]",      "24", "Y", "\u2013", "Y", "\u2013", "Y"],
+        ["SCAFFOLD-rev. [15]",  "24", "Y", "\u2013", "Y", "\u2013", "\u2013"],
+        ["PerFedMask [21]",     "24", "Y", "\u2013", "~", "\u2013", "Y"],
+        ["Khan et al. [17]",    "24", "\u2013", "\u2013", "Y", "\u2013", "Y"],
+        ["FedDyn++ [27]",       "24", "Y", "\u2013", "Y", "\u2013", "\u2013"],
+        ["Zhao et al. [41]",    "25", "\u2013", "\u2013", "Y", "P", "Y"],
+        ["Calib-FL [40]",       "26", "P", "\u2013", "~", "Y", "Y"],
+        ["AHA-Fed (ours)",      "26", "Y", "Y", "Y", "Y", "Y"],
     ]
     add_table_caption(doc,
-        "Table 1: Comparison of 17 recent federated-learning methods (2022–2026)."
+        "Table 1: Seventeen recent federated-learning methods, 2022 to "
+        "2026, against the four capabilities this paper combines. "
+        "Columns: heterogeneity-aware, client-noise-aware, "
+        "DP-SGD-ready, calibration-reporting, medical-imaging "
+        "tested. Y is yes, P partial, ~ indirect and – no. Only "
+        "AHA-Fed carries all five."
     )
     make_table(doc, table_data,
                highlight_row_pred=lambda i, row: row[0].startswith("AHA-Fed"),
@@ -950,7 +954,7 @@ def build() -> None:
 
     add_heading(doc, "3.1 Problem setting", level=2)
     add_paragraph(doc,
-        "Let K hospitals each hold a private dataset 𝒟_k with n_k samples "
+        "Let K hospitals each hold a private dataset D_k with n_k samples "
         "drawn from a center-specific distribution P_k(x, y). Centers differ "
         "in label prior π_k = P_k(y), input distribution P_k(x | y), and "
         "label-noise process. The federated objective is the weighted "
@@ -1534,7 +1538,7 @@ def build() -> None:
         ["FedProx [18]",   "0.673", "0.946", "0.121 ± 0.025", "19.9%", "0.037"],
         ["FedBN [19]",     "0.692", "0.949", "0.135 ± 0.025", "28.3%", "0.014"],
         ["FedDisco [37]",  "0.681", "0.946", "0.139 ± 0.030", "30.6%", "0.004"],
-        ["AHA-Fed (ours)", "0.701", "0.949", "0.097 ± 0.018", ",", ","],
+        ["AHA-Fed (ours)", "0.701", "0.949", "0.097 ± 0.018", "—", "—"],
     ]
     add_table_caption(doc,
         "Table 3: PathMNIST across five aggregators, ten seeds. The "
@@ -1672,7 +1676,7 @@ def build() -> None:
         ["β = 8, γ = 1", "test split (invalid)", "0.123 ± 0.056", "Yes; but not a valid protocol"],
         ["β = 0, γ = 2", "validation split", "0.211 ± 0.017", "No"],
         ["β = 4, γ = 4", "carried from PathMNIST", "0.199 ± 0.020", "No"],
-        ["FedDisco (best baseline)", ",", "0.145 ± 0.043", ","],
+        ["FedDisco (best baseline)", "—", "0.145 ± 0.043", "—"],
     ]
     add_table_caption(doc,
         "Table 5: PneumoniaMNIST hyperparameter transfer. Only the "
@@ -1782,7 +1786,7 @@ def build() -> None:
         ["1 of 4", "0.085", "0.126", "1.49×", "0.010", "0.084 (uniform 0.250)"],
         ["2 of 4", "0.117", "0.178", "1.52×", "0.027", "0.247 (uniform 0.500)"],
         ["3 of 4", "0.197", "0.227", "1.15×", "0.131", "0.557 (uniform 0.750)"],
-        ["Pooled (n = 30)", "0.133", "0.177", "1.33×", "< 10⁻³", ","],
+        ["Pooled (n = 30)", "0.133", "0.177", "1.33×", "< 10⁻³", "—"],
     ]
     add_table_caption(doc,
         "Table 7: PathMNIST with an increasing number of corrupted "
@@ -2084,8 +2088,8 @@ def build() -> None:
 
     dp_data = [
         ["Configuration", "ε", "Aggregator", "Accuracy", "AUROC", "ECE"],
-        ["300 img/client, 15 rd", "1.0",  "FedAvg",  "0.082", ",", ","],
-        ["300 img/client, 15 rd", "1.0",  "AHA-Fed", "0.084", ",", ","],
+        ["300 img/client, 15 rd", "1.0",  "FedAvg",  "0.082", "—", "—"],
+        ["300 img/client, 15 rd", "1.0",  "AHA-Fed", "0.084", "—", "—"],
         ["1,000 img/client, 25 rd", "1.0",  "FedAvg",  "0.481", "0.857", "0.215"],
         ["1,000 img/client, 25 rd", "1.0",  "AHA-Fed", "0.470", "0.858", "0.194"],
         ["1,000 img/client, 25 rd", "10.0", "FedAvg",  "0.484", "0.869", "0.203"],
@@ -2250,7 +2254,7 @@ def build() -> None:
         ["Volume only (= FedAvg)", "1", "0", "0", "0.119 ± 0.019", "+19.1%", "0.020"],
         ["Distance only",          "1", "4", "0", "0.130 ± 0.019", "+25.7%", "0.010"],
         ["Quality only",           "1", "0", "4", "0.083 ± 0.018", "−16.0%", "0.004"],
-        ["Full AHA-Fed",           "1", "4", "4", "0.097 ± 0.018", ",", ","],
+        ["Full AHA-Fed",           "1", "4", "4", "0.097 ± 0.018", "—", "—"],
     ]
     add_table_caption(doc,
         "Table 10: Ablation of the AHA-Fed terms on PathMNIST, ten seeds. "
