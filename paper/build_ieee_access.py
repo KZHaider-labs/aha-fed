@@ -87,7 +87,9 @@ CORRESPONDING = ("Corresponding author: Farhan Aadil "
                  "(e-mail: farhan.aadil@sivas.edu.tr).")
 # No external funding to declare; the template's support-acknowledgement
 # paragraph is therefore omitted rather than left as a placeholder.
-FUNDING = None
+# Access expects the support-information footnote present even when
+# there is nothing to declare.
+FUNDING = "This work received no specific grant from any funding agency."
 
 
 W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
@@ -188,9 +190,28 @@ def strip_number(text: str) -> str:
     return re.sub(r"^\d+(\.\d+)*\.?\s+", "", text).strip()
 
 
+_first_h1 = [True]
+_after_h1 = [False]
+
+
 def heading(doc: Document, text: str, level: int = 1):
     """Access sets headings in uppercase and numbers them via the style."""
-    names = H1_STYLES if level == 1 else H2_STYLES
+    if level == 1:
+        if _first_h1[0]:
+            # INTRODUCTION sits directly under the index terms, so the
+            # template uses the no-space variant for it and the spaced one
+            # thereafter.
+            names = ["H1_List (No Space)"] + H1_STYLES
+            _first_h1[0] = False
+        else:
+            names = H1_STYLES
+        _after_h1[0] = True
+    else:
+        # The first subsection of a section sits tight under its heading;
+        # later ones follow a body paragraph and carry space above.
+        names = (["H2_First"] + H2_STYLES if _after_h1[0]
+                 else ["H2_Cont"] + H2_STYLES)
+        _after_h1[0] = False
     style = first_style(doc, names)
     body = strip_number(text)
     body = body.upper() if level == 1 else body.upper()
@@ -221,7 +242,10 @@ def figure(doc: Document, name: str, caption: str,
                   lambda m: f"FIGURE {m.group(1)}. ", caption)
     # a figure caption may cite a table, which follows the roman titles
     body = romanise_refs(body)
-    para(doc, body, style=cap_style, align=WD_ALIGN_PARAGRAPH.LEFT, size=8)
+    # Fig Caption carries its own alignment and size in the template.
+    para(doc, body, style=cap_style,
+         align=None if cap_style else WD_ALIGN_PARAGRAPH.LEFT,
+         size=None if cap_style else 8)
 
 
 ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X",
@@ -242,8 +266,9 @@ def equation(doc: Document, name: str, label: str,
     eq_style = first_style(doc, ["Equation"])
     if eq_style:
         p.style = doc.styles[eq_style]
-    else:
-        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    # the template centres equations; set it explicitly since the style's
+    # alignment does not always survive being applied to a new paragraph
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.add_run().add_picture(str(path), width=Inches(width_in))
     if label:
         p.add_run(f"\t{label}")
@@ -256,7 +281,7 @@ def table(doc: Document, rows: list[list[str]], caption: str):
     title_style = "Table Title" if style_or_none(doc, "Table Title") else None
     para(doc, f"TABLE {numeral}", style=title_style,
          size=None if title_style else 8,
-         align=WD_ALIGN_PARAGRAPH.CENTER)
+         align=None if title_style else WD_ALIGN_PARAGRAPH.CENTER)
 
     # The extracted caption already reads "Table 3: ..."; keep only the text.
     # A caption may also cite another table ("the same convention as
@@ -268,7 +293,7 @@ def table(doc: Document, rows: list[list[str]], caption: str):
     cap_style = first_style(doc, ["Table Title", "Table Caption"])
     para(doc, body.upper() if len(body) < 60 else body,
          style=cap_style, size=None if cap_style else 8,
-         align=WD_ALIGN_PARAGRAPH.CENTER)
+         align=None if cap_style else WD_ALIGN_PARAGRAPH.CENTER)
     t = doc.add_table(rows=len(rows), cols=len(rows[0]))
     if style_or_none(doc, "Normal Table") is not None:
         t.style = doc.styles["Normal Table"]
@@ -311,15 +336,19 @@ def build(template: Path, out: Path) -> None:
 
     au_style = "AU" if style_or_none(doc, "AU") else None
     para(doc, AUTHORS, style=au_style, size=None if au_style else 10)
-    # the template sets the first affiliation tight to the author line
-    pi_first = first_style(doc, ["PI_No Space", "PI"])
-    pi_rest = first_style(doc, ["PI", "PI_No Space"])
+    # The template runs every affiliation but the last tight against the
+    # one above (PI_No Space) and gives the last, plus the corresponding
+    # line, the spaced PI style.
+    pi_tight = first_style(doc, ["PI_No Space", "PI"])
+    pi_spaced = first_style(doc, ["PI", "PI_No Space"])
+    last = len(AFFILIATIONS) - 1
     for i, aff in enumerate(AFFILIATIONS):
-        st = pi_first if i == 0 else pi_rest
+        st = pi_spaced if i == last else pi_tight
         para(doc, aff, style=st, size=None if st else 8)
-    para(doc, CORRESPONDING, style=pi_rest, size=None if pi_rest else 8)
+    para(doc, CORRESPONDING, style=pi_spaced, size=None if pi_spaced else 8)
     if FUNDING:
-        para(doc, FUNDING, size=8)
+        fn_style = first_style(doc, ["footnote text", "Footnote Text"])
+        para(doc, FUNDING, style=fn_style, size=None if fn_style else 8)
 
     abs_style = "Abstract" if style_or_none(doc, "Abstract") else None
     p = doc.add_paragraph()
