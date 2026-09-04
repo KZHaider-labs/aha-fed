@@ -144,6 +144,31 @@ def style_or_none(doc: Document, name: str):
         return None
 
 
+def fix_page_numbers(doc):
+    """Replace the template's literal page numbers with PAGE fields.
+
+    The Access template ships sample footers reading "1" and "8". Those
+    are plain text, so every page of the body renders as page 8. Word
+    only numbers pages when the footer holds a PAGE field, so the digit
+    run is swapped for one.
+    """
+    for sec in doc.sections:
+        for para in sec.footer.paragraphs:
+            for run in para.runs:
+                if not run.text.strip().isdigit():
+                    continue
+                run.text = ""
+                begin = OxmlElement("w:fldChar")
+                begin.set(qn("w:fldCharType"), "begin")
+                instr = OxmlElement("w:instrText")
+                instr.set(qn("xml:space"), "preserve")
+                instr.text = " PAGE "
+                end = OxmlElement("w:fldChar")
+                end.set(qn("w:fldCharType"), "end")
+                for el in (begin, instr, end):
+                    run._r.append(el)
+
+
 def para(doc: Document, text: str, style: str | None = None,
          align=None, size: float | None = None, bold: bool = False,
          italic: bool = False, inline_math: bool = False):
@@ -618,8 +643,14 @@ def build(template: Path, out: Path) -> None:
             algorithm(doc, item[1][0], item[1][1])
         elif kind == "ref":
             ref_style = first_style(doc, ["REF_Txt", "References", "Ref"])
-            para(doc, item[1], style=ref_style,
-                 size=None if ref_style else 8)
+            rp = para(doc, item[1], style=ref_style,
+                      size=None if ref_style else 8)
+            # IEEE sets the bracketed number flush left with the entry
+            # text indented under it. The template style indents the
+            # whole block instead, which reads as a quotation.
+            pf = rp.paragraph_format
+            pf.left_indent = Inches(0.22)
+            pf.first_line_indent = Inches(-0.22)
 
     # Access closes with one short biography per author, in AU_Bios.
     # These are career details only the authors can supply; they are
@@ -632,6 +663,7 @@ def build(template: Path, out: Path) -> None:
                   f"affiliation; research interests.]",
              style=bio_style, size=8)
 
+    fix_page_numbers(doc)
     doc.save(str(out))
     words = sum(len(p.text.split()) for p in doc.paragraphs)
     print(f"Wrote: {out}")

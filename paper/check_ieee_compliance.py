@@ -442,6 +442,18 @@ def main(template: Path, paper: Path) -> int:
               "; ".join(f"{why}: {r[:48]}" for why, r in suspicious[:3])
               if suspicious else f"{len(refs)} entries")
 
+        # IEEE sets the bracketed number flush left with the entry text
+        # indented under it. The template style indents the whole block,
+        # which reads as a long quotation.
+        ref_paras = [p for p in doc.paragraphs
+                     if re.match(r"^\[\d+\] ", p.text.strip())]
+        if ref_paras:
+            hung = sum(1 for p in ref_paras
+                       if (p.paragraph_format.first_line_indent or 0) < 0)
+            check("reference entries use a hanging indent",
+                  hung == len(ref_paras),
+                  f"{hung}/{len(ref_paras)} hung")
+
         no_venue = [r for r in refs if not re.search(
             r"In Proceedings|Conference|Symposium|Workshop|Transactions"
             r"|Journal|IEEE|ACM|Nature|Science|Medical|Pattern|Radiology"
@@ -449,6 +461,17 @@ def main(template: Path, paper: Path) -> int:
             r"|Scientific|Lancet|Cell|PLOS|BMJ|Informatics|Access", r)]
         check("every reference names a venue", not no_venue,
               no_venue[0][:60] if no_venue else f"{len(refs)} entries")
+    # The template ships literal page numbers in its sample footers, so
+    # without a PAGE field every page of the body renders the same digit.
+    lit = 0
+    for sec in doc.sections:
+        for p in sec.footer.paragraphs:
+            xml = p._p.xml
+            if re.search(r">\s*\d+\s*<", xml) and "PAGE" not in xml:
+                lit += 1
+    check("footers number pages with a field, not literal text", not lit,
+          f"{lit} literal" if lit else "PAGE fields")
+
     print()
     if FAILURES:
         print(f"{len(FAILURES)} check(s) failed:")
