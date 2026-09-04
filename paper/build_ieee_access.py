@@ -344,11 +344,21 @@ def build(template: Path, out: Path) -> None:
     last = len(AFFILIATIONS) - 1
     for i, aff in enumerate(AFFILIATIONS):
         st = pi_spaced if i == last else pi_tight
-        para(doc, aff, style=st, size=None if st else 8)
-    para(doc, CORRESPONDING, style=pi_spaced, size=None if pi_spaced else 8)
+        ap = para(doc, aff, style=st, size=None if st else 8)
+        if i == last and ap is not None:
+            # PI carries 27pt after; the template zeroes it here so the gap
+            # falls before the abstract instead of before this line.
+            ap.paragraph_format.space_after = Pt(0)
+    cp = para(doc, CORRESPONDING, style=pi_spaced,
+              size=None if pi_spaced else 8)
+    if cp is not None:
+        cp.paragraph_format.space_before = Pt(5)
+        cp.paragraph_format.space_after = Pt(5)
     if FUNDING:
         fn_style = first_style(doc, ["footnote text", "Footnote Text"])
-        para(doc, FUNDING, style=fn_style, size=None if fn_style else 8)
+        fp = para(doc, FUNDING, style=fn_style, size=None if fn_style else 8)
+        if fp is not None:
+            fp.paragraph_format.space_after = Pt(27)
 
     abs_style = "Abstract" if style_or_none(doc, "Abstract") else None
     p = doc.add_paragraph()
