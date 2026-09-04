@@ -276,7 +276,7 @@ def build() -> None:
         "reduces to FedAvg as a strict special case, and we prove its "
         "weights are bounded away from zero, placing it within the "
         "standard FedAvg convergence rate. Evaluated against FedAvg, "
-        "FedProx, FedBN and FedDisco on real medical imaging only,"
+        "FedProx, FedBN and FedDisco on real medical imaging only, "
         "PathMNIST, PneumoniaMNIST and full-resolution NIH "
         "ChestX-ray14, AHA-Fed lowers Expected Calibration Error on "
         "PathMNIST to 0.097 ± 0.018 against 0.119–0.139 for the "
@@ -289,7 +289,8 @@ def build() -> None:
         "two of four sites are corrupted (1.52×) and decays as they approach "
         "a majority. Holding the corrupted fraction at 25% and per-client "
         "data at 1,000 images, the advantage is flat from four to "
-        "sixteen hospitals (1.48× to 1.42×, all significant); it decays "
+        "twenty-four hospitals (1.29× to 1.65×, no trend in K, all "
+        "significant); it decays "
         "only when a fixed corpus is divided among more clients, so the "
         "binding constraint is per-client sample size rather than "
         "federation size. On NIH "
@@ -434,7 +435,7 @@ def build() -> None:
                "three corpora by outcome, and a ratio below one means no "
                "benefit. (c) The limit is per-client data, not federation "
                "size: holding 1,000 images per hospital the advantage is "
-               "flat to sixteen sites, while dividing a fixed corpus among "
+               "flat to twenty-four sites, while dividing a fixed corpus among "
                "more hospitals erodes it.")
 
     add_heading(doc, "1.2 Three coupled obstacles in clinical FL", level=2)
@@ -1464,7 +1465,7 @@ def build() -> None:
         "the advantage (1.20× against 1.01×). The rest is an artifact of "
         "this sweep holding the corpus fixed, which shrinks per-client "
         "data as K grows: Section 5.9 shows the advantage flat from "
-        "four to sixteen hospitals once per-client data is held "
+        "four to twenty-four hospitals once per-client data is held "
         "constant instead. Second, a practitioner does "
         "not have to guess: the diagnostic of Section 5.7 is computed on "
         "the federation at hand, whatever its size, and reports directly "

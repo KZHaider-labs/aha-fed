@@ -48,7 +48,7 @@ ABSTRACT = (
     "signed-rank test. Under client label noise it reduces calibration "
     "error by a pooled factor of 1.40, with no separation when no client "
     "is corrupted. At a fixed 25% corrupted fraction with 1,000 images "
-    "per client the advantage is flat from four to sixteen hospitals, "
+    "per client the advantage is flat from four to twenty-four hospitals, "
     "decaying only when a fixed corpus is split further: the constraint "
     "is per-client sample size. On NIH ChestX-ray14, fourteen findings "
     "across four patient-disjoint centers, the pipeline transfers but the "
@@ -58,7 +58,7 @@ ABSTRACT = (
     "calibration advantage survives over ten seeds, at a small but "
     "significant accuracy cost. The negative results have a measurable "
     "cause we turn into a deployment test costing one round: a "
-    "signal-to-spread ratio that orders all three corpora by outcome,"
+    "signal-to-spread ratio that orders all three corpora by outcome, "
     "2.37 on PathMNIST, 1.15 on NIH, 0.46 on PneumoniaMNIST."
 )
 
@@ -157,7 +157,16 @@ def fix_page_numbers(doc):
             for run in para.runs:
                 if not run.text.strip().isdigit():
                     continue
+                # The template's first-page footer runs the volume text
+                # straight into the digit, so the field needs a tab in
+                # front of it or page one reads "VOLUME XX, 20171". The
+                # paragraph already carries a right tab stop; the number
+                # belongs there. Later footers put the digit first and
+                # already have their own tab.
                 run.text = ""
+                if para.text.strip() and not para.text.startswith("	"):
+                    tab = OxmlElement("w:tab")
+                    run._r.append(tab)
                 begin = OxmlElement("w:fldChar")
                 begin.set(qn("w:fldCharType"), "begin")
                 instr = OxmlElement("w:instrText")

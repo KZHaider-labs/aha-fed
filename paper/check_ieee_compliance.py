@@ -461,6 +461,21 @@ def main(template: Path, paper: Path) -> int:
             r"|Scientific|Lancet|Cell|PLOS|BMJ|Informatics|Access", r)]
         check("every reference names a venue", not no_venue,
               no_venue[0][:60] if no_venue else f"{len(refs)} entries")
+    # Building prose by concatenating string literals loses the space
+    # whenever a fragment ends in punctuation, giving "only,PathMNIST".
+    # Digit groups (1,000) and URLs are legitimate.
+    jammed = []
+    for t in texts:
+        # a letter then punctuation then a letter or digit; "1,000"
+        # is a digit on both sides and so never matches
+        for m in re.finditer(r"[a-z][,;](?=[A-Za-z0-9])", t):
+            frag = t[max(0, m.start() - 26):m.end() + 20]
+            if "//" in frag or "http" in frag:
+                continue
+            jammed.append(frag.strip())
+    check("no space lost where prose fragments were joined", not jammed,
+          f"{len(jammed)}: {jammed[0][:46]}" if jammed else "clean")
+
     # The template ships literal page numbers in its sample footers, so
     # without a PAGE field every page of the body renders the same digit.
     lit = 0
