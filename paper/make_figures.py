@@ -232,7 +232,7 @@ def fig_architecture():
     from matplotlib.patches import FancyBboxPatch as _FBP, Circle
     import matplotlib.patheffects as pe
 
-    fig, ax = plt.subplots(figsize=(12, 5.9))
+    fig, ax = plt.subplots(figsize=(12, 4.6))
     ax.set_xlim(0, 12.4)
     ax.set_ylim(-0.3, 7.4)
     ax.axis("off")
@@ -548,14 +548,6 @@ def fig_aha_concept():
     ax.add_patch(FancyArrowPatch((9.2, 2.75), (10.0, 2.75),
                                  arrowstyle="->", mutation_scale=14,
                                  color="#444", linewidth=1.5))
-
-    # bottom aggregation line
-    ax.text(6.0, 0.45,
-            r"Aggregation: $\;\theta^{\,t+1}=\sum_{k=1}^{K}w_k\,\theta_k^{\,t+1}$",
-            ha="center", fontsize=12, color="#1f3a5f")
-    ax.text(6.0, 0.0,
-            r"Reduces to FedAvg when $\beta=\gamma=0$ and $\alpha=1$",
-            ha="center", fontsize=9.5, style="italic", color="#666")
 
     plt.savefig(FIGS / "fig_aha_concept.png")
     plt.close()

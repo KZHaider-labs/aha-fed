@@ -69,20 +69,10 @@ def render():
         "savefig.facecolor": "white",
     })
 
-    fig, ax = plt.subplots(figsize=(15.5, 11.0))
+    fig, ax = plt.subplots(figsize=(12.5, 10.2))
     ax.set_xlim(0, 16)
     ax.set_ylim(0, 12)
     ax.axis("off")
-
-    # ===== Title =====
-    ax.text(8.0, 11.55,
-            "AHA-Fed System Architecture: Per-Round Training Pipeline",
-            ha="center", va="center", fontsize=14.5, fontweight="bold",
-            color=SERVER_EDGE)
-    ax.text(8.0, 11.15,
-            "Federated medical-imaging with adaptive heterogeneity-aware aggregation and per-client DP-SGD",
-            ha="center", va="center", fontsize=10.5, style="italic",
-            color="#444")
 
     # ============================================================
     # SERVER LAYER (top)
@@ -191,19 +181,22 @@ def render():
     client_y, client_h = 1.85, 5.0
     centers = [
         (0.4,  CLEAN_FILL, CLEAN_EDGE,
-         "Hospital A",  "Frontal CXR\n$n_A\\approx 200$",
+         "Hospital A",  "clean labels\n$n_A\\approx 200$",
          r"$\rho=0.0$ · clean labels"),
-        (4.30, CLEAN_FILL, CLEAN_EDGE,
-         "Hospital B",  "Lateral CXR\n$n_B\\approx 200$",
-         r"$\rho=0.0$ · clean labels"),
-        (8.20, CLEAN_FILL, CLEAN_EDGE,
-         "Hospital C",  "High prevalence\n$n_C\\approx 200$",
-         r"$\rho=0.0$ · clean labels"),
-        (12.10, NOISY_FILL, NOISY_EDGE,
-         "Hospital D",  "Low-quality labels\n$n_D\\approx 200$",
+        (8.60, NOISY_FILL, NOISY_EDGE,
+         "Hospital D",  "low-quality labels\n$n_D\\approx 200$",
          r"$\rho=0.5$ · 50% label noise"),
     ]
-    cw = 3.50
+    cw = 7.00
+
+    # B and C are identical to A; an ellipsis stands for them rather than
+    # drawing the same pipeline two more times.
+    ax.text(8.10, client_y + client_h / 2, "\u00b7 \u00b7 \u00b7",
+            ha="center", va="center", fontsize=15,
+            color="#8a8a8a", linespacing=0.75)
+    ax.text(8.10, client_y + client_h + 0.62,
+            "B, C as A", ha="center", va="center",
+            fontsize=9, style="italic", color="#6b6b6b")
 
     for x, fill, edge, name, body, badge in centers:
         # Outer hospital box
@@ -279,13 +272,13 @@ def render():
     # Step 1: server-broadcast (bottom-left of server)
     step_circle(ax, 1.40, server_y + 0.20, 1, STEP_SERVER)
     # Step 2: hospital receives θ (above first hospital, on downlink)
-    step_circle(ax, 1.65, client_y + client_h - 0.20, 2, STEP_CLIENT)
+    step_circle(ax, 1.65, client_y + client_h + 0.16, 2, STEP_CLIENT)
     # Step 3: DP-SGD training inside Hospital A (centre of DP-SGD block)
     step_circle(ax, 0.90, client_y + 1.95, 3, STEP_CLIENT)
     # Step 4: compute q_k inside Hospital A
     step_circle(ax, 0.90, client_y + 1.20, 4, STEP_CLIENT)
     # Step 5: uplink (right of Hospital A, on uplink arrow start)
-    step_circle(ax, 2.70, client_y + client_h - 0.20, 5, STEP_LINK)
+    step_circle(ax, 2.86, client_y + client_h + 0.16, 5, STEP_LINK)
     # Step 6: Aggregator block centre (server side)
     step_circle(ax, ax_x + 0.35, inner_y + inner_h - 0.30, 6, STEP_SERVER)
 
@@ -303,10 +296,10 @@ def render():
     descs = [
         (1, STEP_SERVER, "Server broadcasts $\\theta^{\\,t}$"),
         (2, STEP_CLIENT, "Hospital receives $\\theta^{\\,t}$"),
-        (3, STEP_CLIENT, "Local DP-SGD for $E$ epochs"),
-        (4, STEP_CLIENT, "Compute $q_k=1/(1+\\mathcal{L}_k)$"),
-        (5, STEP_LINK,   "Uplink $(\\Delta\\theta_k,\\,q_k,\\,n_k)$"),
-        (6, STEP_SERVER, "Server applies AHA-Fed softmax"),
+        (3, STEP_CLIENT, "Local DP-SGD"),
+        (4, STEP_CLIENT, "Compute $q_k$"),
+        (5, STEP_LINK,   "Uplink update"),
+        (6, STEP_SERVER, "AHA-Fed softmax"),
     ]
     inner_x = 2.10
     inner_w_strip = 13.40
