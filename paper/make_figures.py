@@ -141,39 +141,87 @@ def make_equations():
 #                         FIGURE 0 — INTRO MOTIVATION
 # =====================================================================
 def fig_motivation():
-    fig, ax = plt.subplots(figsize=(11, 4.6))
-    ax.set_xlim(0, 12)
-    ax.set_ylim(0, 5)
-    ax.axis("off")
+    """Figure 1: what the paper found, sized for one IEEE column.
 
-    title = ax.text(6.0, 4.55,
-                    "Three coupled obstacles in multi-center medical FL",
-                    ha="center", va="center", fontsize=13, fontweight="bold",
-                    color="#1f3a5f")
+    Three panels stacked vertically rather than side by side. At 3.3 in
+    wide a 1x3 row leaves each panel about an inch across and the axis
+    labels unreadable; stacking gives each the full column width.
+    """
+    NAVY, RED, GREY = "#1f3a5f", "#a11d21", "#6b6b6b"
+    fig, axes = plt.subplots(3, 1, figsize=(3.3, 5.4))
+    plt.subplots_adjust(hspace=0.62, left=0.19, right=0.965,
+                        top=0.955, bottom=0.072)
 
-    panels = [
-        (0.4, 0.4, 3.7, 3.7, "#cfe2f3", "#1f3a5f",
-         "Statistical\nHeterogeneity",
-         "• Different label priors\n• Scanner / vendor shift\n• Protocol variability\n→ Volume-weighted\n   averaging diverges"),
-        (4.3, 0.4, 3.7, 3.7, "#fdebd0", "#7a4f00",
-         "Client-side\nLabel Noise",
-         "• Junior vs senior raters\n• Rule-based extraction\n• Inter-rater disagreement\n→ Noisy hospital silently\n   poisons the global model"),
-        (8.2, 0.4, 3.7, 3.7, "#fadbd8", "#7a1f1f",
-         "Privacy\nRequirements",
-         "• HIPAA / GDPR / DPA\n• Gradient inversion risk\n• (ε, δ) clinical audit\n→ Need formal DP-SGD\n   composable with FL"),
-    ]
-    for x, y, w, h, fc, ec, head, body in panels:
-        ax.add_patch(FancyBboxPatch((x, y), w, h,
-                                    boxstyle="round,pad=0.05",
-                                    edgecolor=ec, linewidth=1.5,
-                                    facecolor=fc))
-        ax.text(x + w / 2, y + h - 0.55, head,
-                ha="center", va="center", fontsize=12.5,
-                fontweight="bold", color=ec)
-        ax.text(x + 0.25, y + h - 1.4, body,
-                ha="left", va="top", fontsize=10.5, color="#1f1f1f")
+    # ---- (a) the effect: ten paired seeds on PathMNIST -----------------
+    ax = axes[0]
+    m_aha, s_aha = 0.0965, 0.0184
+    m_avg, s_avg = 0.1193, 0.0194
+    xs = [0, 1]
+    ax.bar(xs, [m_avg, m_aha], width=0.5,
+           color=["#c8c8c8", NAVY], edgecolor="black", linewidth=0.6, zorder=3)
+    ax.errorbar(xs, [m_avg, m_aha], yerr=[s_avg, s_aha], fmt="none",
+                ecolor="black", elinewidth=0.8, capsize=3, zorder=4)
+    ax.set_xticks(xs)
+    ax.set_xticklabels(["FedAvg", "AHA-Fed"], fontsize=8)
+    ax.set_ylabel("Calibration error", fontsize=8)
+    ax.set_ylim(0, 0.175)
+    ax.tick_params(labelsize=7.5)
+    ax.text(0.5, 0.160, "1.47x lower, p < 1e-5", fontsize=7.5, color=NAVY,
+            ha="center", va="center")
+    ax.set_title("(a) One corrupted site of four", fontsize=8.5, pad=4)
+    ax.grid(axis="y", linewidth=0.4, alpha=0.35, zorder=0)
+    ax.set_axisbelow(True)
 
-    plt.savefig(FIGS / "fig_motivation.png")
+    # ---- (b) the diagnostic predicts the outcome ----------------------
+    ax = axes[1]
+    diag = [0.46, 1.15, 2.37]
+    ratio = [0.87, 1.07, 1.47]
+    names = ["PneumoniaMNIST", "NIH ChestX-ray14", "PathMNIST"]
+    offs = [(9, -11), (10, 7), (-6, 9)]
+    align = ["left", "left", "right"]
+    ax.axhline(1.0, color=GREY, linewidth=0.7, linestyle=":", zorder=1)
+    ax.axvline(1.0, color=GREY, linewidth=0.7, linestyle=":", zorder=1)
+    ax.plot(diag, ratio, "-", color=NAVY, linewidth=1.0, zorder=2)
+    ax.scatter(diag, ratio, s=42, color=[RED, "#e08214", NAVY],
+               edgecolor="black", linewidth=0.6, zorder=3)
+    for x, y, n, off, ha in zip(diag, ratio, names, offs, align):
+        ax.annotate(n, xy=(x, y), xytext=off, textcoords="offset points",
+                    fontsize=7, ha=ha)
+    ax.text(0.07, 1.62, "no benefit below 1.0", fontsize=7, color=GREY,
+            ha="left", va="top")
+    ax.set_xlabel("Diagnostic: signal / spread", fontsize=8)
+    ax.set_ylabel("ECE vs FedAvg", fontsize=8)
+    ax.set_xlim(0, 3.0)
+    ax.set_ylim(0.74, 1.70)
+    ax.tick_params(labelsize=7.5)
+    ax.set_title("(b) Predicted by one training round", fontsize=8.5, pad=4)
+    ax.grid(linewidth=0.4, alpha=0.3, zorder=0)
+    ax.set_axisbelow(True)
+
+    # ---- (c) the boundary --------------------------------------------
+    ax = axes[2]
+    K = [4, 8, 12, 16]
+    fixed = [1.46, 1.48, 1.42, 1.42]
+    shared = [1.46, 1.32, 1.20, 0.97]
+    ax.axhline(1.0, color=GREY, linewidth=0.7, linestyle=":", zorder=1)
+    ax.plot(K, fixed, "o-", color=NAVY, markersize=4, linewidth=1.2,
+            label="1,000 images per hospital", zorder=3)
+    ax.plot(K, shared, "s--", color=RED, markersize=3.8, linewidth=1.2,
+            label="one corpus, divided further", zorder=3)
+    ax.set_xlabel("Hospitals in the federation", fontsize=8)
+    ax.set_ylabel("ECE vs FedAvg", fontsize=8)
+    ax.set_xticks(K)
+    ax.set_ylim(0.82, 1.66)
+    ax.tick_params(labelsize=7.5)
+    ax.legend(fontsize=7, frameon=False, loc="lower left",
+              bbox_to_anchor=(0.0, 0.04), handlelength=1.8,
+              borderpad=0.2, labelspacing=0.3)
+    ax.set_title("(c) The limit is per-client data", fontsize=8.5, pad=4)
+    ax.grid(linewidth=0.4, alpha=0.3, zorder=0)
+    ax.set_axisbelow(True)
+
+    plt.savefig(FIGS / "fig_motivation.png", dpi=400,
+                bbox_inches="tight", facecolor="white")
     plt.close()
 
 

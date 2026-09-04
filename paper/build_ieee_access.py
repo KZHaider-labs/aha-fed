@@ -263,9 +263,9 @@ def figure(doc: Document, name: str, caption: str,
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.add_run().add_picture(str(path), width=Inches(width_in))
     cap_style = first_style(doc, ["Fig Caption", "Figure Caption"])
-    # IEEE sets captions as "FIGURE 1. Text", not "Figure 1: Text".
-    body = re.sub(r"^Figure\s+(\d+)\s*[:.]\s*",
-                  lambda m: f"FIGURE {m.group(1)}. ", caption)
+    # The template's Fig Caption style numbers captions itself, so the
+    # label is dropped rather than repeated as "FIGURE 1. FIGURE 1.".
+    body = re.sub(r"^Figure\s+\d+\s*[:.]\s*", "", caption)
     # a figure caption may cite a table, which follows the roman titles
     body = romanise_refs(body)
     # Fig Caption carries its own alignment and size in the template.

@@ -372,8 +372,18 @@ def build() -> None:
                       first_line_indent=0.5, space_after=6)
 
     add_figure(doc, FIGS / "fig_motivation.png",
-               "Figure 1: Three coupled obstacles facing federated medical-"
-               "imaging deployments.")
+               "Figure 1: The paper in three panels. (a) On PathMNIST with "
+               "one of four hospitals corrupted, quality-aware weighting "
+               "lowers calibration error from 0.119 to 0.097 over ten seeds "
+               "(bars are means, whiskers one standard deviation). (b) The "
+               "benefit is predicted by a diagnostic computable from a "
+               "single training round: the ratio between the corruption "
+               "signal and the spread among healthy clients orders all "
+               "three corpora by outcome, and a ratio below one means no "
+               "benefit. (c) The limit is per-client data, not federation "
+               "size: holding 1,000 images per hospital the advantage is "
+               "flat to sixteen sites, while dividing a fixed corpus among "
+               "more hospitals erodes it.")
 
     add_heading(doc, "1.2 Three coupled obstacles in clinical FL", level=2)
 

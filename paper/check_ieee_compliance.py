@@ -101,12 +101,16 @@ def main(template: Path, paper: Path) -> int:
           f"{len(titles)} tables"
           + ("" if titles == want else f"; got {titles[:4]}"))
 
-    caps = [p.text for p in doc.paragraphs
-            if p.style.name in ("Fig Caption", "Figure Caption")]
-    figpat = re.compile(r"^FIGURE \d+\.\s")
-    check("figure captions use the FIGURE N. form",
-          bool(caps) and all(figpat.match(c) for c in caps),
-          f"{len(caps)} captions")
+    caps = [p.text.strip() for p in doc.paragraphs
+            if p.style.name in ("Fig Caption", "Figure Caption")
+            and p.text.strip()]
+    # The template's Fig Caption style supplies "FIGURE n." itself, so a
+    # prefix in the text would print twice.
+    dup = [c[:40] for c in caps if re.match(r"^FIGURE\s+\d+\s*[.:]", c, re.I)]
+    check("figure captions are not double-numbered",
+          bool(caps) and not dup,
+          f"{len(caps)} captions"
+          + (f"; {len(dup)} carry their own prefix" if dup else ""))
 
     # A silent drop leaves the methodology reading as prose with gaps
     # where the formulas belong. The source document carries equations as
