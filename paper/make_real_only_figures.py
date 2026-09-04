@@ -82,6 +82,19 @@ def ms(vals: list[float]) -> tuple[float, float]:
 
 
 def save(fig, name: str) -> None:
+    # Stacked single-column panels need small type and real vertical
+    # space between them, or the titles collide with the axis below.
+    for ax in fig.get_axes():
+        ax.tick_params(labelsize=7)
+        ax.xaxis.label.set_size(8)
+        ax.yaxis.label.set_size(8)
+        if ax.get_title():
+            ax.set_title(ax.get_title(), fontsize=8.5)
+        leg = ax.get_legend()
+        if leg is not None:
+            for t in leg.get_texts():
+                t.set_fontsize(7)
+    fig.subplots_adjust(hspace=0.55)
     fig.savefig(FIGS / name, dpi=400, bbox_inches="tight", facecolor="white")
     plt.close(fig)
     print(f"  wrote {name}")
@@ -133,8 +146,6 @@ def fig_dataset() -> None:
     ax.set_xticks(range(ncls))
     ax.legend(frameon=False, fontsize=8)
 
-    fig.suptitle("Real PathMNIST federation (MedMNIST v2) — samples and per-hospital label priors",
-                 fontsize=12, y=1.02)
     save(fig, "fig_dataset.png")
 
 
@@ -145,7 +156,7 @@ def fig_convergence() -> None:
         "AHA-Fed": ("real_noise_aha_n0.5_s42.json", C_AHA),
         "FedAvg": ("real_noise_fedavg_n0.5_s42.json", C_AVG),
     }
-    fig, axes = plt.subplots(1, 2, figsize=(11, 4))
+    fig, axes = plt.subplots(2, 1, figsize=(3.4, 4.4))
     for label, (fname, color) in runs.items():
         h = hist(fname)
         if not h:
@@ -162,8 +173,6 @@ def fig_convergence() -> None:
     axes[0].set_title("Accuracy")
     axes[1].set_title("Calibration error (lower is better)")
     axes[0].legend(frameon=False)
-    fig.suptitle("PathMNIST, 4 hospitals, 50% label noise at one client (seed 42)",
-                 fontsize=12, y=1.02)
     save(fig, "fig_convergence.png")
 
 
@@ -174,7 +183,7 @@ def fig_final_bars() -> None:
     names = ["AHA-Fed", "FedAvg", "FedProx", "FedBN", "FedDisco"]
     colors = [C_AHA, C_AVG] + C_OTHER
 
-    fig, axes = plt.subplots(1, 3, figsize=(12, 3.9))
+    fig, axes = plt.subplots(3, 1, figsize=(3.4, 6.0))
     for ax, key, title, better in (
         (axes[0], "ece", "ECE (lower is better)", "lower"),
         (axes[1], "accuracy", "Accuracy", "higher"),
@@ -192,8 +201,6 @@ def fig_final_bars() -> None:
         finite = [v for v in means if v == v]
         if finite and better == "higher":
             ax.set_ylim(min(finite) * 0.9, max(finite) * 1.06)
-    fig.suptitle("PneumoniaMNIST (chest radiography), 4 hospitals, mean ± s.d. over 3 seeds",
-                 fontsize=12, y=1.04)
     save(fig, "fig_final_bars.png")
 
 
@@ -201,7 +208,7 @@ def fig_final_bars() -> None:
 def fig_noise_sweep() -> None:
     """Label-noise sweep on both real datasets, with seed spread shown."""
     rates = [0.0, 0.3, 0.5, 0.7]
-    fig, axes = plt.subplots(1, 2, figsize=(11, 4))
+    fig, axes = plt.subplots(2, 1, figsize=(3.4, 4.6))
 
     for label, tag, color in (("AHA-Fed", "aha", C_AHA), ("FedAvg", "fedavg", C_AVG)):
         mus, sds = [], []
@@ -217,21 +224,19 @@ def fig_noise_sweep() -> None:
         axes[1].plot([r * 100 for r in rates], vals, "s-", color=color,
                      label=label, lw=1.8, ms=5)
 
-    axes[0].set_title("PathMNIST — mean ± s.d. over 3 seeds")
-    axes[1].set_title("PneumoniaMNIST (chest radiography) — 1 seed")
+    axes[0].set_title("PathMNIST, mean ± s.d. over 10 seeds")
+    axes[1].set_title("PneumoniaMNIST chest radiography, 1 seed")
     for ax in axes:
         ax.set_xlabel("label noise at the corrupted client (%)")
         ax.set_ylabel("ECE")
         ax.legend(frameon=False)
-    fig.suptitle("Calibration under client label noise, real data",
-                 fontsize=12, y=1.02)
     save(fig, "fig_noise_sweep.png")
 
 
 # -------------------------------------------------------------- fig_het_scale
 def fig_het_scale() -> None:
     """Heterogeneity sweep and client-count scaling, both on PathMNIST."""
-    fig, axes = plt.subplots(1, 2, figsize=(11, 4))
+    fig, axes = plt.subplots(2, 1, figsize=(3.4, 4.6))
 
     levels = [0.0, 0.3, 0.5, 0.7, 0.9]
     for label, tag, color in (("AHA-Fed", "aha", C_AHA), ("FedAvg", "fedavg", C_AVG)):
@@ -257,7 +262,6 @@ def fig_het_scale() -> None:
 
     for ax in axes:
         ax.legend(frameon=False)
-    fig.suptitle("PathMNIST: heterogeneity and federation size", fontsize=12, y=1.02)
     save(fig, "fig_het_scale.png")
 
 

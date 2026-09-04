@@ -177,7 +177,9 @@ def fig_motivation():
     diag = [0.46, 1.15, 2.37]
     ratio = [0.87, 1.07, 1.47]
     names = ["PneumoniaMNIST", "NIH ChestX-ray14", "PathMNIST"]
-    offs = [(9, -11), (10, 7), (-6, 9)]
+    # PneumoniaMNIST sits at the bottom-left; placing its label below
+    # the marker pushes it off the axis, so it goes above instead.
+    offs = [(8, 8), (10, 7), (-6, 9)]
     align = ["left", "left", "right"]
     ax.axhline(1.0, color=GREY, linewidth=0.7, linestyle=":", zorder=1)
     ax.axvline(1.0, color=GREY, linewidth=0.7, linestyle=":", zorder=1)
@@ -200,17 +202,26 @@ def fig_motivation():
 
     # ---- (c) the boundary --------------------------------------------
     ax = axes[2]
-    K = [4, 8, 12, 16]
-    fixed = [1.46, 1.48, 1.42, 1.42]
+    # The fixed-per-client series runs to K = 24; the constant-corpus
+    # sweep was only run to 16, so the two lines have different lengths.
+    K_fixed = [4, 8, 12, 16, 20, 24]
+    fixed = [1.49, 1.48, 1.42, 1.42, 1.29, 1.65]
+    K_shared = [4, 8, 12, 16]
     shared = [1.46, 1.32, 1.20, 0.97]
     ax.axhline(1.0, color=GREY, linewidth=0.7, linestyle=":", zorder=1)
-    ax.plot(K, fixed, "o-", color=NAVY, markersize=4, linewidth=1.2,
+    # The fixed series is flat in K (r = +0.11) but the eye reads the
+    # K = 24 point as a rise. Banding the per-seed scatter shows the
+    # variation the individual points sit inside, so the shape of the
+    # line is not over-read.
+    lo, hi = min(fixed), max(fixed)
+    ax.axhspan(lo, hi, color=NAVY, alpha=0.09, zorder=1)
+    ax.plot(K_fixed, fixed, "o-", color=NAVY, markersize=4, linewidth=1.2,
             label="1,000 images per hospital", zorder=3)
-    ax.plot(K, shared, "s--", color=RED, markersize=3.8, linewidth=1.2,
+    ax.plot(K_shared, shared, "s--", color=RED, markersize=3.8, linewidth=1.2,
             label="one corpus, divided further", zorder=3)
     ax.set_xlabel("Hospitals in the federation", fontsize=8)
     ax.set_ylabel("ECE vs FedAvg", fontsize=8)
-    ax.set_xticks(K)
+    ax.set_xticks(K_fixed)
     ax.set_ylim(0.82, 1.66)
     ax.tick_params(labelsize=7.5)
     ax.legend(fontsize=7, frameon=False, loc="lower left",

@@ -414,7 +414,7 @@ def build() -> None:
         "model updates with a central aggregator. Federated training "
         "has been demonstrated at multi-institutional scale for COVID-19 "
         "outcome prediction across twenty centres [5], rare-cancer "
-        "boundary detection across fifty-five centres in six continents "
+        "boundary detection across seventy-one centres in six continents "
         "[26], multi-site image segmentation [21], multi-site brain MRI "
         "[29], and retinal disease classification, with predictive "
         "performance rivalling that of centralised training in many "
@@ -435,7 +435,8 @@ def build() -> None:
                "three corpora by outcome, and a ratio below one means no "
                "benefit. (c) The limit is per-client data, not federation "
                "size: holding 1,000 images per hospital the advantage is "
-               "flat to twenty-four sites, while dividing a fixed corpus among "
+               "flat to twenty-four sites (band spans the series; r = +0.11, "
+               "no trend in K), while dividing a fixed corpus among "
                "more hospitals erodes it.")
 
     add_heading(doc, "1.2 Three coupled obstacles in clinical FL", level=2)
@@ -785,16 +786,16 @@ def build() -> None:
         "FL retains a per-client component. FedRep [4] keeps a shared "
         "representation backbone and trains a per-client classifier "
         "head; pFedMe [6] uses Moreau envelopes to balance the "
-        "global model and per-client adaptation. Ditto [16] "
-        "introduces per-client binary masks that select which "
-        "parameters each client adapts. Auto-FedRL [9] learns the "
+        "global model and per-client adaptation. Ditto [16] casts "
+        "personalisation as multi-task learning, trading global "
+        "accuracy against per-client fairness. Auto-FedRL [9] learns the "
         "federation hyperparameters themselves automatically, "
         "reducing the burden of manual tuning across heterogeneous "
         "sites. Personalised FL is orthogonal to AHA-Fed: the "
         "AHA-Fed aggregation rule produces a single global model, "
         "and a personalised head can be trained on top of it "
         "without modification. We treat composing AHA-Fed with "
-        "FedRep / pFedMe / PerFedMask as future work in Section 7.",
+        "FedRep / pFedMe / Ditto as future work in Section 7.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     add_heading(doc, "2.3 Privacy, personalisation, and clinical deployment", level=2)
@@ -827,8 +828,8 @@ def build() -> None:
         "deployment. Our experiments in Section 5.11 are consistent "
         "with this finding: on our 9-class PathMNIST federation per-round "
         "DP-SGD at ε = 1.0 costs roughly a third of accuracy and eight "
-        "points of AUROC, and at three seeds we draw no comparative "
-        "conclusion between aggregators in the DP regime. This is "
+        "points of AUROC, while the calibration advantage survives over "
+        "ten seeds (0.194 against 0.215, p = 0.006). This is "
         "consistent with the post-"
         "processing immunity of differential privacy: the AHA-Fed "
         "aggregator is applied to (already-private) client updates, "
@@ -847,7 +848,7 @@ def build() -> None:
         "heterogeneity is moderate; this paper, more than any other, "
         "is responsible for the current confidence in FL among "
         "clinical collaborators. Pati et al. [26] scaled FL across "
-        "fifty-five centres in six continents for rare-cancer "
+        "seventy-one centres in six continents for rare-cancer "
         "boundary detection, the largest FL collaboration to date "
         "by site count, and a proof of feasibility for global "
         "federations. Dayan et al. [5] used FL to predict COVID-19 "
@@ -916,9 +917,9 @@ def build() -> None:
         "medical imaging, and logits calibration [39] addresses it and "
         "medical imaging; but none address all four. The methods "
         "closest in design to AHA-Fed are FedDisco [37] (which "
-        "shares the distance term but lacks quality), and FedNoiL "
+        "shares the distance term but lacks quality), and FedCorr "
         "[34] (which addresses noise but requires a multi-stage "
-        "estimates). Both fall short of jointly addressing all four "
+        "detection procedure). Both fall short of jointly addressing all four "
         "dimensions and we compare to FedDisco directly in Section "
         "5.6 as the natural empirical baseline against our key design "
         "choice.",
@@ -1146,7 +1147,7 @@ def build() -> None:
 
     add_heading(doc, "3.8 Algorithm", level=2)
     add_paragraph(doc,
-        "Figure 4 states the complete training loop. Each round the "
+        "Algorithm 1 states the complete training loop. Each round the "
         "server broadcasts the global model, every client trains "
         "locally and returns its update together with three scalars, "
         "and the server forms the softmax weights of Equation (5) and "
