@@ -55,7 +55,7 @@ ABSTRACT = (
     "calibration advantage survives over ten seeds, at a small but "
     "significant accuracy cost. The negative results have a measurable "
     "cause we turn into a deployment test costing one round: a "
-    "signal-to-spread ratio that orders all three corpora by outcome — "
+    "signal-to-spread ratio that orders all three corpora by outcome,"
     "2.37 on PathMNIST, 1.15 on NIH, 0.46 on PneumoniaMNIST."
 )
 
@@ -100,7 +100,7 @@ def strip_body(doc: Document):
 
     IEEE Access is one column for the title block, abstract and index terms,
     then two columns for the body. That split lives in a section break, which
-    a naive strip removes along with the paragraphs — leaving the title and
+    a naive strip removes along with the paragraphs, leaving the title and
     abstract laid out in two columns. Here the first section's properties are
     captured before clearing so the break can be reinstated.
 
@@ -175,7 +175,7 @@ def romanise_refs(text: str) -> str:
 
     The source document numbers them 1..10; the Access renderer emits
     TABLE I..X in the same order, so the mapping is positional. Figures
-    stay Arabic — Access uses FIGURE 1. for those.
+    stay Arabic, Access uses FIGURE 1. for those.
     """
     return re.sub(
         r"\bTable\s+(\d+)\b",
@@ -186,7 +186,7 @@ def romanise_refs(text: str) -> str:
 
 
 def strip_number(text: str) -> str:
-    """Drop a leading '3.' or '5.7' — Access numbers sections itself."""
+    """Drop a leading '3.' or '5.7', Access numbers sections itself."""
     return re.sub(r"^\d+(\.\d+)*\.?\s+", "", text).strip()
 
 

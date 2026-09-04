@@ -227,9 +227,9 @@ def build() -> None:
         "reduces to FedAvg as a strict special case, and we prove its "
         "weights are bounded away from zero, placing it within the "
         "standard FedAvg convergence rate. Evaluated against FedAvg, "
-        "FedProx, FedBN and FedDisco on real medical imaging only — "
+        "FedProx, FedBN and FedDisco on real medical imaging only,"
         "PathMNIST, PneumoniaMNIST and full-resolution NIH "
-        "ChestX-ray14 — AHA-Fed lowers Expected Calibration Error on "
+        "ChestX-ray14, AHA-Fed lowers Expected Calibration Error on "
         "PathMNIST to 0.097 ± 0.018 against 0.119–0.139 for the "
         "baselines over ten seeds, every margin significant under a "
         "paired Wilcoxon test (p = 0.004–0.037), while attaining the "
@@ -259,11 +259,11 @@ def build() -> None:
         "collapsed to chance, which we report because the difference is "
         "instructive. The negative result has a measurable cause we "
         "turn "
-        "into a deployment test — the quality term helps only when "
+        "into a deployment test, the quality term helps only when "
         "corruption shifts local loss further than ordinary differences "
         "between healthy sites do, computable from one training round. "
-        "The ratio orders all three corpora by outcome — 2.37 on "
-        "PathMNIST, 1.15 on NIH, 0.46 on PneumoniaMNIST — and the NIH "
+        "The ratio orders all three corpora by outcome, 2.37 on "
+        "PathMNIST, 1.15 on NIH, 0.46 on PneumoniaMNIST; and the NIH "
         "value was computed after that result was measured. "
         "AHA-Fed adds one scalar per client per round, so bandwidth "
         "matches FedAvg, and it composes with Opacus DP-SGD. The framework "
@@ -295,7 +295,7 @@ def build() -> None:
         "of their data quality are a standard response to unreliable "
         "annotation at one site. The literature reports them as "
         "improvements over volume weighting, but not the conditions under "
-        "which the improvement holds — which leaves a practitioner unable "
+        "which the improvement holds, which leaves a practitioner unable "
         "to tell in advance whether such a rule will help their federation "
         "or quietly cost them accuracy.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
@@ -334,7 +334,7 @@ def build() -> None:
         "classification, and pneumonia detection. The shift from "
         "hand-crafted features to learned representations has been "
         "accompanied by an order-of-magnitude growth in the size of "
-        "the training datasets that drive these models — modern "
+        "the training datasets that drive these models, modern "
         "chest-X-ray foundation models are now pre-trained on hundreds "
         "of thousands to millions of labelled studies [38, 18]. The "
         "availability of such corpora is, however, not the norm but the "
@@ -351,7 +351,7 @@ def build() -> None:
         "data-residency requirements. Even when consent and legal "
         "constraints permit a transfer, the operational cost of "
         "negotiating per-pair DUAs grows super-linearly with the number "
-        "of partners — a single multi-site collaboration can spend "
+        "of partners, a single multi-site collaboration can spend "
         "twelve to twenty-four months solely on data-sharing paperwork "
         "before any model is trained. Privacy-preserving collaborative "
         "learning has therefore moved from a research curiosity to an "
@@ -410,17 +410,17 @@ def build() -> None:
         "Volume-weighted aggregation under these conditions has a "
         "particularly worrying failure mode that is rarely highlighted "
         "in the FL literature. A single high-volume client with poor "
-        "labels — a small academic centre that contributes a "
+        "labels, a small academic centre that contributes a "
         "disproportionate fraction of the federation's data because of "
         "an enthusiastic principal investigator, but whose labels were "
-        "extracted by an outdated rule-based system — is allowed to "
+        "extracted by an outdated rule-based system, is allowed to "
         "drag the global model in its direction at every round. "
         "Existing robust aggregators address adjacent symptoms but "
         "not the underlying cause. FedProx [11] adds a proximal term "
         "that limits client drift; FedBN [12] keeps batch-normalisation "
         "parameters local; SCAFFOLD [19] introduces control variates "
         "that correct gradient drift. None of these methods evaluate "
-        "client quality at all — they treat every client as equally "
+        "client quality at all; they treat every client as equally "
         "trustworthy and merely smooth out the disagreement. A "
         "deployable aggregator must instead identify which clients "
         "are providing reliable signal and which are not, and adjust "
@@ -435,8 +435,8 @@ def build() -> None:
         "A second, equally serious failure of plain FedAvg involves "
         "the calibration of model confidences rather than their point "
         "predictions. Clinical decision-support systems consume model "
-        "probabilities — for triage prioritisation, for second-reader "
-        "alerts, for downstream Bayesian uncertainty pipelines — and "
+        "probabilities, for triage prioritisation, for second-reader "
+        "alerts, for downstream Bayesian uncertainty pipelines, and "
         "miscalibrated probabilities are clinically dangerous in a "
         "way that miscalibrated point predictions are not. A model "
         "that is wrong but knows it is uncertain can defer to a human; "
@@ -446,8 +446,8 @@ def build() -> None:
         "exceeding fifteen percent, and that this miscalibration is "
         "exacerbated rather than corrected by FedAvg under non-independent "
         "and identically distributed (non-IID) "
-        "data. The dominant evaluation tradition in FL papers — "
-        "reporting only accuracy and AUROC — therefore misses the "
+        "data. The dominant evaluation tradition in FL papers,"
+        "reporting only accuracy and AUROC, therefore misses the "
         "single most clinically actionable failure mode. We argue "
         "throughout this paper that any clinically credible federated "
         "aggregator must report ECE alongside accuracy, and the "
@@ -488,10 +488,10 @@ def build() -> None:
         "Federated Learning), an aggregation rule designed against "
         "all four challenges at once. The core idea is to compute "
         "per-round client weights from three complementary signals "
-        "— data volume n_k, total-variation distance D_k between the "
+        ", data volume n_k, total-variation distance D_k between the "
         "client's empirical label prior and the across-client "
         "consensus, and a self-supervised quality signal q_k derived "
-        "from the client's mean local training loss — combined in "
+        "from the client's mean local training loss, combined in "
         "log-space and normalised via a numerically stable softmax. "
         "The rule reduces to FedAvg in the limit β = γ = 0 with "
         "α = 1, so any federation that today uses FedAvg can switch "
@@ -551,7 +551,7 @@ def build() -> None:
         "accuracy of the five; the advantage holds at every level of a "
         "five-point heterogeneity sweep (pooled 1.47×, p < 10⁻⁵) and under "
         "label noise (pooled 1.40×, p < 10⁻⁴), and vanishes when no client "
-        "is corrupted — which is what the design predicts. Three results "
+        "is corrupted, which is what the design predicts. Three results "
         "bound the method rather than support it: the advantage disappears "
         "as the federation grows past four clients, AHA-Fed loses to every "
         "baseline on binary chest radiography, and DP-SGD costs both "
@@ -565,7 +565,7 @@ def build() -> None:
         "reviews the literature and contrasts AHA-Fed with seventeen recent "
         "methods (Table 1). Section 3 derives the rule, gives the training "
         "algorithm, and proves in Section 3.9 that the softmax weights are "
-        "bounded away from zero — the property that places the method inside "
+        "bounded away from zero, the property that places the method inside "
         "the standard FedAvg convergence rate. Section 4 specifies the "
         "protocol. Section 5 reports eleven experiments, Section 6 ablates "
         "each term, and Section 7 concludes.",
@@ -580,7 +580,7 @@ def build() -> None:
         "recent methods along six dimensions (§2.4). The thesis developed "
         "across them is that no existing method jointly addresses the "
         "heterogeneity, noise, calibration, and privacy challenges that "
-        "co-occur in real federated medical imaging — which is the gap "
+        "co-occur in real federated medical imaging, which is the gap "
         "AHA-Fed fills.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
@@ -590,8 +590,8 @@ def build() -> None:
         "the canonical aggregation rule that weights each client's "
         "update by its local sample count. The original analysis "
         "assumed independent and identically distributed client data, "
-        "and FedAvg's simplicity — one round of local SGD followed by "
-        "a volume-weighted average at the server — has made it the "
+        "and FedAvg's simplicity, one round of local SGD followed by "
+        "a volume-weighted average at the server, has made it the "
         "default starting point for almost all subsequent FL methods. "
         "Subsequent surveys [18, 23, 20] formalise the broader design "
         "space: communication-efficiency considerations, the cost of "
@@ -605,8 +605,8 @@ def build() -> None:
         "a substantially stronger privacy threat model than cross-"
         "device FL since each silo holds tens of thousands to "
         "millions of sensitive records. The federated training loop "
-        "we adopt in this paper — a synchronous round-robin server-"
-        "broadcast / client-update / server-aggregate cycle — is the "
+        "we adopt in this paper, a synchronous round-robin server-"
+        "broadcast / client-update / server-aggregate cycle, is the "
         "cross-silo standard. Asynchronous variants [18] reduce "
         "straggler latency but introduce staleness and complicate DP "
         "accounting; we treat them as orthogonal extensions.",
@@ -652,7 +652,7 @@ def build() -> None:
         "improves convergence on bounded-dissimilarity objectives, "
         "but it operates entirely in parameter space and does not "
         "discriminate between clients on the basis of data quality "
-        "or distributional shift — a corrupted client whose updates "
+        "or distributional shift, a corrupted client whose updates "
         "drag the global model is still given equal aggregation "
         "weight, only with a slightly less aggressive local step. "
         "FedBN [12] keeps batch-normalisation parameters local and "
@@ -668,7 +668,7 @@ def build() -> None:
         "centralised-training performance under bounded heterogeneity. "
         "FedDisco [32] takes a step closer to AHA-Fed's design by "
         "using label-distribution discrepancy directly as a per-client "
-        "weighting signal — clients further from the consensus are "
+        "weighting signal, clients further from the consensus are "
         "downweighted. This is the closest precedent to AHA-Fed's β "
         "term, but FedDisco does not incorporate any quality signal "
         "and so is vulnerable to the noisy-client failure mode: a "
@@ -679,9 +679,9 @@ def build() -> None:
 
     add_heading(doc, "2.2 Robustness to client-side label noise", level=2)
     add_paragraph(doc,
-        "Robust FL has historically focused on Byzantine attackers — "
+        "Robust FL has historically focused on Byzantine attackers,"
         "adversarial clients that submit arbitrarily corrupted updates "
-        "[37] — rather than the more clinically realistic case of "
+        "[37], rather than the more clinically realistic case of "
         "well-meaning clients with noisy labels. The Byzantine "
         "threat model motivates median-based or trimmed-mean "
         "aggregators, which are computationally efficient but "
@@ -691,7 +691,7 @@ def build() -> None:
         "data even when only one or two clients are problematic. "
         "FedNoiL [30] selects clients on the basis of an externally "
         "supplied label-noise estimate, which is rarely available in "
-        "practice — hospitals do not annotate their own data with "
+        "practice, hospitals do not annotate their own data with "
         "honest noise rates. Robust-FedAvg variants [37] use heavy-"
         "tailed loss penalties or coordinate-wise clipping; these "
         "operate at the gradient level rather than the client level "
@@ -703,7 +703,7 @@ def build() -> None:
         "inconsistent with its inputs. This signal is computed for "
         "free during normal training, requires no external "
         "supervision, no peer-to-peer comparison, and no auxiliary "
-        "validation set — properties that are essential for "
+        "validation set, properties that are essential for "
         "deployment in regulated clinical environments where any "
         "additional data exposure would require fresh data-use "
         "agreements.",
@@ -754,7 +754,7 @@ def build() -> None:
         "Recent empirical work [21, 36] maps the privacy-utility "
         "tradeoff on chest X-ray classification under varying ε "
         "budgets, generally finding that DP costs ten to thirty "
-        "AUROC points at ε ≤ 1.0 — a substantial price for clinical "
+        "AUROC points at ε ≤ 1.0, a substantial price for clinical "
         "deployment. Our experiments in Section 5.11 are consistent "
         "with this finding: on our 9-class PathMNIST federation per-round "
         "DP-SGD at ε = 1.0 costs roughly a third of accuracy and eight "
@@ -776,7 +776,7 @@ def build() -> None:
         "is responsible for the current confidence in FL among "
         "clinical collaborators. Pati et al. [24] scaled FL across "
         "fifty-five centres in six continents for rare-cancer "
-        "boundary detection — the largest FL collaboration to date "
+        "boundary detection, the largest FL collaboration to date "
         "by site count, and a proof of feasibility for global "
         "federations. Dayan et al. [7] used FL to predict COVID-19 "
         "clinical outcomes across twenty institutions during the "
@@ -797,7 +797,7 @@ def build() -> None:
         "time. Foundation-model-meets-FL approaches [38] are an "
         "emerging direction. None of these methods explicitly "
         "reweight clients by an internally-derived data-quality "
-        "signal — which is the gap AHA-Fed fills.",
+        "signal, which is the gap AHA-Fed fills.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     add_paragraph(doc,
@@ -807,7 +807,7 @@ def build() -> None:
         "centralised non-FL setting, calibration of deep networks "
         "has been studied since Guo et al. (2017) and is known to "
         "degrade with overparameterisation, label noise, and "
-        "distribution shift — exactly the conditions that prevail "
+        "distribution shift, exactly the conditions that prevail "
         "in federated medical imaging. Recent work [35] is among the "
         "first to study calibration in FL specifically and reports "
         "that FedAvg consistently produces worse calibration than "
@@ -843,9 +843,9 @@ def build() -> None:
         "based q_k), formal DP-SGD compatibility (Opacus integration), "
         "and clinical-grade calibration reporting (ECE as a primary "
         "metric). Several recent methods address two of these "
-        "dimensions — for instance Khan et al. [21] address DP and "
+        "dimensions, for instance Khan et al. [21] address DP and "
         "medical imaging, and Calib-FL [35] addresses calibration and "
-        "medical imaging — but none address all four. The methods "
+        "medical imaging; but none address all four. The methods "
         "closest in design to AHA-Fed are FedDisco [32] (which "
         "shares the distance term but lacks quality), and FedNoiL "
         "[30] (which addresses noise but requires external noise "
@@ -955,21 +955,21 @@ def build() -> None:
         "AHA-Fed therefore strictly generalises FedAvg: any federation that "
         "currently uses FedAvg can switch to AHA-Fed and recover identical "
         "behaviour by zeroing β and γ. The hyperparameters admit clear "
-        "interpretation — α governs anti-volume-collapse, β penalises "
+        "interpretation, α governs anti-volume-collapse, β penalises "
         "outlier centers in label space, and γ rewards low-loss clients. "
         "Figure 2 shows how the three signals combine.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     add_figure(doc, FIGS / "fig_aha_concept.png",
-               "Figure 2: AHA-Fed weighting scheme — three signals combined "
+               "Figure 2: AHA-Fed weighting scheme, three signals combined "
                "in log-space and softmax-normalised.")
 
     add_heading(doc, "3.4 Relative quality: removing the difficulty term",
                 level=2)
     add_paragraph(doc,
         "The quality signal as defined above conflates two things. A client's "
-        "local loss is high both when its labels disagree with its inputs — "
-        "the corruption we want to detect — and when its slice of the data is "
+        "local loss is high both when its labels disagree with its inputs,"
+        "the corruption we want to detect; and when its slice of the data is "
         "simply harder, which a Dirichlet partition guarantees will differ "
         "across sites. Only the first should move the weights. Section 5.7 "
         "shows this conflation is not hypothetical: on a binary task one "
@@ -987,8 +987,8 @@ def build() -> None:
         "largely cancels, leaving the component that changes as training "
         "proceeds. A site that starts hard and stays hard is no longer "
         "penalised; a site whose loss fails to fall because its labels are "
-        "wrong still is. The change costs nothing at runtime — one stored "
-        "scalar per client — and reduces to the absolute rule when every "
+        "wrong still is. The change costs nothing at runtime, one stored "
+        "scalar per client; and reduces to the absolute rule when every "
         "client begins at the same quality.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_paragraph(doc,
@@ -1016,7 +1016,7 @@ def build() -> None:
         "encrypted channel (step 5); and the server applies AHA-Fed's "
         "softmax aggregation (step 6) to produce the next global state. "
         "The privacy boundary makes explicit that no raw DICOM, PHI, "
-        "or patient-level metadata leaves a hospital — only the three "
+        "or patient-level metadata leaves a hospital, only the three "
         "scalars and the model delta are exchanged. Optional secure "
         "aggregation [3] further hides individual client deltas from "
         "the server, leaving only the federation-wide weighted sum "
@@ -1078,7 +1078,7 @@ def build() -> None:
         "would effectively delete that client's data from the objective, and "
         "no convergence statement about the original objective would survive. "
         "We show the weights are bounded away from zero, then state what that "
-        "buys and — equally important — what it does not.",
+        "buys and, equally important, what it does not.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     add_paragraph(doc,
@@ -1132,7 +1132,7 @@ def build() -> None:
         "plainly. First, the bound is loose: at α = 1, β = γ = 4 with "
         "R = 20 and q_min = 0.22 it gives w_min ≥ 7.2 × 10⁻⁷ at K = 4 and "
         "1.1 × 10⁻⁷ at K = 20, whereas the smallest weight observed in any "
-        "of our runs is 0.0035 — the terms do "
+        "of our runs is 0.0035; the terms do "
         "not reach their extremes simultaneously, and a tighter bound would "
         "need distributional assumptions on D_k and q_k that we cannot "
         "justify. Second, it guarantees convergence to a stationary point of "
@@ -1152,8 +1152,8 @@ def build() -> None:
     add_paragraph(doc,
         "We benchmark AHA-Fed against four established aggregators: FedAvg "
         "[22], FedProx [11] (μ = 0.01), FedBN [12], and FedDisco [32]. "
-        "Every experiment runs on real medical imaging — PathMNIST and "
-        "PneumoniaMNIST from MedMNIST v2 — federated into K hospitals by "
+        "Every experiment runs on real medical imaging, PathMNIST and "
+        "PneumoniaMNIST from MedMNIST v2, federated into K hospitals by "
         "Dirichlet partitioning over the label space, with label noise "
         "injected at one hospital to model annotation corruption. Each run "
         "is seeded and writes a JSON manifest of its configuration and "
@@ -1182,7 +1182,7 @@ def build() -> None:
         "per-hospital label priors the partitioning induces.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_figure(doc, FIGS / "fig_dataset.png",
-               "Figure 5: PathMNIST federation — real samples and the "
+               "Figure 5: PathMNIST federation, real samples and the "
                "per-hospital label priors induced by Dirichlet partitioning.")
 
     # Dataset table
@@ -1197,7 +1197,7 @@ def build() -> None:
         ["Noise injection", "ρ ∈ [0, 0.7] at one client", "ρ ∈ [0, 0.7] at one client", "Real label noise"],
         ["Heterogeneity source", "Per-center class prior shift", "Per-center class prior shift", "Patient cohort, site"],
         ["DUA required", "No", "No", "No (public)"],
-        ["Reported here", "Yes — all headline results", "Yes — second modality", "Loader only (Section 7.1)"],
+        ["Reported here", "Yes, all headline results", "Yes, second modality", "Loader only (Section 7.1)"],
     ]
     add_table_caption(doc,
         "Table 2: Real datasets used in this paper. No synthetic or "
@@ -1224,7 +1224,7 @@ def build() -> None:
     add_bullet_run(doc, "Metrics. ",
                    "Test cross-entropy, top-1 accuracy, multiclass macro AUROC, "
                    "AUPRC, and Expected Calibration Error (ECE) on top-1 "
-                   "confidence — the last is particularly relevant for clinical "
+                   "confidence; the last is particularly relevant for clinical "
                    "decision support.")
     add_bullet_run(doc, "Reproducibility. ",
                    "All runs are seeded; per-run JSON manifests "
@@ -1245,13 +1245,13 @@ def build() -> None:
         "images. Calibration separates them. FedAvg's ECE stops improving "
         "once the noisy updates begin to dominate the volume-weighted mean, "
         "whereas AHA-Fed continues to descend as the softmax weights shift "
-        "mass away from that client. This pattern — matched discrimination, "
-        "divergent calibration — recurs throughout our results and is the "
+        "mass away from that client. This pattern, matched discrimination, "
+        "divergent calibration, recurs throughout our results and is the "
         "reason we treat ECE rather than accuracy as the primary endpoint.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_figure(doc, FIGS / "fig_convergence.png",
                "Figure 6: PathMNIST, four hospitals, 50% label noise at one "
-               "client (seed 42) — accuracy and ECE per communication round.")
+               "client (seed 42), accuracy and ECE per communication round.")
 
     add_heading(doc, "5.2 Final performance with error bars", level=2)
     add_paragraph(doc,
@@ -1269,7 +1269,7 @@ def build() -> None:
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_figure(doc, FIGS / "fig_final_bars.png",
                "Figure 7: PneumoniaMNIST (chest radiography), four "
-               "hospitals — final ECE, accuracy and AUROC "
+               "hospitals, final ECE, accuracy and AUROC "
                "(mean ± s.d., 10 seeds).")
 
     add_heading(doc, "5.3 Robustness to label-noise rate", level=2)
@@ -1279,7 +1279,7 @@ def build() -> None:
         "AHA-Fed attains the lower mean ECE at all four rates, and the "
         "structure of where it does so is the informative part. At "
         "ρ = 0 the two methods are indistinguishable (0.061 vs 0.064, "
-        "p = 0.70) — with no corrupted client there is nothing for the "
+        "p = 0.70), with no corrupted client there is nothing for the "
         "quality term to down-weight, and a method that claimed an "
         "advantage here would be suspect. Once noise is introduced the "
         "separation appears and holds: 1.44× at ρ = 0.3 (p = 0.002), "
@@ -1291,7 +1291,7 @@ def build() -> None:
         "We note that at three seeds this same experiment did not reach "
         "significance (p = 0.15, n = 12), and an earlier draft of this "
         "paper reported it as a negative result. The effect was real but "
-        "the seed budget was too small to resolve it — a reminder that in "
+        "the seed budget was too small to resolve it, a reminder that in "
         "federated evaluation, where seed variance compounds across "
         "client sampling, partitioning and initialisation, three seeds "
         "resolve very little. The mechanism behind the endpoint is "
@@ -1300,7 +1300,7 @@ def build() -> None:
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_figure(doc, FIGS / "fig_noise_sweep.png",
                "Figure 8: ECE versus label-noise rate at the corrupted "
-               "client — PathMNIST (mean ± s.d., 10 seeds) and "
+               "client, PathMNIST (mean ± s.d., 10 seeds) and "
                "PneumoniaMNIST (single seed).")
 
     add_heading(doc, "5.4 Heterogeneity and federation scale", level=2)
@@ -1325,8 +1325,8 @@ def build() -> None:
         "(1.50× at 0.0), which we did not expect from the distance term "
         "alone and attribute to the quality term continuing to act on the "
         "corrupted client, whose presence is independent of how the "
-        "priors are drawn. The clinically relevant regime — hospitals "
-        "that differ substantially but not pathologically — sits where "
+        "priors are drawn. The clinically relevant regime, hospitals "
+        "that differ substantially but not pathologically, sits where "
         "the method helps most.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_paragraph(doc,
@@ -1347,7 +1347,7 @@ def build() -> None:
         "less for a quality-aware rule to correct. Section 2.1 notes that "
         "clinical cross-silo federations typically span four to fifty "
         "sites, so our advantage covers the lower end of that range and not "
-        "the upper — we state that plainly rather than implying otherwise.",
+        "the upper; we state that plainly rather than implying otherwise.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_paragraph(doc,
         "Two things qualify how limiting this is. First, part of what K = 12 "
@@ -1365,7 +1365,7 @@ def build() -> None:
         "the sweep across both axes.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_figure(doc, FIGS / "fig_het_scale.png",
-               "Figure 9: PathMNIST — Dirichlet heterogeneity sweep "
+               "Figure 9: PathMNIST, Dirichlet heterogeneity sweep "
                "(0.0–0.9, 10 seeds per level) and federation-size scaling "
                "(K = 4 to 32, 10 seeds each).")
 
@@ -1375,8 +1375,8 @@ def build() -> None:
         "course of training on PathMNIST with 50% label noise at hospital "
         "four. FedAvg would hold all four at the uniform 0.250, since the "
         "hospitals carry equal volume here. AHA-Fed instead drives the "
-        "corrupted hospital down to 0.069 by the final round — roughly a "
-        "quarter of uniform — and redistributes that mass across the three "
+        "corrupted hospital down to 0.069 by the final round, roughly a "
+        "quarter of uniform; and redistributes that mass across the three "
         "clean hospitals (0.377, 0.398, 0.155). No noise label, oracle, or "
         "external validation set is involved: the reallocation follows "
         "directly from equation (5) applied to the loss-derived quality "
@@ -1387,12 +1387,12 @@ def build() -> None:
         "confirms that the mechanism identifies the corrupted client, which "
         "is the behaviour the rule was designed for. It does not by itself "
         "establish that down-weighting translates into a significantly "
-        "better endpoint under label noise — as Section 5.3 reports, it "
+        "better endpoint under label noise, as Section 5.3 reports, it "
         "does not, at the seed count we ran.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_figure(doc, FIGS / "fig_weights.png",
                "Figure 10: AHA-Fed per-client aggregation weights per round "
-               "— PathMNIST, ρ = 0.5 at hospital four, seed 42.")
+               ", PathMNIST, ρ = 0.5 at hospital four, seed 42.")
 
     add_heading(doc, "5.6 Aggregator comparison on PathMNIST", level=2)
     add_paragraph(doc,
@@ -1403,7 +1403,7 @@ def build() -> None:
         "federated into K = 4 hospitals via Dirichlet partitioning "
         "(heterogeneity = 0.5) with 50% label noise injected at "
         "hospital D. We add FedDisco [32] as a fifth baseline since it "
-        "shares AHA-Fed's distance term but lacks the quality term — "
+        "shares AHA-Fed's distance term but lacks the quality term,"
         "this is the natural ablation against our key design choice. "
         "All five aggregators are run for 25 rounds with the MedCNN "
         "backbone (3-conv blocks with GroupNorm, ≈ 240 K parameters) "
@@ -1417,7 +1417,7 @@ def build() -> None:
         "Table 3 reports the final-round metrics over ten seeds. AHA-Fed "
         "reduces ECE by 19.1% versus FedAvg (0.097 vs 0.119) and by "
         "19.9% versus FedProx (0.097 vs 0.121), while keeping accuracy "
-        "and AUROC indistinguishable from the strongest baselines — the "
+        "and AUROC indistinguishable from the strongest baselines, the "
         "AUROC spread across all five methods is 0.011. AHA-Fed also has "
         "the smallest seed-to-seed standard deviation (0.018 against "
         "0.019–0.030 for the baselines), which matters for clinical "
@@ -1441,7 +1441,7 @@ def build() -> None:
         ["FedProx [11]",   "0.673", "0.946", "0.121 ± 0.025", "19.9%", "0.037"],
         ["FedBN [12]",     "0.692", "0.949", "0.135 ± 0.025", "28.3%", "0.014"],
         ["FedDisco [32]",  "0.681", "0.946", "0.139 ± 0.030", "30.6%", "0.004"],
-        ["AHA-Fed (ours)", "0.701", "0.949", "0.097 ± 0.018", "—", "—"],
+        ["AHA-Fed (ours)", "0.701", "0.949", "0.097 ± 0.018", ",", ","],
     ]
     add_table_caption(doc,
         "Table 3: PathMNIST across five aggregators, ten seeds. The "
@@ -1509,9 +1509,9 @@ def build() -> None:
         "the clean clients and that of the corrupted one, and the nuisance "
         "spread as the range of quality among the clean clients alone. "
         "Over ten seeds on PathMNIST the signal is 0.159 against a spread "
-        "of 0.067 — a ratio of 2.37, and the corrupted client is ranked "
+        "of 0.067, a ratio of 2.37, and the corrupted client is ranked "
         "worst in 10 of 10 runs. On PneumoniaMNIST the signal is 0.075 "
-        "against a spread of 0.163 — a ratio of 0.46, and the corrupted "
+        "against a spread of 0.163, a ratio of 0.46, and the corrupted "
         "client is ranked worst in only 6 of 10 runs. In the binary task "
         "one clean client sits at quality 0.81 while the rest sit near "
         "0.59, so the term spends its budget rewarding an easy partition "
@@ -1526,7 +1526,7 @@ def build() -> None:
         "of a 5 × 5 (β, γ) grid on the test split gives β = 8, γ = 1 at "
         "ECE 0.123, which would place AHA-Fed ahead of FedDisco. "
         "Repeating the selection on a held-out validation split picks "
-        "β = 0, γ = 2 instead, which scores 0.211 ± 0.017 on test — worse "
+        "β = 0, γ = 2 instead, which scores 0.211 ± 0.017 on test, worse "
         "than every baseline. We report the validation-selected figure "
         "and note the other only to quantify how much test-set selection "
         "can flatter a method: a 1.7× apparent improvement that reverses "
@@ -1536,8 +1536,8 @@ def build() -> None:
         "Both of those corpora are ones the diagnostic was constructed to "
         "explain, so on their own they do not test it. NIH ChestX-ray14 "
         "does: it is a third corpus at clinical resolution, and its "
-        "calibration result — a 7.0% advantage that does not reach "
-        "significance over nine seeds (Section 5.10) — was measured "
+        "calibration result, a 7.0% advantage that does not reach "
+        "significance over nine seeds (Section 5.10), was measured "
         "before we computed the ratio there. Applying the same "
         "computation to the corrupted NIH federation gives a signal of "
         "0.0097 against a spread of 0.0084, a ratio of 1.15, with the "
@@ -1576,10 +1576,10 @@ def build() -> None:
 
     transfer_data = [
         ["Configuration", "Selected on", "Test ECE", "Beats baselines?"],
-        ["β = 8, γ = 1", "test split (invalid)", "0.123 ± 0.056", "Yes — but not a valid protocol"],
+        ["β = 8, γ = 1", "test split (invalid)", "0.123 ± 0.056", "Yes; but not a valid protocol"],
         ["β = 0, γ = 2", "validation split", "0.211 ± 0.017", "No"],
         ["β = 4, γ = 4", "carried from PathMNIST", "0.199 ± 0.020", "No"],
-        ["FedDisco (best baseline)", "—", "0.145 ± 0.043", "—"],
+        ["FedDisco (best baseline)", ",", "0.145 ± 0.043", ","],
     ]
     add_table_caption(doc,
         "Table 5: PneumoniaMNIST hyperparameter transfer. Only the "
@@ -1593,7 +1593,7 @@ def build() -> None:
     add_paragraph(doc,
         "The diagnostic points at a fix. If the failure is that q_k confounds "
         "task difficulty with corruption, then referencing each client "
-        "against its own starting quality should recover the signal — this is "
+        "against its own starting quality should recover the signal; this is "
         "the relative variant of Section 3.4. We evaluate it against the "
         "absolute rule on both corpora at twenty seeds, with everything else "
         "held fixed. Because this is a design choice rather than a reported "
@@ -1621,8 +1621,8 @@ def build() -> None:
 
     add_paragraph(doc,
         "The variant acts exactly where the diagnostic says it should, but "
-        "not on every metric. On PneumoniaMNIST — the task with the "
-        "unfavourable ratio — it improves all three, significantly for "
+        "not on every metric. On PneumoniaMNIST, the task with the "
+        "unfavourable ratio; it improves all three, significantly for "
         "AUROC (0.930 against 0.912, p = 0.006, ahead on 15 of 20 "
         "seeds) and marginally for accuracy (p = 0.049). ECE improves by "
         "13.7% in the mean (0.123 against 0.142) but does not reach "
@@ -1638,7 +1638,7 @@ def build() -> None:
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_paragraph(doc,
         "The calibration result deserves a note on how it moved. At ten "
-        "seeds ECE stood at p = 0.065 — close enough that we ran ten "
+        "seeds ECE stood at p = 0.065, close enough that we ran ten "
         "more to settle it. It went the wrong way, to p = 0.105, which "
         "is what an apparent effect made largely of seed variance does "
         "when given more seeds. We report the twenty-seed figure rather "
@@ -1656,7 +1656,7 @@ def build() -> None:
         "(p = 0.037), with ECE improving from 0.219 to 0.192 but not reaching "
         "significance (p = 0.28). We therefore report the variant as "
         "improving discrimination on this task and as not improving "
-        "calibration — the metric this paper otherwise treats as "
+        "calibration, the metric this paper otherwise treats as "
         "primary. That is a partial fix, and calling it one matters: "
         "the diagnostic of this section identifies why AHA-Fed fails "
         "on a binary task, and the variant recovers the "
@@ -1689,7 +1689,7 @@ def build() -> None:
         ["1 of 4", "0.085", "0.126", "1.49×", "0.010", "0.084 (uniform 0.250)"],
         ["2 of 4", "0.117", "0.178", "1.52×", "0.027", "0.247 (uniform 0.500)"],
         ["3 of 4", "0.197", "0.227", "1.15×", "0.131", "0.557 (uniform 0.750)"],
-        ["Pooled (n = 30)", "0.133", "0.177", "1.33×", "< 10⁻³", "—"],
+        ["Pooled (n = 30)", "0.133", "0.177", "1.33×", "< 10⁻³", ","],
     ]
     add_table_caption(doc,
         "Table 7: PathMNIST with an increasing number of corrupted "
@@ -1712,7 +1712,7 @@ def build() -> None:
 
     add_paragraph(doc,
         "The weights explain the shape. With one corrupted site AHA-Fed "
-        "drives it to 0.084 against a uniform 0.250 — roughly a third. With "
+        "drives it to 0.084 against a uniform 0.250, roughly a third. With "
         "two it assigns them 0.247 against 0.500, and with three, 0.557 "
         "against 0.750. The rule keeps discounting corrupted sites at a "
         "similar rate, but as they approach a majority there is less clean "
@@ -1734,7 +1734,7 @@ def build() -> None:
         "earlier draft read the constraint as one on that fraction. We "
         "tested it by holding the fraction at 25% and moving the client "
         "count to 8, 12 and 16 at ten seeds each, and the advantage decayed "
-        "— 1.32×, 1.20×, 0.97× against 1.46× at K = 4 — which we read as "
+        ": 1.32×, 1.20× and 0.97× against 1.46× at K = 4, which we read as "
         "evidence that federation size binds independently.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_paragraph(doc,
@@ -1744,7 +1744,7 @@ def build() -> None:
         "250 images each. Client count and per-client sample size are "
         "perfectly anti-correlated, and the sweep cannot say which one "
         "drives the decay. We therefore repeated it with per-client data "
-        "held at 1,000 images — the same as the K = 4 experiments — "
+        "held at 1,000 images, the same as the K = 4 experiments,"
         "letting the corpus grow with the federation. Table 8 reports "
         "both.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
@@ -1769,8 +1769,8 @@ def build() -> None:
 
     add_paragraph(doc,
         "With per-client data held fixed the advantage is flat across a "
-        "fourfold range of federation sizes — 1.46×, 1.48×, 1.42×, 1.42× "
-        "at K = 4, 8, 12 and 16 — and every point is significant, with "
+        "fourfold range of federation sizes: 1.46×, 1.48×, 1.42×, 1.42× "
+        "at K = 4, 8, 12 and 16; and every point is significant, with "
         "AHA-Fed ahead on 37 of the 40 paired seeds. Across the seven "
         "25%-corrupted configurations we have run, the ECE ratio "
         "correlates +0.91 with per-client sample size and −0.57 with "
@@ -1798,7 +1798,7 @@ def build() -> None:
         "K = 16. We have not tested beyond sixteen sites, nor below 250 "
         "images per client, and we do not extrapolate past either. Nor "
         "does this rescue Section 5.4, whose sweep holds the corpus "
-        "constant by design and where the advantage does fade — it "
+        "constant by design and where the advantage does fade; it "
         "explains it. The corrupted fraction still matters "
         "independently: at K = 8 the reduction goes from 1.17× at one "
         "corrupted site to 1.32× at two, and at K = 12 from 1.01× to "
@@ -1814,7 +1814,7 @@ def build() -> None:
         "frontal radiographs, fourteen findings as a multi-label task, "
         "partitioned patient-disjoint across four centers at 224×224 with a "
         "DenseNet-121 [9] backbone. Patient-disjoint partitioning matters "
-        "here — "
+        "here,"
         "an image-level split would place different radiographs of the same "
         "patient in different centers and leak patient-specific features "
         "across the federation, inflating every method's apparent "
@@ -1834,8 +1834,8 @@ def build() -> None:
         "center FedAvg reaches macro AUROC 0.927 and ECE 0.0100, against "
         "0.923 and 0.0114 for AHA-Fed and 0.909 and 0.0135 for FedBN. "
         "AHA-Fed is ahead of FedBN but behind FedAvg on every metric, and "
-        "we report that plainly. The margin is small — 0.004 AUROC on a "
-        "single seed — so we do not read it as evidence that AHA-Fed is "
+        "we report that plainly. The margin is small, 0.004 AUROC on a "
+        "single seed, so we do not read it as evidence that AHA-Fed is "
         "worse; we read it as the absence of any benefit in this setting. "
         "Table 9 reports both federations.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
@@ -1872,7 +1872,7 @@ def build() -> None:
         "operates correctly rather than as benchmark results.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_paragraph(doc,
-        "Second, this federation contains no corrupted center — and every "
+        "Second, this federation contains no corrupted center; and every "
         "experiment in which AHA-Fed shows an advantage, Sections 5.3 "
         "through 5.6, injects annotation noise at one site. That "
         "suggests an explanation for the null result above: with no bad "
@@ -1894,7 +1894,7 @@ def build() -> None:
         "Adding two further baselines at three seeds sharpens the picture "
         "without settling it. AHA-Fed has the lowest ECE of the four "
         "(0.0107, against 0.0113 for FedDisco, 0.0120 for FedAvg and 0.0133 "
-        "for FedBN), and FedBN is clearly the weakest at this resolution — "
+        "for FedBN), and FedBN is clearly the weakest at this resolution,"
         "its AUROC of 0.876 sits well below the 0.92–0.93 the others reach, "
         "which is consistent with per-client batch-norm statistics being a "
         "poor fit when the corruption is in the labels rather than the "
@@ -1904,7 +1904,7 @@ def build() -> None:
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_paragraph(doc,
         "We stop short of calling any of it established, and raising the seed "
-        "budget did not help — it moved the effect the wrong way. At "
+        "budget did not help; it moved the effect the wrong way. At "
         "three seeds the ECE gap was 10.6%, at six 12.9%, and at nine "
         "7.0% (p = 0.50), with AHA-Fed ahead on four of the nine seeds. "
         "AUROC favours FedAvg throughout (0.931 against 0.925, p = 0.16), "
@@ -1913,12 +1913,12 @@ def build() -> None:
         "on this federation is 1.15 against 2.37 on PathMNIST, so the "
         "corruption signal barely clears the variation among healthy "
         "centers even though it identifies the corrupted one in 9 of 9 "
-        "runs — a near-unity ratio predicts the right direction at a "
+        "runs, a near-unity ratio predicts the right direction at a "
         "magnitude too small to resolve, which is what we observe. "
         "The honest reading is "
         "that at clinical resolution the calibration advantage is small "
         "enough that our seed budget cannot distinguish it from zero, and "
-        "that adding seeds shrank rather than sharpened it — which is "
+        "that adding seeds shrank rather than sharpened it, which is "
         "what one expects when an apparent effect is largely seed "
         "variance.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
@@ -1927,8 +1927,8 @@ def build() -> None:
         "flattered the method, and note the sequence because it is "
         "instructive: three seeds, six seeds and nine seeds gave 10.6%, "
         "12.9% and 7.0% for the same comparison. Readers judging "
-        "small-seed federated results — including ours at 28×28, which "
-        "use ten — should weight them accordingly. What survives at this "
+        "small-seed federated results, including ours at 28×28, which "
+        "use ten, should weight them accordingly. What survives at this "
         "resolution is that the pipeline operates correctly on a "
         "14-finding multi-label task with patient-disjoint centers, and "
         "that AHA-Fed is not worse than the alternatives; the "
@@ -1942,8 +1942,8 @@ def build() -> None:
         "general-purpose replacement for volume weighting: on a clean "
         "federation it costs a little accuracy and calibration. And the "
         "advantage it does provide appears smaller at clinical "
-        "resolution than at 28×28 — 10.6% here against 19.1% on "
-        "PathMNIST — though we cannot say from these runs whether that "
+        "resolution than at 28×28, 10.6% here against 19.1% on "
+        "PathMNIST, though we cannot say from these runs whether that "
         "reflects resolution, the different corruption model a "
         "multi-label task requires, or the smaller seed budget. "
         "Section 7.3 lists the ten-seed replication as the first item of "
@@ -1977,7 +1977,7 @@ def build() -> None:
         "Accuracy sat at or below the 0.111 chance level at every "
         "budget, and we concluded that DP-SGD destroyed utility. It "
         "confounded the cost of privacy with the cost of training on a "
-        "third of the data — the same per-client sample-size effect "
+        "third of the data, the same per-client sample-size effect "
         "Section 5.9 identifies as the variable governing whether the "
         "quality signal works at all, and DP-SGD is the setting most "
         "exposed to it, since the noise added per step is calibrated to "
@@ -1987,8 +1987,8 @@ def build() -> None:
 
     dp_data = [
         ["Configuration", "ε", "Aggregator", "Accuracy", "AUROC", "ECE"],
-        ["300 img/client, 15 rd", "1.0",  "FedAvg",  "0.082", "—", "—"],
-        ["300 img/client, 15 rd", "1.0",  "AHA-Fed", "0.084", "—", "—"],
+        ["300 img/client, 15 rd", "1.0",  "FedAvg",  "0.082", ",", ","],
+        ["300 img/client, 15 rd", "1.0",  "AHA-Fed", "0.084", ",", ","],
         ["1,000 img/client, 25 rd", "1.0",  "FedAvg",  "0.481", "0.857", "0.215"],
         ["1,000 img/client, 25 rd", "1.0",  "AHA-Fed", "0.470", "0.858", "0.194"],
         ["1,000 img/client, 25 rd", "10.0", "FedAvg",  "0.484", "0.869", "0.203"],
@@ -2008,8 +2008,8 @@ def build() -> None:
 
     add_paragraph(doc,
         "Repeated at the paper's standard per-client budget with batch "
-        "128 — a larger batch is standard DP-SGD practice, since it "
-        "improves the noise-to-signal ratio at fixed ε — the picture "
+        "128, a larger batch is standard DP-SGD practice, since it "
+        "improves the noise-to-signal ratio at fixed ε, the picture "
         "changes entirely. Accuracy rises from 0.084 to 0.470 at ε = 1.0 "
         "and AUROC reaches 0.858, against 0.702 and 0.949 without "
         "privacy. That is a real privacy cost, roughly a third of "
@@ -2035,7 +2035,7 @@ def build() -> None:
     add_paragraph(doc,
         "The effect sizes matter as much as the signs. AHA-Fed buys "
         "roughly a tenth off calibration error for roughly a fiftieth "
-        "of accuracy — 9.7% ECE reduction against 2.2% accuracy cost at "
+        "of accuracy, 9.7% ECE reduction against 2.2% accuracy cost at "
         "ε = 1.0. Whether that trade is worth making is a deployment "
         "question rather than a methodological one, and it depends on "
         "whether the model feeds a triage decision, where confidence "
@@ -2063,7 +2063,7 @@ def build() -> None:
         "PathMNIST with the same federation. Figure 14 reports the final "
         "ECE at each grid point. Across the sixteen-point interior "
         "β ∈ {1, 2, 4, 8} × γ ∈ {1, 2, 4, 8}, which contains our default "
-        "(β = 4, γ = 4), ECE stays at or below 0.114 — every interior "
+        "(β = 4, γ = 4), ECE stays at or below 0.114, every interior "
         "point beats FedProx (0.162) and most beat FedAvg (0.123), so the "
         "method does not depend on a knife-edge setting. It is not a flat "
         "landscape, though, and we do not claim one: the interior spans "
@@ -2116,7 +2116,7 @@ def build() -> None:
         "We flag a methodological point that cost us a claim. At three "
         "seeds this same sweep returned p = 0.15 and an earlier draft "
         "reported noise robustness as unsupported. Nothing about the "
-        "method changed between then and now — only the seed budget. In "
+        "method changed between then and now, only the seed budget. In "
         "federated evaluation, seed variance compounds across client "
         "partitioning, sampling and initialisation, and three seeds "
         "resolve very little: a paired Wilcoxon test at n = 3 cannot "
@@ -2135,7 +2135,7 @@ def build() -> None:
         "they are complementary to AHA-Fed and can be composed. The "
         "(β, γ) sweep of Section 5.12 shows a wide well-behaved interior "
         "on PathMNIST, but Section 5.7 shows those same values failing to "
-        "transfer to a binary chest-radiography task — so "
+        "transfer to a binary chest-radiography task, so "
         "hyperparameter robustness holds within a task, not across tasks.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
@@ -2153,7 +2153,7 @@ def build() -> None:
         ["Volume only (= FedAvg)", "1", "0", "0", "0.119 ± 0.019", "+19.1%", "0.020"],
         ["Distance only",          "1", "4", "0", "0.130 ± 0.019", "+25.7%", "0.010"],
         ["Quality only",           "1", "0", "4", "0.083 ± 0.018", "−16.0%", "0.004"],
-        ["Full AHA-Fed",           "1", "4", "4", "0.097 ± 0.018", "—", "—"],
+        ["Full AHA-Fed",           "1", "4", "4", "0.097 ± 0.018", ",", ","],
     ]
     add_table_caption(doc,
         "Table 10: Ablation of the AHA-Fed terms on PathMNIST, ten seeds. "
@@ -2164,8 +2164,8 @@ def build() -> None:
     add_post_table_spacing(doc)
 
     add_paragraph(doc,
-        "The quality term carries the method. Removing it — leaving volume "
-        "and distance — gives ECE 0.130, worse than plain volume weighting "
+        "The quality term carries the method. Removing it, leaving volume "
+        "and distance, gives ECE 0.130, worse than plain volume weighting "
         "at 0.119, so the distance term on its own is not merely unhelpful "
         "on this federation but actively harmful. That is consistent with "
         "Section 5.6, where FedDisco, which uses a distance term without a "
@@ -2179,8 +2179,8 @@ def build() -> None:
         "costs calibration rather than adding to it.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_paragraph(doc,
-        "That result has an obvious implication — drop the distance term "
-        "— so we tested it rather than reasoning about it. Repeating both "
+        "That result has an obvious implication, drop the distance term "
+        ", so we tested it rather than reasoning about it. Repeating both "
         "sweeps of Section 5 with β = 0 at ten seeds, ninety runs in "
         "total, shows the advantage does not generalise. Across the "
         "heterogeneity sweep the two are indistinguishable when pooled "
@@ -2192,8 +2192,8 @@ def build() -> None:
         "(pooled 0.078 against 0.083, p = 0.12).",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_paragraph(doc,
-        "So the 16% figure is a property of one federation — moderate "
-        "prior shift with a corrupted site — and not a general result. "
+        "So the 16% figure is a property of one federation, moderate "
+        "prior shift with a corrupted site; and not a general result. "
         "The reading is that the distance term earns its place where "
         "priors are either close enough that small differences matter or "
         "far enough apart to be informative, and contributes little "
@@ -2205,7 +2205,7 @@ def build() -> None:
     add_paragraph(doc,
         "The default therefore stays at β = γ = 4. The honest summary is that "
         "AHA-Fed's calibration gain is driven mainly by the quality "
-        "signal — removing it is worse than plain volume weighting — "
+        "signal, removing it is worse than plain volume weighting,"
         "while the distance term contributes at the extremes of prior "
         "shift and costs a little in between. A practitioner who knows "
         "their federation sits in that middle regime can set β = 0, but "
@@ -2224,8 +2224,8 @@ def build() -> None:
         "for a pooled 1.47× that is significant under a paired Wilcoxon "
         "signed-rank test (p < 10⁻⁵, n = 50). On the fixed four-hospital "
         "federation it cuts ECE by 19.1–30.6% versus "
-        "FedAvg, FedProx, FedBN, and FedDisco — every margin significant "
-        "(p = 0.004–0.037) — while attaining the highest mean accuracy of "
+        "FedAvg, FedProx, FedBN, and FedDisco, every margin significant "
+        "(p = 0.004–0.037), while attaining the highest mean accuracy of "
         "the five and the smallest seed-to-seed spread. Under client "
         "label noise it lowers ECE by a pooled 1.40× (p < 10⁻⁴), and "
         "inspecting the learned weights confirms the mechanism: the "
@@ -2239,7 +2239,7 @@ def build() -> None:
         "prominently as the positive ones. On "
         "PneumoniaMNIST chest radiography, a (β, γ) configuration selected "
         "on a held-out validation split is beaten by every baseline, "
-        "showing that these hyperparameters do not transfer across tasks — "
+        "showing that these hyperparameters do not transfer across tasks,"
         "a test-set-selected configuration would have appeared to win, and "
         "Section 5.7 quantifies that gap deliberately. Under per-round "
         "DP-SGD, given the same per-client data as the non-private "
@@ -2280,8 +2280,8 @@ def build() -> None:
     add_paragraph(doc,
         "Fourth, hyperparameter transfer: as Section 5.7 shows, (β, γ) "
         "tuned for a nine-class task are actively harmful on a binary "
-        "one, so AHA-Fed carries a real deployment cost — a per-task "
-        "validation split — that volume-weighted FedAvg does not. Fifth, "
+        "one, so AHA-Fed carries a real deployment cost, a per-task "
+        "validation split; that volume-weighted FedAvg does not. Fifth, "
         "scale: K = 4–32 simulated clients on a single machine. Section "
         "5.9 shows the advantage holding to K = 16 when each client keeps "
         "1,000 images, and decaying when a fixed corpus is divided "
@@ -2319,7 +2319,7 @@ def build() -> None:
         "(i) Full-resolution validation: CheXpert [16], NIH ChestX-ray14 [31], "
         "MIMIC-CXR [17], and PadChest [5] under K ≥ 8 patient-disjoint "
         "federations with formal (ε, δ) tracking and per-center fairness "
-        "audit — the loaders are already released, so this is a compute "
+        "audit; the loaders are already released, so this is a compute "
         "question rather than an engineering one. A larger seed budget on "
         "the label-noise sweep would also settle whether the effect there "
         "is real but small or absent; the present evidence cannot "
@@ -2428,7 +2428,7 @@ def build() -> None:
                  "aware aggregation. International Conference on Machine "
                  "Learning (ICML), 2023."),
         ("[33]", "Yousefpour, A. et al. Opacus: user-friendly differential "
-                 "privacy library in PyTorch — 2024 update with Rényi "
+                 "privacy library in PyTorch, 2024 update with Rényi "
                  "accountant improvements. Journal of Privacy and "
                  "Confidentiality, 14(2): 1–34, 2024."),
         ("[34]", "Zhang, J. et al. Federated learning for medical image "
@@ -2452,7 +2452,7 @@ def build() -> None:
         ("[40]", "Roy, A. G. et al. Continual federated learning for evolving "
                  "medical-imaging cohorts. Nature Communications, "
                  "17: 1488, 2026."),
-        ("[41]", "Yang, J., Shi, R., Wei, D. et al. MedMNIST v2 — A large-"
+        ("[41]", "Yang, J., Shi, R., Wei, D. et al. MedMNIST v2, A large-"
                  "scale lightweight benchmark for 2D and 3D biomedical "
                  "image classification. Scientific Data, 10: 41, 2023. "
                  "(PathMNIST 9-class colon-pathology subset used in this paper.)"),
