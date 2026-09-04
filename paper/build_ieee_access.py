@@ -43,7 +43,7 @@ ABSTRACT = (
     "averaging as a strict special case, with weights provably bounded "
     "from zero and hence the standard convergence rate. Evaluated on real "
     "medical imaging only, AHA-Fed lowers Expected Calibration Error on "
-    "colorectal histopathology to 0.097 against 0.119-0.139 for four "
+    "colorectal histopathology to 0.097 against 0.119–0.139 for four "
     "baselines over ten seeds, every margin significant under a paired "
     "signed-rank test. Under client label noise it reduces calibration "
     "error by a pooled factor of 1.40, with no separation when no client "
@@ -220,38 +220,76 @@ def strip_number(text: str) -> str:
 
 _first_h1 = [True]
 _after_h1 = [False]
+# Section number, and the subsection letter within it. The template's
+# automatic numbering cannot do this: its heading styles draw on three
+# unrelated numbering definitions that never reset against each other.
+_sec_no = [0]
+_sub_no = [0]
+
+UNNUMBERED_H1 = {"REFERENCES", "ACKNOWLEDGMENT",
+                 "ACKNOWLEDGEMENT", "APPENDIX"}
+
+ROMAN_SEC = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X",
+             "XI", "XII"]
+
+
+def _kill_auto_numbering(p):
+    """Suppress the style's own list numbering on this paragraph."""
+    pPr = p._p.get_or_add_pPr()
+    numPr = OxmlElement("w:numPr")
+    ilvl = OxmlElement("w:ilvl")
+    ilvl.set(qn("w:val"), "0")
+    numId = OxmlElement("w:numId")
+    numId.set(qn("w:val"), "0")          # 0 means "no list"
+    numPr.append(ilvl)
+    numPr.append(numId)
+    pPr.append(numPr)
 
 
 def heading(doc: Document, text: str, level: int = 1):
-    """Access sets headings in uppercase and numbers them via the style."""
+    """Access sets headings in uppercase, numbered I., II. and A., B."""
     if level == 1:
         if _first_h1[0]:
             # INTRODUCTION sits directly under the index terms, so the
-            # template uses the no-space variant for it and the spaced one
-            # thereafter.
+            # template uses the no-space variant for it and the spaced
+            # one thereafter.
             names = ["H1_List (No Space)"] + H1_STYLES
             _first_h1[0] = False
         else:
             names = H1_STYLES
         _after_h1[0] = True
+        # REFERENCES, ACKNOWLEDGMENT and APPENDIX are headings but not
+        # numbered sections.
+        if strip_number(text).upper() in UNNUMBERED_H1:
+            label = None
+        else:
+            _sec_no[0] += 1
+            _sub_no[0] = 0
+            label = (ROMAN_SEC[_sec_no[0] - 1]
+                     if _sec_no[0] <= len(ROMAN_SEC) else str(_sec_no[0]))
     else:
         # The first subsection of a section sits tight under its heading;
         # later ones follow a body paragraph and carry space above.
         names = (["H2_First"] + H2_STYLES if _after_h1[0]
                  else ["H2_Cont"] + H2_STYLES)
         _after_h1[0] = False
+        _sub_no[0] += 1
+        label = chr(ord("A") + _sub_no[0] - 1)
+
     style = first_style(doc, names)
-    body = strip_number(text)
-    body = body.upper() if level == 1 else body.upper()
+    body = strip_number(text).upper()
+    p = doc.add_paragraph()
     if style:
-        p = doc.add_paragraph(body)
         p.style = doc.styles[style]
-        return p
-    return para(doc, body, bold=True, size=11 if level == 1 else 10)
+    _kill_auto_numbering(p)
+    run = p.add_run(f"{label}. {body}" if label else body)
+    if not style:
+        run.bold = True
+        run.font.size = Pt(11 if level == 1 else 10)
+    return p
 
 
-# One Access column: (8.00 - 0.51 - 0.51 - 0.28 gutter) / 2 = 3.35 in.
-# Figures are set slightly narrower so they never force a column to reflow.
+# The Access body column is 3.35 in; leave a hair of slack.
 COLUMN_WIDTH_IN = 3.30
 
 

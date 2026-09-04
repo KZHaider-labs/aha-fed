@@ -325,6 +325,48 @@ def main(template: Path, paper: Path) -> int:
     found = {k: len(v) for k, v in leftovers.items() if v}
     check("prose math is typeset, not ASCII",
           not found, str(found) if found else "no ASCII math left")
+
+    # Section numbering: I, II, III with subsections restarting at A.
+    # The template numbers headings from three unrelated lists that
+    # never reset against each other, which ran the letters A..Z
+    # straight across the paper and numbered REFERENCES as a section.
+    ROM = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"]
+    sec, sub, bad_head = 0, 0, []
+    for pp in doc.paragraphs:
+        t = pp.text.strip()
+        if not t:
+            continue
+        if pp.style.name.startswith("H1"):
+            if t.upper().startswith(("REFERENCES", "ACKNOWLEDG",
+                                     "APPENDIX")):
+                continue
+            sec += 1
+            sub = 0
+            want = ROM[sec - 1] + "." if sec <= len(ROM) else None
+            if want and not t.startswith(want):
+                bad_head.append(f"{t[:26]} (want {want})")
+        elif pp.style.name.startswith("H2"):
+            sub += 1
+            want = chr(ord("A") + sub - 1) + "."
+            if not t.startswith(want):
+                bad_head.append(f"{t[:26]} (want {want})")
+    check("sections number I..N with subsections restarting at A",
+          not bad_head,
+          "; ".join(bad_head[:3]) if bad_head else
+          f"{sec} sections")
+
+    # References are alphabetical by first author, with no gaps.
+    entries = {}
+    for t in texts:
+        m = re.match(r"^[[](\d+)[]][ ]+(.{6,})", t)
+        if m:
+            entries[int(m.group(1))] = m.group(2)
+    if entries:
+        sur = [entries[n].split(".")[0].split(",")[0].strip()
+               for n in sorted(entries)]
+        check("the reference list is alphabetical by first author",
+              sur == sorted(sur, key=str.lower),
+              f"{len(sur)} entries")
     print()
     if FAILURES:
         print(f"{len(FAILURES)} check(s) failed:")
