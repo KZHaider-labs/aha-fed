@@ -86,13 +86,23 @@ def main(template: Path, paper: Path) -> int:
           len(h1) >= 7 and all(t == t.upper() for t in h1),
           f"{len(h1)} headings")
 
-    titles = [p.text for p in doc.paragraphs if p.style.name == "Table Title"]
-    roman = re.compile(r"^TABLE [IVXL]+$")
-    check("tables carry roman TABLE titles",
-          bool(titles) and all(roman.match(t) for t in titles),
-          f"{len(titles)} tables")
+    # The template sets both the "TABLE I" line and the caption text in
+    # Table Title, so count the title lines and check they are roman and
+    # consecutive.
+    tt = [p.text.strip() for p in doc.paragraphs
+          if p.style.name in ("Table Title", "Table Caption")]
+    roman = re.compile(r"^TABLE ([IVXL]+)$")
+    titles = [t for t in tt if roman.match(t)]
+    ROM = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X",
+           "XI", "XII"]
+    want = [f"TABLE {r}" for r in ROM[:len(titles)]]
+    check("tables carry consecutive roman TABLE titles",
+          bool(titles) and titles == want,
+          f"{len(titles)} tables"
+          + ("" if titles == want else f"; got {titles[:4]}"))
 
-    caps = [p.text for p in doc.paragraphs if p.style.name == "Figure Caption"]
+    caps = [p.text for p in doc.paragraphs
+            if p.style.name in ("Fig Caption", "Figure Caption")]
     figpat = re.compile(r"^FIGURE \d+\.\s")
     check("figure captions use the FIGURE N. form",
           bool(caps) and all(figpat.match(c) for c in caps),

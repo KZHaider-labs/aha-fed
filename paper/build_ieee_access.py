@@ -215,8 +215,7 @@ def figure(doc: Document, name: str, caption: str,
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.add_run().add_picture(str(path), width=Inches(width_in))
-    cap_style = ("Figure Caption" if style_or_none(doc, "Figure Caption")
-                 else "Fig Caption" if style_or_none(doc, "Fig Caption") else None)
+    cap_style = first_style(doc, ["Fig Caption", "Figure Caption"])
     # IEEE sets captions as "FIGURE 1. Text", not "Figure 1: Text".
     body = re.sub(r"^Figure\s+(\d+)\s*[:.]\s*",
                   lambda m: f"FIGURE {m.group(1)}. ", caption)
@@ -238,7 +237,13 @@ def equation(doc: Document, name: str, label: str,
         print(f"  [warn] missing equation {name}")
         return
     p = doc.add_paragraph()
-    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    # The template carries an Equation style with the tab stops that put
+    # the number flush right; without it the paragraph falls back to Normal.
+    eq_style = first_style(doc, ["Equation"])
+    if eq_style:
+        p.style = doc.styles[eq_style]
+    else:
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.add_run().add_picture(str(path), width=Inches(width_in))
     if label:
         p.add_run(f"\t{label}")
@@ -249,7 +254,8 @@ def table(doc: Document, rows: list[list[str]], caption: str):
     _table_no[0] += 1
     numeral = ROMAN[_table_no[0] - 1] if _table_no[0] <= len(ROMAN) else str(_table_no[0])
     title_style = "Table Title" if style_or_none(doc, "Table Title") else None
-    para(doc, f"TABLE {numeral}", style=title_style, size=8,
+    para(doc, f"TABLE {numeral}", style=title_style,
+         size=None if title_style else 8,
          align=WD_ALIGN_PARAGRAPH.CENTER)
 
     # The extracted caption already reads "Table 3: ..."; keep only the text.
@@ -257,9 +263,12 @@ def table(doc: Document, rows: list[list[str]], caption: str):
     # Table 3"), which has to follow the roman titles like body text does.
     body = re.sub(r"^Table\s+\d+[:.]?\s*", "", caption).strip()
     body = romanise_refs(body)
-    cap_style = "Table Caption" if style_or_none(doc, "Table Caption") else None
+    # The template sets the caption text in Table Title too, not in a
+    # separate caption style.
+    cap_style = first_style(doc, ["Table Title", "Table Caption"])
     para(doc, body.upper() if len(body) < 60 else body,
-         style=cap_style, size=8, align=WD_ALIGN_PARAGRAPH.CENTER)
+         style=cap_style, size=None if cap_style else 8,
+         align=WD_ALIGN_PARAGRAPH.CENTER)
     t = doc.add_table(rows=len(rows), cols=len(rows[0]))
     if style_or_none(doc, "Normal Table") is not None:
         t.style = doc.styles["Normal Table"]
@@ -290,16 +299,25 @@ def build(template: Path, out: Path) -> None:
 
     # ---- front matter -------------------------------------------------
     para(doc, "Date of publication xxxx 00, 0000, date of current version "
-              "xxxx 00, 0000.", size=8)
-    para(doc, "Digital Object Identifier 10.1109/ACCESS.2024.Doi Number", size=8)
+              "xxxx 00, 0000.",
+         style="DOP" if style_or_none(doc, "DOP") else None,
+         size=None if style_or_none(doc, "DOP") else 8)
+    para(doc, "Digital Object Identifier 10.1109/ACCESS.2024.Doi Number",
+         style="DOI" if style_or_none(doc, "DOI") else None,
+         size=None if style_or_none(doc, "DOI") else 8)
 
     title_style = "Paper Title" if style_or_none(doc, "Paper Title") else None
     para(doc, TITLE, style=title_style, size=None if title_style else 20)
 
-    para(doc, AUTHORS, size=10)
-    for aff in AFFILIATIONS:
-        para(doc, aff, size=8)
-    para(doc, CORRESPONDING, size=8)
+    au_style = "AU" if style_or_none(doc, "AU") else None
+    para(doc, AUTHORS, style=au_style, size=None if au_style else 10)
+    # the template sets the first affiliation tight to the author line
+    pi_first = first_style(doc, ["PI_No Space", "PI"])
+    pi_rest = first_style(doc, ["PI", "PI_No Space"])
+    for i, aff in enumerate(AFFILIATIONS):
+        st = pi_first if i == 0 else pi_rest
+        para(doc, aff, style=st, size=None if st else 8)
+    para(doc, CORRESPONDING, style=pi_rest, size=None if pi_rest else 8)
     if FUNDING:
         para(doc, FUNDING, size=8)
 
@@ -312,8 +330,9 @@ def build(template: Path, out: Path) -> None:
     p.add_run(ABSTRACT)
 
     p = doc.add_paragraph()
-    if abs_style:
-        p.style = doc.styles[abs_style]
+    it_style = "IT" if style_or_none(doc, "IT") else abs_style
+    if it_style:
+        p.style = doc.styles[it_style]
     r = p.add_run("INDEX TERMS ")
     r.bold = True
     p.add_run(INDEX_TERMS)
@@ -327,6 +346,7 @@ def build(template: Path, out: Path) -> None:
     SECTIONS, FIGURES, TABLES = extract()
 
     skip_until_intro = True
+    after_heading = True
     for item in SECTIONS:
         kind = item[0]
         # The template's front matter already carries title/abstract, so drop
@@ -338,12 +358,18 @@ def build(template: Path, out: Path) -> None:
                 continue
         if kind == "h1":
             heading(doc, item[1], 1)
+            after_heading = True
         elif kind == "h2":
             heading(doc, item[1], 2)
+            after_heading = True
         elif kind == "p":
-            para(doc, romanise_refs(item[1]),
-                 style="Text" if style_or_none(doc, "Text") else None,
+            # Access does not indent the first paragraph of a section and
+            # does indent the rest; the template carries both styles.
+            body_style = (first_style(doc, ["PARA", "Text"]) if after_heading
+                          else first_style(doc, ["PARA_Indent", "PARA", "Text"]))
+            para(doc, romanise_refs(item[1]), style=body_style,
                  align=WD_ALIGN_PARAGRAPH.JUSTIFY)
+            after_heading = False
         elif kind == "fig":
             figure(doc, FIGURES[item[1]][0], FIGURES[item[1]][1])
         elif kind == "table":
@@ -352,8 +378,9 @@ def build(template: Path, out: Path) -> None:
         elif kind == "eq":
             equation(doc, *item[1])
         elif kind == "ref":
-            ref_style = first_style(doc, ["References", "REF_Txt", "Ref"])
-            para(doc, item[1], style=ref_style, size=8)
+            ref_style = first_style(doc, ["REF_Txt", "References", "Ref"])
+            para(doc, item[1], style=ref_style,
+                 size=None if ref_style else 8)
 
     # Access closes with one short biography per author, in AU_Bios.
     # These are career details only the authors can supply; they are
