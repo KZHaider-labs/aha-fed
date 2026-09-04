@@ -1204,7 +1204,7 @@ def build() -> None:
         "w_k = e^{s_k} / Σ_j e^{s_j}, and bounding every other client by the "
         "maximum gives Σ_j e^{s_j} ≤ e^{s_k}(1 + (K − 1)e^S), from which the "
         "claim follows. The bound is uniform in t because it depends only on "
-        "the ranges in (A2)–(A4), not on the round. ∎",
+        "the ranges in (A2)–(A4), not on the round.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     add_paragraph(doc,
