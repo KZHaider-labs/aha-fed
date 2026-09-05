@@ -382,14 +382,14 @@ def build() -> None:
         "Deep neural networks have transformed medical imaging over the "
         "past decade, achieving radiologist-level performance on an "
         "expanding catalogue of clinical tasks: chest-radiograph triage "
-        "[11, 31], diabetic-retinopathy screening, brain-tumour "
-        "segmentation [29], histopathology grading [36], dermatology "
+        "[10, 25], diabetic-retinopathy screening, brain-tumour "
+        "segmentation [24], histopathology grading [28], dermatology "
         "classification, and pneumonia detection. The shift from "
         "hand-crafted features to learned representations has been "
         "accompanied by an order-of-magnitude growth in the size of "
         "the training datasets that drive these models, modern "
         "chest-X-ray foundation models are now pre-trained on hundreds "
-        "of thousands to millions of labelled studies [27, 35]. The "
+        "of thousands to millions of labelled studies [23]. The "
         "availability of such corpora is, however, not the norm but the "
         "exception. The vast majority of high-quality clinical imagery "
         "is locked inside individual hospitals, accessible only via "
@@ -408,15 +408,15 @@ def build() -> None:
         "twelve to twenty-four months solely on data-sharing paperwork "
         "before any model is trained. Privacy-preserving collaborative "
         "learning has therefore moved from a research curiosity to an "
-        "operational necessity. Federated learning (FL) [22, 12] is the "
+        "operational necessity. Federated learning (FL) [18, 11] is the "
         "leading framework: each institution keeps its data strictly "
         "on-premise, performs local training rounds, and exchanges only "
         "model updates with a central aggregator. Federated training "
         "has been demonstrated at multi-institutional scale for COVID-19 "
         "outcome prediction across twenty centres [5], rare-cancer "
         "boundary detection across seventy-one centres in six continents "
-        "[26], multi-site image segmentation [21], multi-site brain MRI "
-        "[29], and retinal disease classification, with predictive "
+        "[22], multi-site image segmentation [17], multi-site brain MRI "
+        "[24], and retinal disease classification, with predictive "
         "performance rivalling that of centralised training in many "
         "settings.",
     ]
@@ -444,7 +444,7 @@ def build() -> None:
     obstacles_paras = [
         "Yet the reported successes obscure a pervasive failure mode "
         "that surfaces whenever federations move beyond the highly "
-        "curated proof-of-concept regime. FedAvg [22], the canonical "
+        "curated proof-of-concept regime. FedAvg [18], the canonical "
         "aggregation rule introduced by McMahan et al., weights each "
         "client's update by its local sample count and is provably "
         "optimal under the (strong and unrealistic) assumption that all "
@@ -480,9 +480,9 @@ def build() -> None:
         "extracted by an outdated rule-based system, is allowed to "
         "drag the global model in its direction at every round. "
         "Existing robust aggregators address adjacent symptoms but "
-        "not the underlying cause. FedProx [17] adds a proximal term "
-        "that limits client drift; FedBN [19] keeps batch-normalisation "
-        "parameters local; SCAFFOLD [13] introduces control variates "
+        "not the underlying cause. FedProx [15] adds a proximal term "
+        "that limits client drift; FedBN [16] keeps batch-normalisation "
+        "parameters local; SCAFFOLD [12] introduces control variates "
         "that correct gradient drift. None of these methods evaluate "
         "client quality at all; they treat every client as equally "
         "trustworthy and merely smooth out the disagreement. A "
@@ -504,7 +504,7 @@ def build() -> None:
         "miscalibrated probabilities are clinically dangerous in a "
         "way that miscalibrated point predictions are not. A model "
         "that is wrong but knows it is uncertain can defer to a human; "
-        "a model that is confidently wrong cannot. Prior work [8] "
+        "a model that is confidently wrong cannot. Prior work [7] "
         "has documented that even high-AUROC federated chest-X-ray "
         "classifiers can exhibit Expected Calibration Errors (ECE) "
         "exceeding fifteen percent, and that this miscalibration is "
@@ -523,7 +523,7 @@ def build() -> None:
     add_paragraph(doc,
         "The privacy guarantee from FL alone is also informal in a "
         "manner that has become increasingly apparent. Gradient "
-        "inversion attacks [41] have repeatedly recovered training "
+        "inversion attacks [33] have repeatedly recovered training "
         "images, partial labels, and identifying metadata from shared "
         "model updates, sometimes from a single round of training. "
         "Membership inference attacks can determine whether a "
@@ -531,7 +531,7 @@ def build() -> None:
         "These attacks are not theoretical: in regulated clinical "
         "deployments they constitute a privacy breach equivalent to "
         "an un-authorised data transfer. Modern compliance therefore "
-        "requires formal (ε, δ)-Differential Privacy [1, 38] "
+        "requires formal (ε, δ)-Differential Privacy [1, 30] "
         "accounting on every client's local training round, with "
         "Rényi-DP composition across rounds and clients. Adding "
         "differentially private stochastic gradient descent (DP-SGD) "
@@ -599,7 +599,7 @@ def build() -> None:
         "signals, so the rule inherits the standard FedAvg rate rather than "
         "requiring a separate analysis (Section 3.9). (v) A reproducibility "
         "kit: a seeded multi-run sweeper, per-run JSON manifests, loaders "
-        "for PathMNIST and PneumoniaMNIST [36] as well as full-resolution "
+        "for PathMNIST and PneumoniaMNIST [28] as well as full-resolution "
         "CheXpert and NIH ChestX-ray14, unit tests for every aggregator and "
         "privacy hook, and a script that re-checks every numeric claim in "
         "this paper against the stored run artifacts. Every result reported "
@@ -653,14 +653,14 @@ def build() -> None:
 
     add_heading(doc, "2.1 Aggregation rules and statistical heterogeneity", level=2)
     add_paragraph(doc,
-        "McMahan et al. [22] introduced Federated Averaging (FedAvg), "
+        "McMahan et al. [18] introduced Federated Averaging (FedAvg), "
         "the canonical aggregation rule that weights each client's "
         "update by its local sample count. The original analysis "
         "assumed independent and identically distributed client data, "
         "and FedAvg's simplicity, one round of local SGD followed by "
         "a volume-weighted average at the server, has made it the "
         "default starting point for almost all subsequent FL methods. "
-        "Subsequent surveys [12, 18, 23] formalise the broader design "
+        "Subsequent surveys [11, 19] formalise the broader design "
         "space: communication-efficiency considerations, the cost of "
         "stragglers and heterogeneous hardware, intermittent "
         "connectivity, and the central distinction between cross-"
@@ -674,14 +674,14 @@ def build() -> None:
         "millions of sensitive records. The federated training loop "
         "we adopt in this paper, a synchronous round-robin server-"
         "broadcast / client-update / server-aggregate cycle, is the "
-        "cross-silo standard. Asynchronous variants [12] reduce "
+        "cross-silo standard. Asynchronous variants [11] reduce "
         "straggler latency but introduce staleness and complicate DP "
         "accounting; we treat them as orthogonal extensions.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     add_paragraph(doc,
         "Statistical heterogeneity in FL is not a single phenomenon "
-        "but a small taxonomy. Following Kairouz et al. [12] we "
+        "but a small taxonomy. Following Kairouz et al. [11] we "
         "distinguish (i) feature shift, where P_k(x) differs across "
         "clients while P(y | x) is shared (the canonical scanner / "
         "vendor / acquisition-protocol problem in medical imaging); "
@@ -693,7 +693,7 @@ def build() -> None:
         "merely the number of samples differs across clients. Real "
         "federations exhibit all four simultaneously. Most existing "
         "robust aggregators target only one or two of these. The "
-        "Dirichlet-α partitioning protocol [14, 37] used in this "
+        "Dirichlet-α partitioning protocol [13, 29] used in this "
         "paper provides a knob to interpolate between IID and "
         "extreme label-prior skew; we sweep this parameter from 0.0 "
         "to 0.9 in Section 5.4.",
@@ -702,7 +702,7 @@ def build() -> None:
         "Quantifying heterogeneity is itself a non-trivial measurement "
         "problem. Total-variation distance, Jensen–Shannon divergence, "
         "and earth-mover distance have all been used as scalar "
-        "summaries [37, 40]. AHA-Fed adopts total-variation distance "
+        "summaries [29, 32]. AHA-Fed adopts total-variation distance "
         "between each client's empirical label prior and the across-"
         "client consensus because it is bounded in [0, 1], easy to "
         "compute once per training run, and admits a clear interpretation "
@@ -713,7 +713,7 @@ def build() -> None:
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     add_paragraph(doc,
-        "FedProx [17] adds an L2 proximal regulariser between the "
+        "FedProx [15] adds an L2 proximal regulariser between the "
         "local and global weights to limit client drift during local "
         "training. The proximal term is principled and provably "
         "improves convergence on bounded-dissimilarity objectives, "
@@ -722,20 +722,18 @@ def build() -> None:
         "or distributional shift, a corrupted client whose updates "
         "drag the global model is still given equal aggregation "
         "weight, only with a slightly less aggressive local step. "
-        "FedBN [19] keeps batch-normalisation parameters local and "
+        "FedBN [16] keeps batch-normalisation parameters local and "
         "only aggregates the convolutional weights, which is "
         "particularly relevant in medical imaging where batch-normalisation "
         "(BN) statistics "
-        "are scanner-specific; FedBN variants [19] address "
-        "feature shift more broadly. MOON [15] adds a contrastive term "
-        "between local and global representations. SCAFFOLD [13] "
-        "introduces control "
+        "are scanner-specific; FedBN variants [16] address "
+        "feature shift more broadly. SCAFFOLD [12] introduces control "
         "variates that correct gradient drift in non-IID regimes at "
         "the cost of doubling the per-round communication. "
-        "Logits calibration [39] reweights the local objective "
+        "Logits calibration [31] reweights the local objective "
         "to align local and global stationary points, recovering "
         "centralised-training performance under bounded heterogeneity. "
-        "FedDisco [37] takes a step closer to AHA-Fed's design by "
+        "FedDisco [29] takes a step closer to AHA-Fed's design by "
         "using label-distribution discrepancy directly as a per-client "
         "weighting signal, clients further from the consensus are "
         "downweighted. This is the closest precedent to AHA-Fed's β "
@@ -750,7 +748,7 @@ def build() -> None:
     add_paragraph(doc,
         "Robust FL has historically focused on Byzantine attackers, "
         "adversarial clients that submit arbitrarily corrupted updates "
-        "[41], rather than the more clinically realistic case of "
+        "[33], rather than the more clinically realistic case of "
         "well-meaning clients with noisy labels. The Byzantine "
         "threat model motivates median-based or trimmed-mean "
         "aggregators, which are computationally efficient but "
@@ -758,12 +756,10 @@ def build() -> None:
         "they are actually malicious. In a four-hospital federation "
         "with one noisy client, this can mean discarding 25% of the "
         "data even when only one or two clients are problematic. "
-        "FedCorr [34] identifies noisy clients on the basis of an "
+        "FedCorr [27] identifies noisy clients on the basis of an "
         "supplied label-noise estimate, which is rarely available in "
         "practice, hospitals do not annotate their own data with "
-        "honest noise rates. FedNoRo [33] pairs noise-robust "
-        "learning with class-imbalance correction but likewise needs a "
-        "noise-detection stage. Robust-FedAvg variants [14] use heavy-"
+        "honest noise rates. Robust-FedAvg variants [13] use heavy-"
         "tailed loss penalties or coordinate-wise clipping; these "
         "operate at the gradient level rather than the client level "
         "and so cannot identify which client is the source of the "
@@ -786,9 +782,9 @@ def build() -> None:
         "FL retains a per-client component. FedRep [4] keeps a shared "
         "representation backbone and trains a per-client classifier "
         "head; pFedMe [6] uses Moreau envelopes to balance the "
-        "global model and per-client adaptation. Ditto [16] casts "
+        "global model and per-client adaptation. Ditto [14] casts "
         "personalisation as multi-task learning, trading global "
-        "accuracy against per-client fairness. Auto-FedRL [9] learns the "
+        "accuracy against per-client fairness. Auto-FedRL [8] learns the "
         "federation hyperparameters themselves automatically, "
         "reducing the burden of manual tuning across heterogeneous "
         "sites. Personalised FL is orthogonal to AHA-Fed: the "
@@ -801,7 +797,7 @@ def build() -> None:
     add_heading(doc, "2.3 Privacy, personalisation, and clinical deployment", level=2)
     add_paragraph(doc,
         "Plain FL provides only an informal privacy guarantee: "
-        "gradient inversion attacks [41] have demonstrated that "
+        "gradient inversion attacks [33] have demonstrated that "
         "training images can be reconstructed from a single round "
         "of shared updates, and membership inference attacks can "
         "determine whether a particular record contributed to "
@@ -815,13 +811,13 @@ def build() -> None:
         "the Rényi-DP accountant or the moments accountant.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_paragraph(doc,
-        "Opacus [38] provides a PyTorch implementation of "
+        "Opacus [30] provides a PyTorch implementation of "
         "DP-SGD with tight Rényi-DP accounting and supports per-"
         "client privacy budgets. Hybrid approaches add secure "
         "aggregation [2] to additionally hide individual client "
         "updates from the central server: the server learns only "
         "the federation-wide sum, not the per-client contributions. "
-        "The DP-SGD literature [1, 38] maps the privacy-utility "
+        "The DP-SGD literature [1, 30] maps the privacy-utility "
         "tradeoff on chest X-ray classification under varying ε "
         "budgets, generally finding that DP costs ten to thirty "
         "AUROC points at ε ≤ 1.0, a substantial price for clinical "
@@ -839,31 +835,28 @@ def build() -> None:
 
     add_paragraph(doc,
         "Federated learning has moved from method papers to clinical "
-        "deployments over the past five years. Sarma et al. [28] show "
-        "that federated training raises per-site performance in a "
-        "multi-centre radiology study, and Li et al. [20] report a "
-        "privacy-preserving multi-site fMRI analysis. Sheller et al. [29] "
+        "deployments over the past five years. Sheller et al. [24] "
         "established in 2022 that FL trained on multi-institutional "
         "brain-tumour MRI matches centralised training when client "
         "heterogeneity is moderate; this paper, more than any other, "
         "is responsible for the current confidence in FL among "
-        "clinical collaborators. Pati et al. [26] scaled FL across "
+        "clinical collaborators. Pati et al. [22] scaled FL across "
         "seventy-one centres in six continents for rare-cancer "
         "boundary detection, the largest FL collaboration to date "
         "by site count, and a proof of feasibility for global "
         "federations. Dayan et al. [5] used FL to predict COVID-19 "
         "clinical outcomes across twenty institutions during the "
         "pandemic, demonstrating that FL can be assembled rapidly "
-        "in response to public-health emergencies. Rieke et al. [27] "
+        "in response to public-health emergencies. Rieke et al. [23] "
         "survey the clinical prospects of federated "
-        "digital health. Recent reviews [12, 30] and surveys [7, 23, 40] "
+        "digital health. Recent reviews [11] and surveys [19, 32] "
         "map the deployment landscape and identify open problems. "
         "Specifically clinically focused work includes Chen et al. [3] and "
-        "Liu et al. [21] for multi-site medical-image segmentation, "
-        "FedIIC [32] for "
-        "class-imbalanced medical-image classification, Xu et al. [34] "
+        "Liu et al. [17] for multi-site medical-image segmentation, "
+        "FedIIC [26] for "
+        "class-imbalanced medical-image classification, Xu et al. [27] "
         "for federated learning under label noise. "
-        "Ogier du Terrail et al. [24] provide a cross-silo "
+        "Ogier du Terrail et al. [20] provide a cross-silo "
         "healthcare benchmark suite. None of these methods "
         "explicitly "
         "reweight clients by an internally-derived data-quality "
@@ -875,10 +868,10 @@ def build() -> None:
         "measures the gap between its predicted confidences and its "
         "actual accuracy in equal-mass confidence bins. In the "
         "centralised non-FL setting, calibration of deep networks "
-        "has been studied since Guo et al. (2017) [7, 25] and is known to "
+        "has been studied since Guo et al. (2017) [7, 21] and is known to "
         "degrade with overparameterisation, label noise, and "
         "distribution shift, exactly the conditions that prevail "
-        "in federated medical imaging. Prior work [8] is among the "
+        "in federated medical imaging. Prior work [7] is among the "
         "first to study calibration in FL specifically and reports "
         "that FedAvg consistently produces worse calibration than "
         "centralised training even when accuracy and AUROC are "
@@ -889,7 +882,7 @@ def build() -> None:
         "AUROC is identical. To our knowledge, AHA-Fed is the first "
         "FL aggregation rule to treat calibration as a first-class "
         "design objective rather than a second-order metric. The "
-        "logits-calibration method [39] takes a "
+        "logits-calibration method [31] takes a "
         "different approach by post-hoc temperature-scaling the "
         "global model; this is complementary to AHA-Fed's "
         "aggregation-level intervention and the two could be "
@@ -914,11 +907,11 @@ def build() -> None:
         "and clinical-grade calibration reporting (ECE as a primary "
         "metric). Several recent methods address two of these "
         "dimensions, for instance DP-SGD [1] addresses privacy and "
-        "medical imaging, and logits calibration [39] addresses it and "
+        "medical imaging, and logits calibration [31] addresses it and "
         "medical imaging; but none address all four. The methods "
-        "closest in design to AHA-Fed are FedDisco [37] (which "
+        "closest in design to AHA-Fed are FedDisco [29] (which "
         "shares the distance term but lacks quality), and FedCorr "
-        "[34] (which addresses noise but requires a multi-stage "
+        "[27] (which addresses noise but requires a multi-stage "
         "detection procedure). Both fall short of jointly addressing all four "
         "dimensions and we compare to FedDisco directly in Section "
         "5.6 as the natural empirical baseline against our key design "
@@ -928,24 +921,24 @@ def build() -> None:
     # ---------- Literature review table (extended to 18 rows) ----------
     table_data = [
         ["Method", "Yr", "1", "2", "3", "4", "5"],
-        ["FedAvg [22]",        "17", "–", "–", "~", "–", "–"],
+        ["FedAvg [18]",        "17", "–", "–", "~", "–", "–"],
         ["DP-SGD [1]",         "16", "–", "–", "Y", "–", "–"],
-        ["Sheller et al. [29]", "20", "Y", "–", "–", "–", "Y"],
-        ["FedProx [17]",       "20", "P", "–", "~", "–", "–"],
-        ["SCAFFOLD [13]",      "20", "Y", "–", "~", "–", "–"],
+        ["Sheller et al. [24]", "20", "Y", "–", "–", "–", "Y"],
+        ["FedProx [15]",       "20", "P", "–", "~", "–", "–"],
+        ["SCAFFOLD [12]",      "20", "Y", "–", "~", "–", "–"],
         ["pFedMe [6]",         "20", "Y", "–", "~", "–", "–"],
-        ["FedBN [19]",         "21", "P", "–", "~", "–", "P"],
+        ["FedBN [16]",         "21", "P", "–", "~", "–", "P"],
         ["FedRep [4]",         "21", "Y", "–", "~", "–", "–"],
-        ["Ditto [16]",         "21", "Y", "P", "~", "–", "–"],
-        ["FedDG [21]",         "21", "Y", "–", "–", "–", "Y"],
-        ["Rieke et al. [27]",  "20", "P", "–", "P", "–", "Y"],
-        ["FedCorr [34]",       "22", "–", "Y", "–", "–", "–"],
-        ["Auto-FedRL [9]",     "22", "Y", "–", "–", "–", "Y"],
-        ["Logits calib. [39]", "22", "Y", "–", "–", "Y", "–"],
+        ["Ditto [14]",         "21", "Y", "P", "~", "–", "–"],
+        ["FedDG [17]",         "21", "Y", "–", "–", "–", "Y"],
+        ["Rieke et al. [23]",  "20", "P", "–", "P", "–", "Y"],
+        ["FedCorr [27]",       "22", "–", "Y", "–", "–", "–"],
+        ["Auto-FedRL [8]",     "22", "Y", "–", "–", "–", "Y"],
+        ["Logits calib. [31]", "22", "Y", "–", "–", "Y", "–"],
         ["Chen et al. [3]",    "22", "Y", "P", "–", "–", "Y"],
-        ["FLamby [24]",        "22", "Y", "–", "P", "–", "Y"],
-        ["FedDisco [37]",      "23", "Y", "–", "~", "–", "–"],
-        ["FedIIC [32]",        "23", "Y", "P", "–", "–", "Y"],
+        ["FLamby [20]",        "22", "Y", "–", "P", "–", "Y"],
+        ["FedDisco [29]",      "23", "Y", "–", "~", "–", "–"],
+        ["FedIIC [26]",        "23", "Y", "P", "–", "–", "Y"],
         ["AHA-Fed (ours)",     "26", "Y", "Y", "Y", "Y", "Y"],
     ]
     add_table_caption(doc,
@@ -1119,7 +1112,7 @@ def build() -> None:
     add_heading(doc, "3.6 Differential privacy", level=2)
     add_paragraph(doc,
         "Each client runs DP-SGD [1] with per-sample gradient clipping at "
-        "norm C and Gaussian noise scale σ chosen by the Opacus [38] privacy "
+        "norm C and Gaussian noise scale σ chosen by the Opacus [30] privacy "
         "engine to meet a target (ε, δ):",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_equation_image(doc, "eq7_dpsgd.png", "(8)", width_in=5.6)
@@ -1139,7 +1132,7 @@ def build() -> None:
     add_equation_image(doc, "eq8_ece.png", "(9)", width_in=5.6)
     add_paragraph(doc,
         "where A(B_m) is the empirical accuracy and C(B_m) the mean "
-        "predicted confidence in bin m [25]. ECE is the most clinically "
+        "predicted confidence in bin m [21]. ECE is the most clinically "
         "actionable metric for triage and decision-support deployments: a "
         "model that is confidently wrong on rare-class cases is more "
         "dangerous than a less-accurate but well-calibrated model.",
@@ -1260,7 +1253,7 @@ def build() -> None:
     add_heading(doc, "4. Experimental Setup", level=1)
     add_paragraph(doc,
         "We benchmark AHA-Fed against four established aggregators: FedAvg "
-        "[22], FedProx [17] (μ = 0.01), FedBN [19], and FedDisco [37]. "
+        "[18], FedProx [15] (μ = 0.01), FedBN [16], and FedDisco [29]. "
         "Every experiment runs on real medical imaging, PathMNIST and "
         "PneumoniaMNIST from MedMNIST v2, federated into K hospitals by "
         "Dirichlet partitioning over the label space, with label noise "
@@ -1277,13 +1270,13 @@ def build() -> None:
     add_heading(doc, "4.1 Datasets", level=2)
     add_paragraph(doc,
         "Every number reported in this paper comes from real medical imaging "
-        "data. We use two corpora from MedMNIST v2 [36]: PathMNIST, a nine-"
+        "data. We use two corpora from MedMNIST v2 [28]: PathMNIST, a nine-"
         "class colorectal-pathology dataset, as the primary benchmark, and "
         "PneumoniaMNIST, a binary chest-radiograph dataset, as a second "
         "modality. Both are released under permissive licences and require no "
         "data-use agreement, so every result here is directly reproducible. "
-        "NIH ChestX-ray14 [31] supplies the clinical-resolution experiments "
-        "of Section 5.10 at 224×224; a CheXpert [11] loader is released "
+        "NIH ChestX-ray14 [25] supplies the clinical-resolution experiments "
+        "of Section 5.10 at 224×224; a CheXpert [10] loader is released "
         "with the framework but is not used in the reported results. "
         "Table 2 "
         "summarises the three corpora and their federated partitions, "
@@ -1312,15 +1305,15 @@ def build() -> None:
     add_table_caption(doc,
         "Table 2: Real datasets used in this paper. No synthetic or "
         "simulated imagery appears anywhere. PathMNIST and "
-        "PneumoniaMNIST come from MedMNIST v2 [36] and are split "
+        "PneumoniaMNIST come from MedMNIST v2 [28] and are split "
         "Dirichlet over classes with label noise ρ ∈ [0, 0.7] "
-        "injected at one client; NIH ChestX-ray14 [31] comes from the "
+        "injected at one client; NIH ChestX-ray14 [25] comes from the "
         "NIH Clinical Center, is split patient-disjoint, and carries "
         "its own real annotation noise. None requires a data-use "
         "agreement.")
     add_bullet_run(doc, "Model. ",
                    "MedCNN (3 convolutional blocks with GroupNorm, ≈ 240K "
-                   "parameters) for the 28×28 MedMNIST corpora; DenseNet-121 [10] "
+                   "parameters) for the 28×28 MedMNIST corpora; DenseNet-121 [9] "
                    "is wired up for the full-resolution loaders.")
     add_bullet_run(doc, "AHA-Fed hyperparameters. ",
                    "α = 1, β = 4, γ = 4, ε_log = 1 × 10⁻⁶ (log stabiliser) "
@@ -1504,11 +1497,11 @@ def build() -> None:
     add_paragraph(doc,
         "Sections 5.1–5.5 sweep one factor at a time; this section fixes the "
         "federation and compares all five aggregators head to head on the "
-        "PathMNIST colon-histopathology benchmark [36] (89,996 train + "
+        "PathMNIST colon-histopathology benchmark [28] (89,996 train + "
         "7,180 test images, 9 classes, 28×28 RGB). The dataset is "
         "federated into K = 4 hospitals via Dirichlet partitioning "
         "(heterogeneity = 0.5) with 50% label noise injected at "
-        "hospital D. We add FedDisco [37] as a fifth baseline since it "
+        "hospital D. We add FedDisco [29] as a fifth baseline since it "
         "shares AHA-Fed's distance term but lacks the quality term, "
         "this is the natural ablation against our key design choice. "
         "All five aggregators are run for 25 rounds with the MedCNN "
@@ -1546,10 +1539,10 @@ def build() -> None:
     # 0.011 at most, while the paper's claim is about calibration.
     real_data = [
         ["Method", "Acc", "ECE", "Redn", "p"],
-        ["FedAvg [22]",    "0.672", "0.119±0.019", "19.1%", "0.020"],
-        ["FedProx [17]",   "0.673", "0.121±0.025", "19.9%", "0.037"],
-        ["FedBN [19]",     "0.692", "0.135±0.025", "28.3%", "0.014"],
-        ["FedDisco [37]",  "0.681", "0.139±0.030", "30.6%", "0.004"],
+        ["FedAvg [18]",    "0.672", "0.119±0.019", "19.1%", "0.020"],
+        ["FedProx [15]",   "0.673", "0.121±0.025", "19.9%", "0.037"],
+        ["FedBN [16]",     "0.692", "0.135±0.025", "28.3%", "0.014"],
+        ["FedDisco [29]",  "0.681", "0.139±0.030", "30.6%", "0.004"],
         ["AHA-Fed (ours)", "0.701", "0.097±0.018", "—", "—"],
     ]
     add_table_caption(doc,
@@ -1937,10 +1930,10 @@ def build() -> None:
     add_paragraph(doc,
         "Every result so far is on 28×28 MedMNIST imagery. The obvious "
         "question is whether the pipeline transfers to clinical-resolution "
-        "data, so we ran the federation on NIH ChestX-ray14 [31]: 112,120 "
+        "data, so we ran the federation on NIH ChestX-ray14 [25]: 112,120 "
         "frontal radiographs, fourteen findings as a multi-label task, "
         "partitioned patient-disjoint across four centers at 224×224 with a "
-        "DenseNet-121 [10] backbone. Patient-disjoint partitioning matters "
+        "DenseNet-121 [9] backbone. Patient-disjoint partitioning matters "
         "here, "
         "an image-level split would place different radiographs of the same "
         "patient in different centers and leak patient-specific features "
@@ -2443,8 +2436,8 @@ def build() -> None:
         "manifests are available at "
         "https://github.com/AUTHOR/aha-fed (to be replaced with the "
         "archival DOI on acceptance). PathMNIST and PneumoniaMNIST are "
-        "distributed with MedMNIST v2 [36] under CC BY 4.0; NIH "
-        "ChestX-ray14 [31] is available from the NIH Clinical Center. "
+        "distributed with MedMNIST v2 [28] under CC BY 4.0; NIH "
+        "ChestX-ray14 [25] is available from the NIH Clinical Center. "
         "No data-use agreement is required to reproduce any result in "
         "this paper.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
@@ -2452,7 +2445,7 @@ def build() -> None:
     add_heading(doc, "7.3 Future work", level=2)
     add_paragraph(doc,
         "Future work follows directly from those limitations. "
-        "(i) Full-resolution validation: CheXpert [11], NIH ChestX-ray14 [31], "
+        "(i) Full-resolution validation: CheXpert [10], NIH ChestX-ray14 [25], "
         "under K ≥ 8 patient-disjoint "
         "federations with formal (ε, δ) tracking and per-center fairness "
         "audit; the loaders are already released, so this is a compute "
@@ -2460,7 +2453,7 @@ def build() -> None:
         "the label-noise sweep would also settle whether the effect there "
         "is real but small or absent; the present evidence cannot "
         "distinguish those. (ii) Personalisation: composing AHA-Fed weights with "
-        "FedRep [4], pFedMe [6], or Ditto [16] heads to retain a "
+        "FedRep [4], pFedMe [6], or Ditto [14] heads to retain a "
         "per-hospital classifier for site-specific prevalence. "
         "(iii) Theoretical analysis: a convergence proof of AHA-Fed "
         "under (L, μ)-smooth, partially-noisy local objectives, "
@@ -2495,140 +2488,111 @@ def build() -> None:
         ("[6]", "Dinh, C. T., Tran, N. H., Nguyen, T. D. Personalized federated "
                "learning with Moreau envelopes. In Advances in Neural "
                "Information Processing Systems (NeurIPS) 33, 2020."),
-        ("[7]", "Guan, H., Yap, P.-T., Bozoki, A., Liu, M. Federated learning for "
-               "medical image analysis: a survey. Pattern Recognition, 151: "
-               "110424, 2024."),
-        ("[8]", "Guo, C., Pleiss, G., Sun, Y., Weinberger, K. Q. On calibration "
+        ("[7]", "Guo, C., Pleiss, G., Sun, Y., Weinberger, K. Q. On calibration "
                "of modern neural networks. In Proceedings of the 34th "
                "International Conference on Machine Learning (ICML), PMLR 70, "
                "2017."),
-        ("[9]", "Guo, P., Yang, D., Hatamizadeh, A., Xu, A., Xu, Z., Li, W. et "
+        ("[8]", "Guo, P., Yang, D., Hatamizadeh, A., Xu, A., Xu, Z., Li, W. et "
                "al. Auto-FedRL: federated hyperparameter optimization for "
                "multi-institutional medical image segmentation. In Proceedings "
                "of the European Conference on Computer Vision (ECCV), 2022."),
-        ("[10]", "Huang, G., Liu, Z., van der Maaten, L., Weinberger, K. Q. "
+        ("[9]", "Huang, G., Liu, Z., van der Maaten, L., Weinberger, K. Q. "
                 "Densely connected convolutional networks. In Proceedings of the "
                 "IEEE Conference on Computer Vision and Pattern Recognition "
                 "(CVPR), 2017."),
-        ("[11]", "Irvin, J., Rajpurkar, P., Ko, M., Yu, Y., Ciurea-Ilcus, S., "
+        ("[10]", "Irvin, J., Rajpurkar, P., Ko, M., Yu, Y., Ciurea-Ilcus, S., "
                 "Chute, C. et al. CheXpert: a large chest radiograph dataset with "
                 "uncertainty labels and expert comparison. In Proceedings of the "
                 "AAAI Conference on Artificial Intelligence, 33(1), 2019."),
-        ("[12]", "Kairouz, P., McMahan, H. B., Avent, B., Bellet, A., Bennis, M., "
+        ("[11]", "Kairouz, P., McMahan, H. B., Avent, B., Bellet, A., Bennis, M., "
                 "Bhagoji, A. N. et al. Advances and open problems in federated "
                 "learning. Foundations and Trends in Machine Learning, 14(1–2): "
                 "1–210, 2021."),
-        ("[13]", "Karimireddy, S. P., Kale, S., Mohri, M., Reddi, S. J., Stich, S. "
+        ("[12]", "Karimireddy, S. P., Kale, S., Mohri, M., Reddi, S. J., Stich, S. "
                 "U., Suresh, A. T. SCAFFOLD: stochastic controlled averaging for "
                 "federated learning. In Proceedings of the 37th International "
                 "Conference on Machine Learning (ICML), PMLR 119: 5132–5143, "
                 "2020."),
-        ("[14]", "Li, Q., Diao, Y., Chen, Q., He, B. Federated learning on non-IID "
+        ("[13]", "Li, Q., Diao, Y., Chen, Q., He, B. Federated learning on non-IID "
                 "data silos: an experimental study. In Proceedings of the IEEE "
                 "38th International Conference on Data Engineering (ICDE), 2022."),
-        ("[15]", "Li, Q., He, B., Song, D. Model-contrastive federated learning. "
-                "In Proceedings of the IEEE/CVF Conference on Computer Vision and "
-                "Pattern Recognition (CVPR), pages 10708–10717, 2021."),
-        ("[16]", "Li, T., Hu, S., Beirami, A., Smith, V. Ditto: fair and robust "
+        ("[14]", "Li, T., Hu, S., Beirami, A., Smith, V. Ditto: fair and robust "
                 "federated learning through personalization. In Proceedings of "
                 "the 38th International Conference on Machine Learning (ICML), "
                 "PMLR 139, 2021."),
-        ("[17]", "Li, T., Sahu, A. K., Zaheer, M., Sanjabi, M., Talwalkar, A., "
+        ("[15]", "Li, T., Sahu, A. K., Zaheer, M., Sanjabi, M., Talwalkar, A., "
                 "Smith, V. Federated optimization in heterogeneous networks. In "
                 "Proceedings of Machine Learning and Systems (MLSys) 2, 2020."),
-        ("[18]", "Li, T., Sahu, A. K., Talwalkar, A., Smith, V. Federated "
-                "learning: challenges, methods, and future directions. IEEE "
-                "Signal Processing Magazine, 37(3): 50–60, 2020."),
-        ("[19]", "Li, X., Jiang, M., Zhang, X., Kamp, M., Dou, Q. FedBN: federated "
+        ("[16]", "Li, X., Jiang, M., Zhang, X., Kamp, M., Dou, Q. FedBN: federated "
                 "learning on non-IID features via local batch normalization. In "
                 "International Conference on Learning Representations (ICLR), "
                 "2021."),
-        ("[20]", "Li, X., Gu, Y., Dvornek, N., Staib, L. H., Ventola, P., Duncan, "
-                "J. S. Multi-site fMRI analysis using privacy-preserving "
-                "federated learning and domain adaptation: ABIDE results. Medical "
-                "Image Analysis, 65: 101765, 2020."),
-        ("[21]", "Liu, Q., Chen, C., Qin, J., Dou, Q., Heng, P.-A. FedDG: "
+        ("[17]", "Liu, Q., Chen, C., Qin, J., Dou, Q., Heng, P.-A. FedDG: "
                 "federated domain generalization on medical image segmentation "
                 "via episodic learning in continuous frequency space. In "
                 "Proceedings of the IEEE/CVF Conference on Computer Vision and "
                 "Pattern Recognition (CVPR), 2021."),
-        ("[22]", "McMahan, H. B., Moore, E., Ramage, D., Hampson, S., Agüera y "
+        ("[18]", "McMahan, H. B., Moore, E., Ramage, D., Hampson, S., Agüera y "
                 "Arcas, B. Communication-efficient learning of deep networks from "
                 "decentralized data. In Proceedings of the 20th International "
                 "Conference on Artificial Intelligence and Statistics (AISTATS), "
                 "PMLR 54: 1273–1282, 2017."),
-        ("[23]", "Nguyen, D. C., Pham, Q.-V., Pathirana, P. N., Ding, M., "
+        ("[19]", "Nguyen, D. C., Pham, Q.-V., Pathirana, P. N., Ding, M., "
                 "Seneviratne, A., Lin, Z., Dobre, O., Hwang, W.-J. Federated "
                 "learning for smart healthcare: a survey. ACM Computing Surveys, "
                 "55(3): 1–37, 2023."),
-        ("[24]", "Ogier du Terrail, J., Ayed, S.-S., Cyffers, E., Grimberg, F., "
+        ("[20]", "Ogier du Terrail, J., Ayed, S.-S., Cyffers, E., Grimberg, F., "
                 "He, C., Loeb, R. et al. FLamby: datasets and benchmarks for "
                 "cross-silo federated learning in realistic healthcare settings. "
                 "In Advances in Neural Information Processing Systems (NeurIPS) "
                 "35, Datasets and Benchmarks Track, 2022."),
-        ("[25]", "Pakdaman Naeini, M., Cooper, G., Hauskrecht, M. Obtaining well "
+        ("[21]", "Pakdaman Naeini, M., Cooper, G., Hauskrecht, M. Obtaining well "
                 "calibrated probabilities using Bayesian binning. In Proceedings "
                 "of the AAAI Conference on Artificial Intelligence, 29(1), 2015."),
-        ("[26]", "Pati, S., Baid, U., Edwards, B., Sheller, M., Wang, S.-H., "
+        ("[22]", "Pati, S., Baid, U., Edwards, B., Sheller, M., Wang, S.-H., "
                 "Reina, G. A. et al. Federated learning enables big data for rare "
                 "cancer boundary detection. Nature Communications, 13: 7346, "
                 "2022."),
-        ("[27]", "Rieke, N., Hancox, J., Li, W., Milletarì, F., Roth, H. R., "
+        ("[23]", "Rieke, N., Hancox, J., Li, W., Milletarì, F., Roth, H. R., "
                 "Albarqouni, S. et al. The future of digital health with "
                 "federated learning. npj Digital Medicine, 3: 119, 2020."),
-        ("[28]", "Sarma, K. V., Harmon, S., Sanford, T., Roth, H. R., Xu, Z., "
-                "Tetreault, J. et al. Federated learning improves site "
-                "performance in multicenter deep learning without data sharing. "
-                "Journal of the American Medical Informatics Association, 28(6): "
-                "1259–1264, 2021."),
-        ("[29]", "Sheller, M. J., Edwards, B., Reina, G. A., Martin, J., Pati, S., "
+        ("[24]", "Sheller, M. J., Edwards, B., Reina, G. A., Martin, J., Pati, S., "
                 "Kotrotsou, A. et al. Federated learning in medicine: "
                 "facilitating multi-institutional collaborations without sharing "
                 "patient data. Scientific Reports, 10: 12598, 2020."),
-        ("[30]", "Sohan, M. F., Basalamah, A. A systematic review on federated "
-                "learning in medical image analysis. IEEE Access, 11: "
-                "28628–28644, 2023."),
-        ("[31]", "Wang, X., Peng, Y., Lu, L., Lu, Z., Bagheri, M., Summers, R. M. "
+        ("[25]", "Wang, X., Peng, Y., Lu, L., Lu, Z., Bagheri, M., Summers, R. M. "
                 "ChestX-ray8: hospital-scale chest X-ray database and benchmarks "
                 "on weakly-supervised classification and localization of common "
                 "thorax diseases. In Proceedings of the IEEE Conference on "
                 "Computer Vision and Pattern Recognition (CVPR), pages 2097–2106, "
                 "2017."),
-        ("[32]", "Wu, N., Yu, L., Yang, X., Cheng, K.-T., Yan, Z. FedIIC: towards "
+        ("[26]", "Wu, N., Yu, L., Yang, X., Cheng, K.-T., Yan, Z. FedIIC: towards "
                 "robust federated learning for class-imbalanced medical image "
                 "classification. In Medical Image Computing and Computer Assisted "
                 "Intervention (MICCAI), LNCS 14221, 2023."),
-        ("[33]", "Wu, N., Yu, L., Jiang, X., Cheng, K.-T., Yan, Z. FedNoRo: "
-                "towards noise-robust federated learning by addressing class "
-                "imbalance and label noise heterogeneity. In Proceedings of the "
-                "Thirty-Second International Joint Conference on Artificial "
-                "Intelligence (IJCAI), pages 4424–4432, 2023."),
-        ("[34]", "Xu, J., Chen, Z., Quek, T. Q. S., Chong, K. F. E. FedCorr: "
+        ("[27]", "Xu, J., Chen, Z., Quek, T. Q. S., Chong, K. F. E. FedCorr: "
                 "multi-stage federated learning for label noise correction. In "
                 "Proceedings of the IEEE/CVF Conference on Computer Vision and "
                 "Pattern Recognition (CVPR), pages 10184–10193, 2022."),
-        ("[35]", "Xu, J., Glicksberg, B. S., Su, C., Walker, P., Bian, J., Wang, "
-                "F. Federated learning for healthcare informatics. Journal of "
-                "Healthcare Informatics Research, 5: 1–19, 2021."),
-        ("[36]", "Yang, J., Shi, R., Wei, D., Liu, Z., Zhao, L., Ke, B., Pfister, "
+        ("[28]", "Yang, J., Shi, R., Wei, D., Liu, Z., Zhao, L., Ke, B., Pfister, "
                 "H., Ni, B. MedMNIST v2: a large-scale lightweight benchmark for "
                 "2D and 3D biomedical image classification. Scientific Data, 10: "
                 "41, 2023."),
-        ("[37]", "Ye, R., Xu, M., Wang, J., Xu, C., Chen, S., Wang, Y. FedDisco: "
+        ("[29]", "Ye, R., Xu, M., Wang, J., Xu, C., Chen, S., Wang, Y. FedDisco: "
                 "federated learning with discrepancy-aware collaboration. In "
                 "Proceedings of the 40th International Conference on Machine "
                 "Learning (ICML), PMLR 202, 2023."),
-        ("[38]", "Yousefpour, A., Shilov, I., Sablayrolles, A., Testuggine, D., "
+        ("[30]", "Yousefpour, A., Shilov, I., Sablayrolles, A., Testuggine, D., "
                 "Prasad, K., Malek, M. et al. Opacus: user-friendly differential "
                 "privacy library in PyTorch. In NeurIPS 2021 Workshop Privacy in "
                 "Machine Learning, 2021."),
-        ("[39]", "Zhang, J., Li, Z., Li, B., Xu, J., Wu, S., Ding, S., Wu, C. "
+        ("[31]", "Zhang, J., Li, Z., Li, B., Xu, J., Wu, S., Ding, S., Wu, C. "
                 "Federated learning with label distribution skew via logits "
                 "calibration. In Proceedings of the 39th International Conference "
                 "on Machine Learning (ICML), PMLR 162, 2022."),
-        ("[40]", "Zhu, H., Xu, J., Liu, S., Jin, Y. Federated learning on non-IID "
+        ("[32]", "Zhu, H., Xu, J., Liu, S., Jin, Y. Federated learning on non-IID "
                 "data: a survey. Neurocomputing, 465: 371–390, 2021."),
-        ("[41]", "Zhu, L., Liu, Z., Han, S. Deep leakage from gradients. In "
+        ("[33]", "Zhu, L., Liu, Z., Han, S. Deep leakage from gradients. In "
                 "Advances in Neural Information Processing Systems (NeurIPS) 32, "
                 "2019."),
     ]
