@@ -1312,6 +1312,8 @@ def build() -> None:
         "NIH Clinical Center, is split patient-disjoint, and carries "
         "its own real annotation noise. None requires a data-use "
         "agreement.")
+    make_table(doc, ds_data, header_font_size=10, body_font_size=9.5)
+    add_post_table_spacing(doc)
     add_bullet_run(doc, "Model. ",
                    "MedCNN (3 convolutional blocks with GroupNorm, ≈ 240K "
                    "parameters) for the 28×28 MedMNIST corpora; DenseNet-121 [9] "

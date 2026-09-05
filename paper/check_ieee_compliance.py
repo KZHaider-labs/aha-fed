@@ -102,6 +102,14 @@ def main(template: Path, paper: Path) -> int:
           f"{len(titles)} tables"
           + ("" if titles == want else f"; got {titles[:4]}"))
 
+    # A TABLE title with no grid under it means the make_table call was
+    # lost while the caption survived, which happened once during an edit
+    # and passed every other check.
+    grids = len(doc.tables)
+    check("every table title has a table under it",
+          grids == len(titles),
+          f"{len(titles)} titles, {grids} grids")
+
     caps = [p.text.strip() for p in doc.paragraphs
             if p.style.name in ("Fig Caption", "Figure Caption")
             and p.text.strip()]

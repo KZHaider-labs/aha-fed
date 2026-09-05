@@ -52,7 +52,7 @@ LABELS = {
     "feddisco": "FedDisco",
     "aha_fed":  "AHA-Fed (ours)",
 }
-SEEDS = [42, 123, 456]
+SEEDS = [7, 13, 21, 42, 99, 123, 456, 555, 2024, 31337]
 
 
 def load_path_seeds(tag: str):
@@ -255,12 +255,12 @@ def fig_real_convergence():
 
     axes[0].set_xlabel("Communication round")
     axes[0].set_ylabel("Test loss (cross-entropy)")
-    axes[0].set_title("(a) Test loss — PathMNIST (mean ± std, 3 seeds)")
+    axes[0].set_title("(a) Test loss, mean ± s.d. over 10 seeds")
     axes[0].legend(loc="upper right")
 
     axes[1].set_xlabel("Communication round")
     axes[1].set_ylabel("Expected Calibration Error")
-    axes[1].set_title("(b) ECE — PathMNIST (mean ± std, 3 seeds)")
+    axes[1].set_title("(b) ECE, mean ± s.d. over 10 seeds")
     axes[1].legend(loc="upper right")
 
     plt.tight_layout()
