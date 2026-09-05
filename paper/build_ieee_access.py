@@ -80,11 +80,26 @@ AFFILIATIONS = [
     "³Department of Computer Engineering, Sivas University of Science "
     "and Technology, Sivas 58000, Türkiye",
 ]
+# One entry per author: the name as it should be set, and the biography
+# text. An empty string leaves a marked placeholder rather than inventing
+# career details, which only the author can supply.
 BIOS = [
-    "ABU UBAIDA",
-    "KHURRAM ZEESHAN HAIDER",
-    "FARHAN AADIL",
-    "CELAL ALAGOZ",
+    ("ABU UBAIDA", ""),
+    ("KHURRAM ZEESHAN HAIDER",
+     "received the Ph.D. degree in computer engineering from the "
+     "University of Engineering and Technology, Taxila, Pakistan. He is "
+     "currently an Assistant Professor with the Department of Software "
+     "Engineering, Government College University Faisalabad, Faisalabad, "
+     "Pakistan. His research focuses on artificial intelligence, "
+     "particularly computer vision, machine learning, generative "
+     "artificial intelligence, and AI-based medical imaging. His "
+     "interests also include predictive analytics, large language "
+     "models, and natural language processing. His research vision is to "
+     "create scalable, reliable, and impactful AI technologies, with "
+     "innovation in healthcare, data analytics, and intelligent "
+     "computing systems."),
+    ("FARHAN AADIL", ""),
+    ("CELAL ALAGOZ", ""),
 ]
 CORRESPONDING = ("Corresponding author: Farhan Aadil "
                  "(e-mail: farhan.aadil@sivas.edu.tr).")
@@ -713,11 +728,14 @@ def build(template: Path, out: Path) -> None:
     # emitted as marked placeholders so the structure and styling are
     # right and the text is obviously outstanding.
     bio_style = first_style(doc, ["AU_Bios", "Author Bios", "Biography"])
-    for name in BIOS:
-        para(doc, f"{name} [AUTHOR BIOGRAPHY TO BE SUPPLIED: degrees with "
-                  f"field, institution and year; current position and "
-                  f"affiliation; research interests.]",
-             style=bio_style, size=8)
+    for name, text in BIOS:
+        if text:
+            body = f"{name} {text}"
+        else:
+            body = (f"{name} [AUTHOR BIOGRAPHY TO BE SUPPLIED: degrees with "
+                    f"field, institution and year; current position and "
+                    f"affiliation; research interests.]")
+        para(doc, body, style=bio_style, size=8)
 
     fix_page_numbers(doc)
     doc.save(str(out))
