@@ -2112,24 +2112,29 @@ def build() -> None:
         "Section 5.9 identifies as the variable governing whether the "
         "quality signal works at all, and DP-SGD is the setting most "
         "exposed to it, since the noise added per step is calibrated to "
-        "the sampling rate. Table 11 reports both configurations and "
+        "the sampling rate. Table 10 reports both configurations and "
         "Figure 12 plots the original sweep.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
+    # "1,000 img/client, 25 rd" and "AHA-Fed" cannot both have their own
+    # column at this width; the configuration is abbreviated and spelt
+    # out in the caption, and the method names shortened.
     dp_data = [
-        ["Config", "ε", "Method", "Acc", "AUROC", "ECE"],
-        ["300 img/client, 15 rd", "1.0",  "FedAvg",  "0.082", "—", "—"],
-        ["300 img/client, 15 rd", "1.0",  "AHA-Fed", "0.084", "—", "—"],
-        ["1,000 img/client, 25 rd", "1.0",  "FedAvg",  "0.481", "0.857", "0.215"],
-        ["1,000 img/client, 25 rd", "1.0",  "AHA-Fed", "0.470", "0.858", "0.194"],
-        ["1,000 img/client, 25 rd", "10.0", "FedAvg",  "0.484", "0.869", "0.203"],
-        ["1,000 img/client, 25 rd", "10.0", "AHA-Fed", "0.476", "0.870", "0.185"],
-        ["Non-private", "∞", "FedAvg",  "0.679", "0.938", "0.119"],
-        ["Non-private", "∞", "AHA-Fed", "0.702", "0.949", "0.097"],
+        ["Imgs", "ε", "Agg", "Acc", "AUROC", "ECE"],
+        ["300",   "1.0",  "Base", "0.082", "—", "—"],
+        ["300",   "1.0",  "Ours",   "0.084", "—", "—"],
+        ["1,000", "1.0",  "Base", "0.481", "0.857", "0.215"],
+        ["1,000", "1.0",  "Ours",   "0.470", "0.858", "0.194"],
+        ["1,000", "10.0", "Base", "0.484", "0.869", "0.203"],
+        ["1,000", "10.0", "Ours",   "0.476", "0.870", "0.185"],
+        ["1,000", "∞",    "Base", "0.679", "0.938", "0.119"],
+        ["1,000", "∞",    "Ours",   "0.702", "0.949", "0.097"],
     ]
     add_table_caption(doc,
-        "Table 11: DP-SGD on PathMNIST under two data budgets. The "
-        "300-image rows are our original sweep, single seed; the "
+        "Table 10: DP-SGD on PathMNIST under two data budgets. The "
+        "300-image rows are our original sweep at 15 rounds, single "
+        "seed; the 1,000-image rows run 25 rounds. Ours is AHA-Fed and "
+        "Base is FedAvg; Agg is the aggregator. The "
         "1,000-image rows are ten seeds at the same per-client budget "
         "as every non-private result in this paper. Chance accuracy is "
         "0.111.")
@@ -2186,7 +2191,7 @@ def build() -> None:
                "PathMNIST, accuracy and ECE against the target budget "
                "ε, where smaller ε is stronger privacy. Retained to show "
                "the collapse to chance that the 1,000-image runs of "
-               "Table 11 correct.")
+               "Table 10 correct.")
 
     add_heading(doc, "5.12 Hyperparameter sensitivity", level=2)
     add_paragraph(doc,
@@ -2274,7 +2279,7 @@ def build() -> None:
     # ==================== 6. ABLATION ====================
     add_heading(doc, "6. Ablation Study", level=1)
     add_paragraph(doc,
-        "Table 10 isolates each term by zeroing its coefficient on the "
+        "Table 11 isolates each term by zeroing its coefficient on the "
         "PathMNIST federation of Section 5.6, ten seeds throughout, with "
         "paired Wilcoxon tests against the full rule. Two of the three "
         "comparisons come out as the design predicts, and one does not.",
@@ -2288,7 +2293,7 @@ def build() -> None:
         ["Full AHA-Fed",           "1", "4", "4", "0.097 ± 0.018", "—", "—"],
     ]
     add_table_caption(doc,
-        "Table 10: Ablation of the AHA-Fed terms on PathMNIST, ten seeds. "
+        "Table 11: Ablation of the AHA-Fed terms on PathMNIST, ten seeds. "
         "The 'vs full' column is (row ECE − full ECE) / row ECE, the same "
         "convention as Table 3; positive means the full rule is better.")
     make_table(doc, abl, header_font_size=10, body_font_size=9.5,

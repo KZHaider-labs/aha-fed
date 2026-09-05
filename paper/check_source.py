@@ -40,6 +40,18 @@ def main():
         for m in re.finditer(r"[a-z][,;](?=[A-Za-z0-9])", joined):
             bad.append((line_no, "space lost",
                         joined[max(0, m.start() - 34):m.end() + 16]))
+    # Table captions must be numbered in the order they appear, or the
+    # main document and the Access build disagree: the Access renderer
+    # numbers by position and ignores the caption's own number.
+    nums = [int(m.group(1)) for m in
+            re.finditer(r'"Table (\d+):', text)]
+    if nums != sorted(nums):
+        for i in range(len(nums) - 1):
+            if nums[i] > nums[i + 1]:
+                bad.append((0, "caption order",
+                            "Table %d appears before Table %d"
+                            % (nums[i], nums[i + 1])))
+
     for line_no, kind, frag in bad:
         print("%s:%d  %-13s ...%s..." % (SRC, line_no, kind, frag.strip()))
     print("\n%d joining defect(s)" % len(bad))
