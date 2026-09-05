@@ -487,9 +487,11 @@ for _f in glob.glob(str(REAL / "*.json")):
             _wmin = min(_wmin, min(_w))
 if _wmin < 1.0:
     print(f"  smallest AHA-Fed weight across all runs: {_wmin:.4f}")
+    # A 0.0005 tolerance let 0.0031 pass against a quoted 0.0035. The
+    # paper quotes four decimals, so the check compares four decimals.
     check("the quoted minimum weight matches the artifacts",
-          abs(_wmin - 0.0035) < 0.0005,
-          f"{_wmin:.4f} (paper says 0.0035)")
+          f"{_wmin:.4f}" == "0.0031",
+          f"{_wmin:.4f} (paper says 0.0031)")
 
 
 

@@ -1235,7 +1235,7 @@ def build() -> None:
         "plainly. First, the bound is loose: at α = 1, β = γ = 4 with "
         "R = 20 and q_min = 0.22 it gives w_min ≥ 7.2 × 10⁻⁷ at K = 4 and "
         "1.1 × 10⁻⁷ at K = 20, whereas the smallest weight observed in any "
-        "of our runs is 0.0035; the terms do "
+        "of our runs is 0.0031; the terms do "
         "not reach their extremes simultaneously, and a tighter bound would "
         "need distributional assumptions on D_k and q_k that we cannot "
         "justify. Second, it guarantees convergence to a stationary point of "
