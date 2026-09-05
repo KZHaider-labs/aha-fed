@@ -260,8 +260,10 @@ def fig_het_scale() -> None:
     axes[1].set_ylabel("ECE")
     axes[1].set_title("Client-count scaling (one noisy client each)")
 
-    for ax in axes:
-        ax.legend(frameon=False)
+    # The default location puts the legend over the AHA-Fed line in the
+    # sweep panel; pin each one to a corner its data leaves empty.
+    axes[0].legend(frameon=False, loc="upper left", fontsize=7)
+    axes[1].legend(frameon=False, loc="upper left", fontsize=7)
     save(fig, "fig_het_scale.png")
 
 
@@ -279,7 +281,9 @@ def fig_weights() -> None:
     noisy = (d.get("config") or {}).get("noisy_client")
     rounds = np.arange(1, len(w) + 1)
 
-    fig, ax = plt.subplots(figsize=(7.2, 4.2))
+    # Drawn at 7.2 in and placed in a 3.3 in column, everything halves
+    # and the legend becomes unreadable. Draw it at column width.
+    fig, ax = plt.subplots(figsize=(3.4, 2.6))
     for k in range(w.shape[1]):
         is_noisy = k == noisy
         ax.plot(rounds, w[:, k], "o-" if is_noisy else "-",
@@ -290,8 +294,9 @@ def fig_weights() -> None:
                label=f"uniform ({1 / w.shape[1]:.3f})")
     ax.set_xlabel("communication round")
     ax.set_ylabel("aggregation weight")
-    ax.set_title("AHA-Fed client weights — PathMNIST, 50% noise at one client")
-    ax.legend(frameon=False, fontsize=9)
+    ax.legend(frameon=False, fontsize=6, ncol=2,
+              handlelength=1.4, columnspacing=1.0,
+              borderpad=0.2, labelspacing=0.3)
     save(fig, "fig_weights.png")
 
 

@@ -1467,7 +1467,8 @@ def build() -> None:
     add_figure(doc, FIGS / "fig_het_scale.png",
                "Figure 8: PathMNIST, Dirichlet heterogeneity sweep "
                "(0.0–0.9, 10 seeds per level) and federation-size scaling "
-               "(K = 4 to 32, 10 seeds each).")
+               "at K = 4, 8 and 12 with a fixed corpus, 10 seeds each; "
+               "Table 8 carries the sweep further.")
 
     add_heading(doc, "5.5 Per-client aggregation weights", level=2)
     add_paragraph(doc,
