@@ -153,7 +153,7 @@ def fig_dp():
     axes[0].axhline(1/9, color="gray", linestyle=":", linewidth=1.0,
                     label="random (1/9)")
     axes[0].set_xticks(xs); axes[0].set_xticklabels(xticks_lab)
-    axes[0].set_xlabel(r"Target privacy budget $\varepsilon$  (lower = stronger privacy)")
+    axes[0].set_xlabel(r"Target privacy budget $\varepsilon$")
     axes[0].set_ylabel("Test accuracy")
     axes[0].set_title("(a) Accuracy under DP-SGD")
     axes[0].legend(loc="upper left")

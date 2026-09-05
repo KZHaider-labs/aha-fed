@@ -619,12 +619,12 @@ def build() -> None:
         "five-point heterogeneity sweep (pooled 1.47×, p < 10⁻⁵) and under "
         "label noise (pooled 1.40×, p < 10⁻⁴), and vanishes when no client "
         "is corrupted, which is what the design predicts. Three results "
-        "bound the method rather than support it: the advantage disappears "
-        "as the federation grows past four clients, AHA-Fed loses to every "
-        "baseline on binary chest radiography, and DP-SGD costs both "
-        "aggregators all their utility. Section 5.7 shows the second of "
-        "these has a measurable cause that a practitioner can test before "
-        "deploying.",
+        "bound the method rather than support it: the advantage fades "
+        "once a fixed corpus is divided among more than twelve clients, "
+        "AHA-Fed loses to every baseline on binary chest radiography, and "
+        "the calibration advantage does not reproduce at clinical "
+        "resolution. Section 5.7 shows the second of these has a "
+        "measurable cause that a practitioner can test before deploying.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     add_paragraph(doc,
@@ -634,7 +634,7 @@ def build() -> None:
         "algorithm, and proves in Section 3.9 that the softmax weights are "
         "bounded away from zero, the property that places the method inside "
         "the standard FedAvg convergence rate. Section 4 specifies the "
-        "protocol. Section 5 reports eleven experiments, Section 6 ablates "
+        "protocol. Section 5 reports thirteen experiments, Section 6 ablates "
         "each term, and Section 7 concludes.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
@@ -2186,9 +2186,10 @@ def build() -> None:
 
     add_figure(doc, FIGS / "fig_dp_tradeoff.png",
                "Figure 12: The original 300-image DP-SGD sweep on "
-               "PathMNIST (accuracy and ECE vs ε), retained to show the "
-               "collapse to chance that the 1,000-image runs of Table 11 "
-               "correct.")
+               "PathMNIST, accuracy and ECE against the target budget "
+               "ε, where smaller ε is stronger privacy. Retained to show "
+               "the collapse to chance that the 1,000-image runs of "
+               "Table 11 correct.")
 
     add_heading(doc, "5.12 Hyperparameter sensitivity", level=2)
     add_paragraph(doc,
