@@ -532,8 +532,9 @@ def build() -> None:
         "deployments they constitute a privacy breach equivalent to "
         "an un-authorised data transfer. Modern compliance therefore "
         "requires formal (ε, δ)-Differential Privacy [1, 30] "
-        "accounting on every client's local training round, with "
-        "Rényi-DP composition across rounds and clients. Adding "
+        "accounting on every client's local training round, composed "
+        "across rounds and clients; Section 5.11 reports our own "
+        "budgets, which are per-round rather than composed. Adding "
         "differentially private stochastic gradient descent (DP-SGD) "
         "on top of FedAvg, however, exacerbates exactly the "
         "non-IID and noise problems described above: privacy noise "
@@ -551,8 +552,8 @@ def build() -> None:
         "This paper proposes AHA-Fed (Adaptive Heterogeneity-Aware "
         "Federated Learning), an aggregation rule designed against "
         "all four challenges at once. The core idea is to compute "
-        "per-round client weights from three complementary signals "
-        ", data volume n_k, total-variation distance D_k between the "
+        "per-round client weights from three complementary signals: "
+        "data volume n_k, total-variation distance D_k between the "
         "client's empirical label prior and the across-client "
         "consensus, and a self-supervised quality signal q_k derived "
         "from the client's mean local training loss, combined in "
@@ -1490,8 +1491,8 @@ def build() -> None:
         "does not, at the seed count we ran.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_figure(doc, FIGS / "fig_weights.png",
-               "Figure 9: AHA-Fed per-client aggregation weights per round "
-               ", PathMNIST, ρ = 0.5 at hospital four, seed 42.")
+               "Figure 9: AHA-Fed per-client aggregation weights per round, "
+               "PathMNIST, ρ = 0.5 at hospital four, seed 42.")
 
     add_heading(doc, "5.6 Aggregator comparison on PathMNIST", level=2)
     add_paragraph(doc,
@@ -2307,8 +2308,8 @@ def build() -> None:
         "costs calibration rather than adding to it.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
     add_paragraph(doc,
-        "That result has an obvious implication, drop the distance term "
-        ", so we tested it rather than reasoning about it. Repeating both "
+        "That result has an obvious implication, drop the distance term, "
+        "so we tested it rather than reasoning about it. Repeating both "
         "sweeps of Section 5 with β = 0 at ten seeds, ninety runs in "
         "total, shows the advantage does not generalise. Across the "
         "heterogeneity sweep the two are indistinguishable when pooled "

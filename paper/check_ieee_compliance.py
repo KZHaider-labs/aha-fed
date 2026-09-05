@@ -412,6 +412,13 @@ def main(template: Path, paper: Path) -> int:
     check("no unrenderable maths-script characters", not script,
           f"{len(script)} found" if script else "clean")
 
+    # The mirror of the lost-space defect ("per round , PathMNIST")
+    # lives in build_paper.py, where the prose is assembled. Checking it
+    # here would mean sifting OMML gaps out of the rendered text, which
+    # produces more false positives than findings; check_source.py reads
+    # the source strings instead, where a space before punctuation is
+    # unambiguous.
+
     # A list was once shipped in which real papers had been relabelled
     # into journals with invented volumes and "a 2022 retrospective"
     # style suffixes on their titles. The tells below catch six of the
