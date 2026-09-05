@@ -629,7 +629,7 @@ def build() -> None:
 
     add_paragraph(doc,
         "The remainder of the paper is organised as follows. Section 2 "
-        "reviews the literature and contrasts AHA-Fed with seventeen recent "
+        "reviews the literature and contrasts AHA-Fed with nineteen recent "
         "methods (Table 1). Section 3 derives the rule, gives the training "
         "algorithm, and proves in Section 3.9 that the softmax weights are "
         "bounded away from zero, the property that places the method inside "
@@ -643,7 +643,7 @@ def build() -> None:
         "We group the related work into four areas: aggregation rules and "
         "how they handle statistical heterogeneity (§2.1), robustness to "
         "client-side label noise (§2.2), privacy, personalisation and "
-        "clinical deployment (§2.3), and a comparison against seventeen "
+        "clinical deployment (§2.3), and a comparison against nineteen "
         "recent methods along six dimensions (§2.4). The thesis developed "
         "across them is that no existing method jointly addresses the "
         "heterogeneity, noise, calibration, and privacy challenges that "
@@ -896,17 +896,17 @@ def build() -> None:
         "composed.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
-    add_heading(doc, "2.4 Positioning: comparison with seventeen recent methods",
+    add_heading(doc, "2.4 Positioning: comparison with nineteen recent methods",
                 level=2)
     add_paragraph(doc,
         "We synthesise the discussion of §§2.1–2.3 in Table 1, which "
-        "contrasts AHA-Fed with seventeen federated-learning methods "
-        "spanning 2022–2026 along six dimensions that matter for "
+        "contrasts AHA-Fed with nineteen federated-learning methods "
+        "spanning 2016–2026 along six dimensions that matter for "
         "clinical deployment: year of publication, whether the method "
         "is heterogeneity-aware, whether it explicitly handles client "
         "noise, whether it is compatible with formal DP-SGD, whether "
         "it reports calibration metrics, and whether it has been "
-        "evaluated on medical-imaging data. Of the seventeen methods "
+        "evaluated on medical-imaging data. Of the nineteen methods "
         "surveyed, only AHA-Fed simultaneously delivers a non-IID-"
         "aware aggregation rule (volume + label-prior distance), an "
         "internally-derived quality-aware client weighting (loss-"
@@ -927,7 +927,7 @@ def build() -> None:
 
     # ---------- Literature review table (extended to 18 rows) ----------
     table_data = [
-        ["Method", "Yr", "Het.", "Noise", "DP-SGD", "Cal.", "Med."],
+        ["Method", "Yr", "1", "2", "3", "4", "5"],
         ["FedAvg [22]",        "17", "–", "–", "~", "–", "–"],
         ["DP-SGD [1]",         "16", "–", "–", "Y", "–", "–"],
         ["Sheller et al. [29]", "20", "Y", "–", "–", "–", "Y"],
@@ -949,12 +949,12 @@ def build() -> None:
         ["AHA-Fed (ours)",     "26", "Y", "Y", "Y", "Y", "Y"],
     ]
     add_table_caption(doc,
-        "Table 1: Nineteen federated-learning methods, 2016 to "
-        "2026, against the four capabilities this paper combines. "
-        "Columns: heterogeneity-aware, client-noise-aware, "
-        "DP-SGD-ready, calibration-reporting, medical-imaging "
-        "tested. Y is yes, P partial, ~ indirect and – no. Only "
-        "AHA-Fed carries all five."
+        "Table 1: Nineteen federated-learning methods, 2016 to 2026, "
+        "against the five capabilities this paper combines. "
+        "1 heterogeneity-aware, 2 client-noise-aware, 3 DP-SGD-ready, "
+        "4 calibration-reporting, 5 medical-imaging tested. "
+        "Y is yes, P partial, ~ indirect and – no. Yr is the year of "
+        "publication. Only AHA-Fed carries all five."
     )
     make_table(doc, table_data,
                highlight_row_pred=lambda i, row: row[0].startswith("AHA-Fed"),

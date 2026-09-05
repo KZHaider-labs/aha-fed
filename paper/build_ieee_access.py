@@ -460,9 +460,9 @@ def table(doc: Document, rows: list[list[str]], caption: str):
     _table_no[0] += 1
     numeral = ROMAN[_table_no[0] - 1] if _table_no[0] <= len(ROMAN) else str(_table_no[0])
     title_style = "Table Title" if style_or_none(doc, "Table Title") else None
-    para(doc, f"TABLE {numeral}", style=title_style,
-         size=None if title_style else 8,
-         align=None if title_style else WD_ALIGN_PARAGRAPH.CENTER)
+    title_p = para(doc, f"TABLE {numeral}", style=title_style,
+                   size=None if title_style else 8,
+                   align=None if title_style else WD_ALIGN_PARAGRAPH.CENTER)
 
     # The extracted caption already reads "Table 3: ..."; keep only the text.
     # A caption may also cite another table ("the same convention as
@@ -472,9 +472,15 @@ def table(doc: Document, rows: list[list[str]], caption: str):
     # The template sets the caption text in Table Title too, not in a
     # separate caption style.
     cap_style = first_style(doc, ["Table Title", "Table Caption"])
-    para(doc, body.upper() if len(body) < 60 else body,
-         style=cap_style, size=None if cap_style else 8,
-         align=None if cap_style else WD_ALIGN_PARAGRAPH.CENTER)
+    cap_p = para(doc, body.upper() if len(body) < 60 else body,
+                 style=cap_style, size=None if cap_style else 8,
+                 align=None if cap_style else WD_ALIGN_PARAGRAPH.CENTER)
+    # The title and caption must travel with the table, or Word leaves
+    # them at the foot of one column and starts the rows in the next.
+    for p_ in (title_p, cap_p):
+        pPr = p_._p.get_or_add_pPr()
+        for tag in ("w:keepNext", "w:keepLines"):
+            pPr.append(OxmlElement(tag))
     t = doc.add_table(rows=len(rows), cols=len(rows[0]))
     if style_or_none(doc, "Normal Table") is not None:
         t.style = doc.styles["Normal Table"]
@@ -556,8 +562,8 @@ def table(doc: Document, rows: list[list[str]], caption: str):
         trPr = row._tr.get_or_add_trPr()
         keep = OxmlElement("w:cantSplit")
         trPr.append(keep)
-        for para in (c.paragraphs[0] for c in row.cells):
-            pPr = para._p.get_or_add_pPr()
+        for cell_p in (c.paragraphs[0] for c in row.cells):
+            pPr = cell_p._p.get_or_add_pPr()
             kn = OxmlElement("w:keepNext")
             pPr.append(kn)
             kl = OxmlElement("w:keepLines")
