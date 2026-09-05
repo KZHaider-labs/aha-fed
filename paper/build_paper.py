@@ -1295,32 +1295,29 @@ def build() -> None:
                "per-hospital label priors induced by Dirichlet partitioning.")
 
     # Dataset table
+    # Eleven properties across three datasets does not fit an IEEE
+    # column with a property per row: "Per-center class prior shift"
+    # cannot break. Transposed, each dataset is one row and the shared
+    # properties (Dirichlet split, no DUA, noise range) move to the
+    # caption, which states them once instead of three times.
     ds_data = [
-        ["Property", "PathMNIST (primary)", "PneumoniaMNIST", "NIH ChestX-ray14 (loader)"],
-        ["Modality", "Colorectal histopathology", "Chest radiograph", "Chest radiograph"],
-        ["Source", "MedMNIST v2 [36]", "MedMNIST v2 [36]", "NIH Clinical Center [31]"],
-        ["Total samples", "107,180", "5,856", "≈ 112,120"],
-        ["Image size", "28 × 28 × 3", "28 × 28 × 1", "1024 × 1024 (resized 224)"],
-        ["Label space", "9 tissue classes", "2 classes (pneumonia)", "14 findings (multi-label)"],
-        ["Federation split", "Dirichlet over classes", "Dirichlet over classes", "Patient-disjoint"],
-        ["Noise injection", "ρ ∈ [0, 0.7] at one client", "ρ ∈ [0, 0.7] at one client", "Real label noise"],
-        ["Heterogeneity source", "Per-center class prior shift", "Per-center class prior shift", "Patient cohort, site"],
-        ["DUA required", "No", "No", "No (public)"],
-        ["Reported here", "Yes, all headline results", "Yes, second modality", "Loader only (Section 7.1)"],
+        ["Dataset", "Modality", "Size", "Labels", "Used for"],
+        ["PathMNIST", "Colorectal histopathology", "107,180 at 28×28",
+         "9 classes", "All headline results"],
+        ["PneumoniaMNIST", "Chest radiograph", "5,856 at 28×28",
+         "2 classes", "Second modality"],
+        ["NIH CXR14", "Chest radiograph", "112,120 at 224×224",
+         "14 findings", "Section 5.10"],
     ]
     add_table_caption(doc,
         "Table 2: Real datasets used in this paper. No synthetic or "
-        "simulated imagery contributes to any reported number."
-    )
-    make_table(doc, ds_data, header_font_size=10, body_font_size=9.5,
-               highlight_row_pred=lambda i, row: False)
-    add_post_table_spacing(doc)
-
-    add_heading(doc, "4.2 Federation, model, and protocol", level=2)
-    add_bullet_run(doc, "Federation. ",
-                   "K = 4 hospitals, full participation per round, 30 "
-                   "communication rounds, 1 local epoch, batch size 32, SGD "
-                   "with learning rate 0.01.")
+        "simulated imagery appears anywhere. PathMNIST and "
+        "PneumoniaMNIST come from MedMNIST v2 [36] and are split "
+        "Dirichlet over classes with label noise ρ ∈ [0, 0.7] "
+        "injected at one client; NIH ChestX-ray14 [31] comes from the "
+        "NIH Clinical Center, is split patient-disjoint, and carries "
+        "its own real annotation noise. None requires a data-use "
+        "agreement.")
     add_bullet_run(doc, "Model. ",
                    "MedCNN (3 convolutional blocks with GroupNorm, ≈ 240K "
                    "parameters) for the 28×28 MedMNIST corpora; DenseNet-121 [10] "
@@ -1544,31 +1541,36 @@ def build() -> None:
         "not.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
+    # Six columns of five-character values do not fit an IEEE column.
+    # AUROC moves to the caption: it separates the aggregators by
+    # 0.011 at most, while the paper's claim is about calibration.
     real_data = [
-        ["Aggregator", "Accuracy", "AUROC", "ECE", "ECE reduction", "p"],
-        ["FedAvg [22]",    "0.672", "0.938", "0.119 ± 0.019", "19.1%", "0.020"],
-        ["FedProx [17]",   "0.673", "0.946", "0.121 ± 0.025", "19.9%", "0.037"],
-        ["FedBN [19]",     "0.692", "0.949", "0.135 ± 0.025", "28.3%", "0.014"],
-        ["FedDisco [37]",  "0.681", "0.946", "0.139 ± 0.030", "30.6%", "0.004"],
-        ["AHA-Fed (ours)", "0.701", "0.949", "0.097 ± 0.018", "—", "—"],
+        ["Method", "Acc", "ECE", "Redn", "p"],
+        ["FedAvg [22]",    "0.672", "0.119±0.019", "19.1%", "0.020"],
+        ["FedProx [17]",   "0.673", "0.121±0.025", "19.9%", "0.037"],
+        ["FedBN [19]",     "0.692", "0.135±0.025", "28.3%", "0.014"],
+        ["FedDisco [37]",  "0.681", "0.139±0.030", "30.6%", "0.004"],
+        ["AHA-Fed (ours)", "0.701", "0.097±0.018", "—", "—"],
     ]
     add_table_caption(doc,
         "Table 3: PathMNIST across five aggregators, ten seeds. The "
         "reduction and p columns compare each baseline against AHA-Fed "
-        "with a paired Wilcoxon signed-rank test over matched seeds.")
+        "with a paired Wilcoxon signed-rank test over matched seeds. "
+        "Macro AUROC separates the aggregators by at most 0.011 "
+        "(0.938, 0.946, 0.949, 0.946 and 0.949 in row order).")
     make_table(doc, real_data,
                highlight_row_pred=lambda i, row: row[0].startswith("AHA-Fed"),
                header_font_size=10, body_font_size=10)
     add_post_table_spacing(doc)
 
     het_data = [
-        ["Dirichlet heterogeneity", "AHA-Fed ECE", "FedAvg ECE", "Reduction", "p"],
-        ["0.0 (near-IID)", "0.090 ± 0.035", "0.135 ± 0.020", "1.50×", "0.010"],
-        ["0.3",            "0.091 ± 0.019", "0.119 ± 0.027", "1.32×", "0.006"],
-        ["0.5",            "0.090 ± 0.020", "0.135 ± 0.030", "1.50×", "0.010"],
-        ["0.7",            "0.082 ± 0.023", "0.138 ± 0.020", "1.69×", "0.002"],
-        ["0.9 (strongly skewed)", "0.092 ± 0.025", "0.128 ± 0.049", "1.38×", "0.106"],
-        ["Pooled (n = 50)", "0.089", "0.131", "1.47×", "< 10⁻⁵"],
+        ["Dirichlet α", "AHA-Fed", "FedAvg", "Redn", "p"],
+        ["0.0", "0.090±0.035", "0.135±0.020", "1.50×", "0.010"],
+        ["0.3", "0.091±0.019", "0.119±0.027", "1.32×", "0.006"],
+        ["0.5", "0.090±0.020", "0.135±0.030", "1.50×", "0.010"],
+        ["0.7", "0.082±0.023", "0.138±0.020", "1.69×", "0.002"],
+        ["0.9", "0.092±0.025", "0.128±0.049", "1.38×", "0.106"],
+        ["Pooled", "0.089", "0.131", "1.47×", "< 10⁻⁵"],
     ]
     add_paragraph(doc,
         "Table 4 reports the same comparison across five levels of "
@@ -1577,7 +1579,7 @@ def build() -> None:
     add_table_caption(doc,
         "Table 4: Heterogeneity sweep on PathMNIST (mean ± s.d., 10 seeds "
         "per level). p-values are paired Wilcoxon signed-rank tests over "
-        "matched seeds; the pooled row covers all fifty observations.")
+        "matched seeds; the pooled row covers all fifty observations. α = 0.0 is near-IID and α = 0.9 strongly skewed; the pooled row is n = 50.")
     make_table(doc, het_data,
                highlight_row_pred=lambda i, row: row[0].startswith("Pooled"),
                header_font_size=10, body_font_size=10)
@@ -1713,10 +1715,10 @@ def build() -> None:
     relq_data = [
         ["Corpus", "Metric", "Relative q̃", "Absolute q", "p"],
         ["PneumoniaMNIST", "ECE", "0.123", "0.142", "0.105"],
-        ["(binary)", "Accuracy", "0.811", "0.782", "0.049"],
+        ["(binary)", "Acc", "0.811", "0.782", "0.049"],
         ["", "AUROC", "0.930", "0.912", "0.006"],
         ["PathMNIST", "ECE", "0.057", "0.057", "0.784"],
-        ["(9-class)", "Accuracy", "0.620", "0.617", "1.000"],
+        ["(9-class)", "Acc", "0.620", "0.617", "1.000"],
         ["", "AUROC", "0.932", "0.932", "0.870"],
     ]
     add_table_caption(doc,
@@ -1792,19 +1794,24 @@ def build() -> None:
         "at 50%, ten seeds each. Table 7 reports the sweep.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
+    # "Weight on corrupted" and its "0.084 (uniform 0.250)" values are
+    # the widest content in the paper; carried in the caption instead,
+    # where the comparison against uniform reads more directly anyway.
     multi_data = [
-        ["Corrupted sites", "AHA-Fed ECE", "FedAvg ECE", "Reduction", "p",
-         "Weight on corrupted"],
-        ["1 of 4", "0.085", "0.126", "1.49×", "0.010", "0.084 (uniform 0.250)"],
-        ["2 of 4", "0.117", "0.178", "1.52×", "0.027", "0.247 (uniform 0.500)"],
-        ["3 of 4", "0.197", "0.227", "1.15×", "0.131", "0.557 (uniform 0.750)"],
-        ["Pooled (n = 30)", "0.133", "0.177", "1.33×", "< 10⁻³", "—"],
+        ["Sites", "Ours", "Base", "Redn", "p"],
+        ["1 of 4", "0.085", "0.126", "1.49×", "0.010"],
+        ["2 of 4", "0.117", "0.178", "1.52×", "0.027"],
+        ["3 of 4", "0.197", "0.227", "1.15×", "0.131"],
+        ["Pooled", "0.133", "0.177", "1.33×", "< 10⁻³"],
     ]
     add_table_caption(doc,
         "Table 7: PathMNIST with an increasing number of corrupted "
-        "hospitals, ten seeds each. The final column is the total "
-        "aggregation weight AHA-Fed assigns to the corrupted sites at the "
-        "last round.")
+        "hospitals, ten seeds each; the pooled row is n = 30. AHA-Fed "
+        "Ours is AHA-Fed and Base is FedAvg; both columns are ECE. The total weight AHA-Fed places on "
+        "the corrupted sites at the last round is 0.084, 0.247 and 0.557 "
+        "against uniform shares of 0.250, 0.500 and 0.750, so the rule "
+        "down-weights them in every case but by a shrinking margin as "
+        "they approach a majority.")
     make_table(doc, multi_data, header_font_size=10, body_font_size=9,
                highlight_row_pred=lambda i, row: row[0].startswith("Pooled"))
     add_post_table_spacing(doc)
@@ -1858,24 +1865,31 @@ def build() -> None:
         "both.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
+    # Six columns with two separate p columns will not fit an IEEE
+    # column. One row per (design, K) keeps four columns and reads in
+    # the same order the text discusses them.
     frac_data = [
-        ["K", "Corrupted", "1,000 img/client", "p", "~4,000 total", "p"],
-        ["4",  "1 of 4",  "1.49×", "0.010", "1.46×", "0.004"],
-        ["8",  "2 of 8",  "1.48×", "0.002", "1.32×", "0.002"],
-        ["12", "3 of 12", "1.42×", "0.006", "1.20×", "0.275"],
-        ["16", "4 of 16", "1.42×", "0.002", "0.97×", "0.846"],
-        ["20", "5 of 20", "1.29×", "0.010", "—", "—"],
-        ["24", "6 of 24", "1.65×", "0.002", "—", "—"],
+        ["Design", "Sites", "Redn", "p"],
+        ["Fixed",  "1 of 4",  "1.49×", "0.010"],
+        ["Fixed",  "2 of 8",  "1.48×", "0.002"],
+        ["Fixed",  "3 of 12", "1.42×", "0.006"],
+        ["Fixed",  "4 of 16", "1.42×", "0.002"],
+        ["Fixed",  "5 of 20", "1.29×", "0.010"],
+        ["Fixed",  "6 of 24", "1.65×", "0.002"],
+        ["Shared", "1 of 4",  "1.46×", "0.004"],
+        ["Shared", "2 of 8",  "1.32×", "0.002"],
+        ["Shared", "3 of 12", "1.20×", "0.275"],
+        ["Shared", "4 of 16", "0.97×", "0.846"],
     ]
     add_table_caption(doc,
         "Table 8: The same 25% corrupted fraction at six federation "
-        "sizes under two designs, ten seeds each. The constant-corpus "
-        "sweep was not run past sixteen sites. Holding per-client data "
-        "fixed keeps the advantage flat; holding the total corpus fixed "
-        "makes it decay, because per-client data then falls with K. "
-        "p-values are paired Wilcoxon signed-rank tests against FedAvg. "
-        "The two K = 4 entries are separate experiments at the same "
-        "per-client budget: the multi-site and scaling sweeps.")
+        "sizes, ten seeds each. Sites gives corrupted of total. "
+        "Fixed holds 1,000 images per client so the corpus grows with "
+        "the federation; Shared divides a constant corpus of about "
+        "4,000 images and was not run past sixteen sites. Values are "
+        "ECE reduction against FedAvg, with paired Wilcoxon p. Holding "
+        "per-client data fixed keeps the advantage flat in K; dividing "
+        "a fixed corpus erodes it.")
     make_table(doc, frac_data, header_font_size=10, body_font_size=9.5,
                highlight_row_pred=lambda i, row: row[0] == "16")
     add_post_table_spacing(doc)
@@ -1953,22 +1967,29 @@ def build() -> None:
         "Table 9 reports both federations.",
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
+    # Six columns will not fit an IEEE column: "0.0113 ± 0.0010" alone
+    # needs most of the width. Federation and aggregator merge into one
+    # label, and AUPRC moves to the caption, which the text already
+    # discusses rather than reading off the table.
     nih_data = [
-        ["Federation", "Aggregator", "AUROC", "AUPRC", "ECE", "Acc"],
-        ["Clean, 8,000 img/ctr", "FedAvg", "0.958", "0.658", "0.0099", "0.702"],
-        ["Clean, 2,000 img/ctr", "FedAvg", "0.927", "0.414", "0.0100", "0.604"],
-        ["Clean, 2,000 img/ctr", "AHA-Fed", "0.923", "0.385", "0.0114", "0.592"],
-        ["Clean, 2,000 img/ctr", "FedBN", "0.909", "0.379", "0.0135", "0.586"],
-        ["50% noise, 9 seeds", "FedAvg", "0.931 ± 0.005", "0.413", "0.0113 ± 0.0010", "0.601"],
-        ["50% noise, 9 seeds", "AHA-Fed", "0.925 ± 0.009", "0.399", "0.0106 ± 0.0016", "0.600"],
-        ["50% noise, 3 seeds", "FedBN", "0.876 ± 0.018", "0.298", "0.0133 ± 0.0013", "0.583"],
-        ["50% noise, 3 seeds", "FedDisco", "0.919 ± 0.006", "0.378", "0.0113 ± 0.0010", "0.599"],
+        ["Setting", "Method", "AUROC", "ECE", "Acc"],
+        ["Clean, 8,000", "FedAvg", "0.958", "0.0099", "0.702"],
+        ["Clean, 2,000", "FedAvg", "0.927", "0.0100", "0.604"],
+        ["Clean, 2,000", "AHA-Fed", "0.923", "0.0114", "0.592"],
+        ["Clean, 2,000", "FedBN", "0.909", "0.0135", "0.586"],
+        ["Noisy, 9 seeds", "FedAvg", "0.931±0.005", "0.0113±0.0010", "0.601"],
+        ["Noisy, 9 seeds", "AHA-Fed", "0.925±0.009", "0.0106±0.0016", "0.600"],
+        ["Noisy, 3 seeds", "FedBN", "0.876±0.018", "0.0133±0.0013", "0.583"],
+        ["Noisy, 3 seeds", "FedDisco", "0.919±0.006", "0.0113±0.0010", "0.599"],
     ]
     add_table_caption(doc,
         "Table 9: NIH ChestX-ray14 at 224×224, four patient-disjoint "
-        "centers. Clean rows are single seed; the corrupted rows are mean ± "
-        "s.d. over nine seeds for FedAvg and AHA-Fed, three for the other two. AUROC and area under the precision-recall curve (AUPRC) are macro-averaged over the "
-        "14 findings; accuracy is exact match over the whole label vector.")
+        "centers; settings give images per center and noise is 50% at one "
+        "site. Clean rows are single seed. AUROC is macro-averaged over the "
+        "14 findings and accuracy is exact match over the whole label "
+        "vector. Macro AUPRC follows the same ordering: 0.658, 0.414, "
+        "0.385 and 0.379 on the clean rows, and 0.413, 0.399, 0.298 and "
+        "0.378 on the noisy ones.")
     make_table(doc, nih_data, header_font_size=10, body_font_size=9.5,
                highlight_row_pred=lambda i, row: False)
     add_post_table_spacing(doc)
@@ -2099,7 +2120,7 @@ def build() -> None:
         align=WD_ALIGN_PARAGRAPH.JUSTIFY, first_line_indent=0.5)
 
     dp_data = [
-        ["Configuration", "ε", "Aggregator", "Accuracy", "AUROC", "ECE"],
+        ["Config", "ε", "Method", "Acc", "AUROC", "ECE"],
         ["300 img/client, 15 rd", "1.0",  "FedAvg",  "0.082", "—", "—"],
         ["300 img/client, 15 rd", "1.0",  "AHA-Fed", "0.084", "—", "—"],
         ["1,000 img/client, 25 rd", "1.0",  "FedAvg",  "0.481", "0.857", "0.215"],

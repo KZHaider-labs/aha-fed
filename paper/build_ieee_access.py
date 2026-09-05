@@ -496,38 +496,80 @@ def table(doc: Document, rows: list[list[str]], caption: str):
         best = 1
         for r in rows:
             cell = str(r[j]).replace(" ± ", "±")
-            for word in cell.replace("-", "- ").split():
+            for word in cell.split():
                 best = max(best, len(word))
         return best
 
     def longest_cell(j):
         return max(len(str(r[j])) for r in rows)
 
-    # A cell wraps; a word does not. Weight by the longest word so a
-    # header like "Heterogeneity" cannot break mid-word, but let a long
-    # multi-word cell pull the column a little wider too.
-    def body_word(j):
-        """Longest unbreakable run below the header row.
+    # Proportional widths cannot guarantee a minimum, so a narrow column
+    # like "Acc" gets starved and its values break ("0.70" / "2"). Give
+    # every column the width its longest unbreakable token needs first,
+    # then share whatever is left in proportion to how much text each
+    # column actually holds. If the minimums alone overflow the column,
+    # the table has too many columns for the page and scaling them down
+    # only hides that; the build says so instead.
+    # Measured off the rendered PDF: digits in these tables run to
+    # 0.070 in per character, so a 0.062 estimate starved the numeric
+    # columns and broke their values. Round up and leave the cell
+    # padding Word actually applies.
+    # Measured off the rendered PDF: at 7.5 pt a digit runs to about
+    # 0.072 in. Type is set per column rather than per table, because a
+    # p-value column of "0.020" needs far less width at 8 pt than the
+    # label column beside it needs at 7.5, and shrinking the whole table
+    # to fit its narrowest column wastes the page.
+    BASE_PT = 7.5 if ncol >= 6 else 8.5
+    CHAR_IN = 0.0064                     # measured off the rendered PDF
+    PAD_IN = 0.12                        # 0.05 in margins a side, plus
+                                         # slack before Word breaks a word
 
-        Header words wrap onto a second line without harm; a value like
-        "0.020" or a header like "AUROC" cannot break at all, so the body
-        decides the minimum width and the header only nudges it.
-        """
-        best = 1
-        for r in rows[1:]:
-            cell = str(r[j]).replace(" ± ", "±")
-            for word in cell.replace("-", "- ").split():
-                best = max(best, len(word))
-        return best
+    def need(j, pt):
+        return longest_word(j) * CHAR_IN * pt + PAD_IN
 
-    weights = [max(body_word(j) * 1.7,
-                   longest_word(j) * 1.15,
-                   longest_cell(j) * 0.5,
-                   4.5)
-               for j in range(ncol)]
-    total = sum(weights)
-    widths = [COLUMN_WIDTH_IN * w / total for w in weights]
+    sizes = [BASE_PT] * ncol
+    mins = [need(j, BASE_PT) for j in range(ncol)]
+    # Shrink the columns that do not fit, smallest step first, until the
+    # row is inside the text column. 6.5 pt is the floor: below that the
+    # table stops being readable and the honest fix is fewer columns.
+    while sum(mins) > COLUMN_WIDTH_IN:
+        j = max(range(ncol), key=lambda k: mins[k] if sizes[k] > 6.5 else -1)
+        if sizes[j] <= 6.5:
+            print(f"    ! table will not fit even at 6.5 pt: {rows[0]}")
+            break
+        sizes[j] -= 0.5
+        mins[j] = need(j, sizes[j])
+
+    slack = max(COLUMN_WIDTH_IN - sum(mins), 0.0)
+    want = [max(longest_cell(j) - longest_word(j), 0) for j in range(ncol)]
+    spread = sum(want) or 1
+    widths = [mins[j] + slack * want[j] / spread for j in range(ncol)]
     tblPr = t._tbl.tblPr
+    # Word's default 0.08 in side margins eat a quarter of a narrow
+    # numeric column and force its values to wrap. Narrow them so the
+    # allocated width is nearly all usable text.
+    # Word will split a table across the column break, stranding the
+    # header alone at the foot of one column and its rows at the head of
+    # the next. Keep every row with the one after it so the whole table
+    # moves together.
+    for row in t.rows:
+        trPr = row._tr.get_or_add_trPr()
+        keep = OxmlElement("w:cantSplit")
+        trPr.append(keep)
+        for para in (c.paragraphs[0] for c in row.cells):
+            pPr = para._p.get_or_add_pPr()
+            kn = OxmlElement("w:keepNext")
+            pPr.append(kn)
+            kl = OxmlElement("w:keepLines")
+            pPr.append(kl)
+
+    cell_mar = OxmlElement("w:tblCellMar")
+    for side, twips in (("left", 72), ("right", 72)):     # 0.05 in
+        el = OxmlElement("w:" + side)
+        el.set(qn("w:w"), str(twips))
+        el.set(qn("w:type"), "dxa")
+        cell_mar.append(el)
+    tblPr.append(cell_mar)
     layout = OxmlElement("w:tblLayout")
     layout.set(qn("w:type"), "fixed")
     tblPr.append(layout)
@@ -539,8 +581,7 @@ def table(doc: Document, rows: list[list[str]], caption: str):
             c = t.cell(i, j)
             c.text = ""
             run = c.paragraphs[0].add_run(str(cell))
-            # Wide tables need a smaller face to stay inside the column.
-            run.font.size = Pt(6.5 if len(rows[0]) >= 6 else 7.5)
+            run.font.size = Pt(sizes[j])
             run.bold = (i == 0)
     doc.add_paragraph()
 
