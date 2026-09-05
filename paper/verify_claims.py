@@ -228,6 +228,20 @@ for m in METHODS:
     if pneu[m]:
         print(f"  {LABEL[m]:<9} ECE {st.mean(pneu[m]):.4f}±{st.pstdev(pneu[m]):.4f} "
               f"(n={len(pneu[m])})")
+# Section 5.2 quotes these two numbers in prose. It once quoted Table 5's
+# three-seed transfer figures instead, which are a different experiment,
+# and named the wrong baseline as best. Pin both to the artifacts.
+if pneu["aha_fed"]:
+    check("Section 5.2 quotes the ten-seed AHA-Fed ECE",
+          f"{st.mean(pneu['aha_fed']):.3f}" == "0.219",
+          f"{st.mean(pneu['aha_fed']):.3f} (paper says 0.219)")
+    _rivals = {m: st.mean(pneu[m]) for m in METHODS[1:] if pneu[m]}
+    if _rivals:
+        _best = min(_rivals, key=_rivals.get)
+        check("Section 5.2 names the best PneumoniaMNIST baseline",
+              LABEL[_best] == "FedAvg" and f"{_rivals[_best]:.3f}" == "0.183",
+              f"{LABEL[_best]} {_rivals[_best]:.3f} (paper says FedAvg 0.183)")
+
 sel = vals(["pneu_ahatuned_b0_g2_s*.json"], "ece")
 if sel:
     print(f"  AHA-Fed (β=0, γ=2, selected on val) ECE {st.mean(sel):.4f}"
